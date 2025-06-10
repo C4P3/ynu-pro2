@@ -4,4 +4,3 @@
 
 テストbySanada
 
-furuta
