@@ -46,6 +46,8 @@ public class LevelManager : MonoBehaviour
     private HashSet<Vector2Int> generatedChunks = new HashSet<Vector2Int>();
     private Vector2[] noiseOffsets;
 
+    private Vector3Int _playerStartPosition;
+
     void Awake()
     {
         if (Instance == null) { Instance = this; } else { Destroy(gameObject); }
@@ -60,6 +62,12 @@ public class LevelManager : MonoBehaviour
 
     void Start()
     {
+        // ★追加: ゲーム開始時のプレイヤー座標をグリッド座標として保存
+        if(playerTransform != null)
+        {
+            _playerStartPosition = blockTilemap.WorldToCell(playerTransform.position);
+        }
+        
         // ゲーム開始時にプレイヤー周辺のチャンクを生成
         CheckAndGenerateChunksAroundPlayer();
     }
@@ -98,6 +106,15 @@ public class LevelManager : MonoBehaviour
             for (int y = startY; y < startY + chunkSize; y++)
             {
                 Vector3Int tilePos = new Vector3Int(x, y, 0);
+
+                // ★追加: この場所がプレイヤーの初期位置の周囲1マス以内なら、何もせず次のループへ
+                if (Mathf.Abs(tilePos.x - _playerStartPosition.x) <= 1 &&
+                    Mathf.Abs(tilePos.y - _playerStartPosition.y) <= 1)
+                {
+                    continue;
+                }
+
+                // 既存のタイルがあればスキップ
                 if (blockTilemap.HasTile(tilePos) || itemTilemap.HasTile(tilePos)) continue;
 
                 // --- アイテム配置ロジック ---
