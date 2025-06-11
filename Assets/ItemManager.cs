@@ -1,59 +1,87 @@
+// ItemManager.cs
 using UnityEngine;
 using UnityEngine.Tilemaps;
 using System.Collections.Generic;
 using System.Linq;
 
+/// <summary>
+/// アイテムの出現設定（データと出現確率）を管理するためのクラス
+/// </summary>
+[System.Serializable]
+public class ItemSpawnSetting
+{
+    public ItemData itemData;
+    [Tooltip("他のアイテムと比較したときの出現しやすさ")]
+    public float spawnWeight;
+}
+
+/// <summary>
+/// アイテムに関する全てのデータを管理し、効果を発動するクラス
+/// </summary>
 public class ItemManager : MonoBehaviour
 {
     public static ItemManager Instance { get; private set; }
 
-    // アイテムに関する設定は全てここに集約する
+    [Header("Item Database")]
+    [Tooltip("ここですべてのアイテムの種類と出現率を設定します")]
     [SerializeField] private List<ItemSpawnSetting> _itemSpawnSettings;
 
+    // タイルからItemDataを高速に逆引きするための辞書
     private Dictionary<TileBase, ItemData> _itemDatabase;
 
     void Awake()
     {
+        // シングルトンパターンの実装
         if (Instance == null) { Instance = this; } else { Destroy(gameObject); }
+        // ゲーム開始時にデータベースを構築する
         BuildDatabase();
     }
 
+    /// <summary>
+    /// 設定リストから、タイルをキーとするデータベース（辞書）を作成する
+    /// </summary>
     private void BuildDatabase()
     {
         _itemDatabase = new Dictionary<TileBase, ItemData>();
-    foreach (var setting in _itemSpawnSettings)
-    {
-    if (!_itemDatabase.ContainsKey(setting.itemData.itemTile))
-    {
-    _itemDatabase.Add(setting.itemData.itemTile, setting.itemData);
-    }
-    }
+        foreach (var setting in _itemSpawnSettings)
+        {
+            if (setting.itemData != null && !_itemDatabase.ContainsKey(setting.itemData.itemTile))
+            {
+                _itemDatabase.Add(setting.itemData.itemTile, setting.itemData);
+            }
+        }
     }
 
-    // ★新しく追加：LevelManagerが呼び出すための公開メソッド
-    // 重み付きランダムで配置すべきアイテムを1つ選んで返す
+    /// <summary>
+    /// LevelManagerが呼び出すための公開メソッド。
+    /// 重み付きランダムで配置すべきアイテムを1つ選んで返す。
+    /// </summary>
     public ItemData GetRandomItemToSpawn()
     {
-    if (_itemSpawnSettings.Count == 0) return null;
+        if (_itemSpawnSettings.Count == 0) return null;
+        float totalWeight = _itemSpawnSettings.Sum(item => item.spawnWeight);
+        if (totalWeight <= 0) return null;
 
-    float totalWeight = _itemSpawnSettings.Sum(item => item.spawnWeight);
-    if (totalWeight <= 0) return null;
-
-    float randomValue = Random.Range(0, totalWeight);
-    foreach (var setting in _itemSpawnSettings)
-    {
-        if (randomValue < setting.spawnWeight)
+        float randomValue = Random.Range(0, totalWeight);
+        foreach (var setting in _itemSpawnSettings)
         {
-            return setting.itemData;
+            if (randomValue < setting.spawnWeight)
+            {
+                return setting.itemData;
+            }
+            randomValue -= setting.spawnWeight;
         }
-        randomValue -= setting.spawnWeight;
-    }
-    return null;
+        return null;
     }
 
-    // プレイヤーがアイテムを取得した時に呼ばれる
+    /// <summary>
+    /// プレイヤーがアイテムを取得した時に呼ばれるメソッド
+    /// </summary>
+    /// <param name="itemTile">取得したアイテムのタイル</param>
+    /// <param name="itemPosition">取得したアイテムのタイルマップ座標</param>
     public void AcquireItem(TileBase itemTile, Vector3Int itemPosition)
     {
+        // データベースに登録されていないタイルであれば何もしない
         if (!_itemDatabase.TryGetValue(itemTile, out ItemData data)) return;
 
         Debug.Log($"Acquired: {data.itemName}");
