@@ -11,7 +11,7 @@ public class PlayerController : MonoBehaviour
 
     // ゲームマネージャーやタイピングマネージャーへの参照（後で使う）
     // public GameManager gameManager;
-    // public TypingManager typingManager;
+    public TypingManager typingManager;
 
     void Start()
     {
@@ -55,8 +55,8 @@ public class PlayerController : MonoBehaviour
         if (blockTilemap.HasTile(nextGridPos))
         {
             Debug.Log("ブロック発見！タイピングを開始します。");
-            // ここでTypingManagerを呼び出す処理（ステップ4で実装）
-            // typingManager.StartTyping(nextGridPos); 
+            // TypingManagerを呼び出す
+            typingManager.StartTyping(nextGridPos); 
             return;
         }
 
