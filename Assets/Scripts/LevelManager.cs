@@ -1,17 +1,24 @@
+// LevelManager.cs
 using UnityEngine;
 using UnityEngine.Tilemaps;
 using System.Collections.Generic;
 using System.Linq;
 
-// BlockTypeクラスは変更なしでOK
 [System.Serializable]
 public class BlockType
 {
     public string name;
     public TileBase tile;
-    [Tooltip("このブロックの出現しやすさ。値が大きいほど優先して選ばれやすくなる。")]
     public float probabilityWeight = 1.0f;
-    // Min/Max Y は今回の要件では使わないが、将来のために残しておいても良い
+}
+
+// アイテムの出現設定を管理するクラス（ファイル先頭に追加）
+[System.Serializable]
+public class ItemSpawnSetting
+{
+    public ItemData itemData;
+    [Tooltip("他のアイテムと比較したときの出現しやすさ")]
+    public float spawnWeight;
 }
 
 public class LevelManager : MonoBehaviour
@@ -20,40 +27,35 @@ public class LevelManager : MonoBehaviour
 
     [Header("References")]
     public Tilemap blockTilemap;
+    public Tilemap itemTilemap; // ItemTilemapへの参照を追加
     public Transform playerTransform;
 
     [Header("Cluster Generation Settings")]
-    [Tooltip("生成するブロックの種類と、その出現しやすさを設定します。")]
     public BlockType[] blockTypes;
-    [Tooltip("値が小さいほど大きな塊に、大きいほど小さな塊になります。0.1前後がおすすめ。")]
     public float noiseScale = 0.1f;
-    [Tooltip("この値よりノイズが大きい場所だけにブロックを生成します。値を上げると空間が増えます。")]
     [Range(0, 1)]
     public float blockThreshold = 0.4f;
 
-    [Header("Item Area Settings")]
-    [Tooltip("アイテムを置くための単独の空洞ができる確率。塊生成とは別に処理されます。")]
+    [Header("Item Generation Settings")] // アイテム設定項目を追加
+    [Tooltip("アイテムを配置する候補地ができる確率")]
     [Range(0, 1)]
     public float itemAreaChance = 0.02f;
+    [Tooltip("生成するアイテムとその出現率のリスト")]
+    public List<ItemSpawnSetting> itemSpawnSettings = new List<ItemSpawnSetting>();
 
     [Header("Internal Settings")]
-    [Tooltip("チャンクの1辺のタイル数")]
     public int chunkSize = 16;
-    [Tooltip("プレイヤー中心に何チャンク先まで生成するか")]
     public int generationRadiusInChunks = 2;
 
     private HashSet<Vector2Int> generatedChunks = new HashSet<Vector2Int>();
-    private Vector2[] noiseOffsets; // ブロックの種類ごとにノイズをずらすためのオフセット
+    private Vector2[] noiseOffsets;
 
     void Awake()
     {
         if (Instance == null) { Instance = this; } else { Destroy(gameObject); }
-
-        // ブロックの種類ごとに異なるノイズを生成するため、ランダムなオフセットを最初に作っておく
         noiseOffsets = new Vector2[blockTypes.Length];
         for (int i = 0; i < blockTypes.Length; i++)
         {
-            // 非常に大きな値でオフセットを作り、事実上別のノイズ関数のように見せる
             noiseOffsets[i] = new Vector2(Random.Range(-10000f, 10000f), Random.Range(-10000f, 10000f));
         }
     }
@@ -62,61 +64,81 @@ public class LevelManager : MonoBehaviour
     {
         CheckAndGenerateChunksAroundPlayer();
     }
-    
-    /// <summary>
-    /// 指定された座標のチャンク内に、パーリンノイズを使ってブロックの塊を生成する
-    /// </summary>
+
     private void GenerateChunk(Vector2Int chunkPos)
     {
         int startX = chunkPos.x * chunkSize;
         int startY = chunkPos.y * chunkSize;
-        
+
         for (int x = startX; x < startX + chunkSize; x++)
         {
             for (int y = startY; y < startY + chunkSize; y++)
             {
                 Vector3Int tilePos = new Vector3Int(x, y, 0);
-                if (blockTilemap.HasTile(tilePos)) continue;
+                if (blockTilemap.HasTile(tilePos) || itemTilemap.HasTile(tilePos)) continue;
 
-                // --- 1. アイテム用の空洞を先に決める ---
+                // --- アイテム用の空洞を先に決める ---
                 if (Random.value < itemAreaChance)
                 {
-                    continue; // このマスは何もせず、空洞のままにする
+                    ItemData selectedItem = GetRandomItem();
+                    if (selectedItem != null)
+                    {
+                        itemTilemap.SetTile(tilePos, selectedItem.itemTile);
+                    }
+                    continue; // アイテムを置いたらブロックは置かない
                 }
-
-                // --- 2. パーリンノイズでどのブロックを置くか決める ---
+                
+                // (既存のブロック生成ロジックはここから)
                 BlockType chosenBlock = null;
                 float maxNoiseValue = -1f;
-
-                // 全てのブロックタイプに対してノイズ値を計算
                 for (int i = 0; i < blockTypes.Length; i++)
                 {
-                    // ノイズ計算用の座標を準備
                     float noiseX = (x + noiseOffsets[i].x) * noiseScale;
                     float noiseY = (y + noiseOffsets[i].y) * noiseScale;
-                    
-                    // パーリンノイズを計算し、出現しやすさで補正
                     float currentNoise = Mathf.PerlinNoise(noiseX, noiseY) + blockTypes[i].probabilityWeight;
-
-                    // 最も値が大きいノイズを持つブロックを候補とする
                     if (currentNoise > maxNoiseValue)
                     {
                         maxNoiseValue = currentNoise;
                         chosenBlock = blockTypes[i];
                     }
                 }
-
-                // --- 3. ブロックを配置する ---
-                // 最もノイズ値が大きかったブロックを、閾値を超えていれば配置
-                // 閾値以下の場所は自然な形の空洞になる
-                if (chosenBlock != null && maxNoiseValue > (blockThreshold + chosenBlock.probabilityWeight)) // probabilityWeightの分を閾値からも引く
+                if (chosenBlock != null && maxNoiseValue > (blockThreshold + chosenBlock.probabilityWeight))
                 {
                     blockTilemap.SetTile(tilePos, chosenBlock.tile);
                 }
             }
         }
     }
+
+    private ItemData GetRandomItem()
+    {
+        if (itemSpawnSettings.Count == 0) return null;
+        float totalWeight = itemSpawnSettings.Sum(item => item.spawnWeight);
+        if (totalWeight <= 0) return null;
+        float randomValue = Random.Range(0, totalWeight);
+        foreach (var setting in itemSpawnSettings)
+        {
+            if (randomValue < setting.spawnWeight) return setting.itemData;
+            randomValue -= setting.spawnWeight;
+        }
+        return null;
+    }
     
+    // 爆発処理をLevelManagerに追加
+    public void ExplodeBlocks(Vector3Int center, int radius)
+    {
+        for (int x = -radius; x <= radius; x++)
+        {
+            for (int y = -radius; y <= radius; y++)
+            {
+                if(x*x + y*y > radius*radius) continue;
+                Vector3Int pos = center + new Vector3Int(x, y, 0);
+                blockTilemap.SetTile(pos, null);
+                itemTilemap.SetTile(pos, null);
+            }
+        }
+    }
+
     // CheckAndGenerateChunksAroundPlayer, WorldToChunkPos, DestroyConnectedBlocks など、
     // 他のメソッドは前のバージョンから変更ありません。
     // ... (以下、変更のないメソッドは省略) ...

@@ -1,3 +1,4 @@
+// PlayerController.cs
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
@@ -5,6 +6,7 @@ public class PlayerController : MonoBehaviour
 {
     public float moveSpeed = 5f;
     public Tilemap blockTilemap;
+    public Tilemap itemTilemap; // ItemTilemapへの参照を追加
     public TypingManager typingManager;
 
     private Vector3Int _targetGridPos;
@@ -14,6 +16,7 @@ public class PlayerController : MonoBehaviour
     {
         _targetGridPos = blockTilemap.WorldToCell(transform.position);
         transform.position = blockTilemap.GetCellCenterWorld(_targetGridPos);
+        CheckForItemAt(_targetGridPos); // 開始地点のアイテムもチェック
     }
 
     void Update()
@@ -26,8 +29,8 @@ public class PlayerController : MonoBehaviour
                 transform.position = blockTilemap.GetCellCenterWorld(_targetGridPos);
                 _isMoving = false;
 
-                // --- 修正点 ---
-                // 移動完了後にチャンクのチェックと生成を依頼する
+                CheckForItemAt(_targetGridPos); // 移動完了時にアイテムをチェック
+
                 if (LevelManager.Instance != null)
                 {
                     LevelManager.Instance.CheckAndGenerateChunksAroundPlayer();
@@ -35,8 +38,7 @@ public class PlayerController : MonoBehaviour
             }
             return;
         }
-        
-        // (入力処理部分は変更なし)
+
         Vector3Int moveVec = Vector3Int.zero;
         if (Input.GetKeyDown(KeyCode.UpArrow))    moveVec = Vector3Int.up;
         if (Input.GetKeyDown(KeyCode.DownArrow))  moveVec = Vector3Int.down;
@@ -49,21 +51,29 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    // (CheckMove と MoveTo メソッドは変更なし)
     void CheckMove(Vector3Int moveVec)
     {
         Vector3Int nextGridPos = _targetGridPos + moveVec;
-        
         if (blockTilemap.HasTile(nextGridPos))
         {
             typingManager.StartTyping(nextGridPos);
             return;
         }
-        
         _targetGridPos = nextGridPos;
         _isMoving = true;
     }
 
+    // 新しく追加するメソッド
+    private void CheckForItemAt(Vector3Int position)
+    {
+        TileBase itemTile = itemTilemap.GetTile(position);
+        if (itemTile != null && ItemManager.Instance != null)
+        {
+            ItemManager.Instance.AcquireItem(itemTile, position);
+            itemTilemap.SetTile(position, null); // アイテムを消す
+        }
+    }
+    
     public void MoveTo(Vector3Int targetPos)
     {
         _targetGridPos = targetPos;
