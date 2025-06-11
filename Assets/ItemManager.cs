@@ -1,4 +1,3 @@
-// ItemManager.cs
 using UnityEngine;
 using UnityEngine.Tilemaps;
 using System.Collections.Generic;
@@ -8,10 +7,9 @@ public class ItemManager : MonoBehaviour
 {
     public static ItemManager Instance { get; private set; }
 
-    [Tooltip("LevelManagerに設定したものと同じアイテムのリストを設定してください")]
-    public List<ItemSpawnSetting> itemSpawnSettings;
+    // アイテムに関する設定は全てここに集約する
+    [SerializeField] private List<ItemSpawnSetting> _itemSpawnSettings;
 
-    // タイルからItemDataを高速に逆引きするための辞書
     private Dictionary<TileBase, ItemData> _itemDatabase;
 
     void Awake()
@@ -23,13 +21,34 @@ public class ItemManager : MonoBehaviour
     private void BuildDatabase()
     {
         _itemDatabase = new Dictionary<TileBase, ItemData>();
-        foreach (var setting in itemSpawnSettings)
+    foreach (var setting in _itemSpawnSettings)
+    {
+    if (!_itemDatabase.ContainsKey(setting.itemData.itemTile))
+    {
+    _itemDatabase.Add(setting.itemData.itemTile, setting.itemData);
+    }
+    }
+    }
+
+    // ★新しく追加：LevelManagerが呼び出すための公開メソッド
+    // 重み付きランダムで配置すべきアイテムを1つ選んで返す
+    public ItemData GetRandomItemToSpawn()
+    {
+    if (_itemSpawnSettings.Count == 0) return null;
+
+    float totalWeight = _itemSpawnSettings.Sum(item => item.spawnWeight);
+    if (totalWeight <= 0) return null;
+
+    float randomValue = Random.Range(0, totalWeight);
+    foreach (var setting in _itemSpawnSettings)
+    {
+        if (randomValue < setting.spawnWeight)
         {
-            if (!_itemDatabase.ContainsKey(setting.itemData.itemTile))
-            {
-                _itemDatabase.Add(setting.itemData.itemTile, setting.itemData);
-            }
+            return setting.itemData;
         }
+        randomValue -= setting.spawnWeight;
+    }
+    return null;
     }
 
     // プレイヤーがアイテムを取得した時に呼ばれる

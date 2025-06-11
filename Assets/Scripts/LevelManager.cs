@@ -21,27 +21,25 @@ public class ItemSpawnSetting
     public float spawnWeight;
 }
 
+
 public class LevelManager : MonoBehaviour
 {
     public static LevelManager Instance { get; private set; }
 
     [Header("References")]
     public Tilemap blockTilemap;
-    public Tilemap itemTilemap; // ItemTilemapへの参照を追加
+    public Tilemap itemTilemap;
     public Transform playerTransform;
 
     [Header("Cluster Generation Settings")]
     public BlockType[] blockTypes;
     public float noiseScale = 0.1f;
-    [Range(0, 1)]
-    public float blockThreshold = 0.4f;
+    [Range(0, 1)] public float blockThreshold = 0.4f;
 
-    [Header("Item Generation Settings")] // アイテム設定項目を追加
+    [Header("Item Generation Settings")]
     [Tooltip("アイテムを配置する候補地ができる確率")]
-    [Range(0, 1)]
-    public float itemAreaChance = 0.02f;
-    [Tooltip("生成するアイテムとその出現率のリスト")]
-    public List<ItemSpawnSetting> itemSpawnSettings = new List<ItemSpawnSetting>();
+    [Range(0, 1)] public float itemAreaChance = 0.02f;
+    // アイテムのリストはここから削除
 
     [Header("Internal Settings")]
     public int chunkSize = 16;
@@ -77,13 +75,17 @@ public class LevelManager : MonoBehaviour
                 Vector3Int tilePos = new Vector3Int(x, y, 0);
                 if (blockTilemap.HasTile(tilePos) || itemTilemap.HasTile(tilePos)) continue;
 
-                // --- アイテム用の空洞を先に決める ---
+                // --- アイテム配置ロジック（修正後） ---
                 if (Random.value < itemAreaChance)
                 {
-                    ItemData selectedItem = GetRandomItem();
-                    if (selectedItem != null)
+                    if (ItemManager.Instance != null)
                     {
-                        itemTilemap.SetTile(tilePos, selectedItem.itemTile);
+                        // ItemManagerに問い合わせて、配置するアイテムを決める
+                        ItemData selectedItem = ItemManager.Instance.GetRandomItemToSpawn();
+                        if (selectedItem != null)
+                        {
+                            itemTilemap.SetTile(tilePos, selectedItem.itemTile);
+                        }
                     }
                     continue; // アイテムを置いたらブロックは置かない
                 }
