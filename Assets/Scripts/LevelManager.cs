@@ -1,6 +1,18 @@
 using UnityEngine;
 using UnityEngine.Tilemaps;
 using System.Collections.Generic;
+using System.Linq;
+
+// BlockTypeクラスは変更なしでOK
+[System.Serializable]
+public class BlockType
+{
+    public string name;
+    public TileBase tile;
+    [Tooltip("このブロックの出現しやすさ。値が大きいほど優先して選ばれやすくなる。")]
+    public float probabilityWeight = 1.0f;
+    // Min/Max Y は今回の要件では使わないが、将来のために残しておいても良い
+}
 
 public class LevelManager : MonoBehaviour
 {
@@ -8,106 +20,129 @@ public class LevelManager : MonoBehaviour
 
     [Header("References")]
     public Tilemap blockTilemap;
-    public Transform playerTransform; // PlayerControllerではなくTransformを直接参照
+    public Transform playerTransform;
 
-    [Header("Level Generation")]
-    public TileBase[] blockTiles;
-    public int chunkSize = 16; // チャンクの1辺のタイル数
-    public int generationRadiusInChunks = 2; // プレイヤー中心に何チャンク先まで生成するか
+    [Header("Cluster Generation Settings")]
+    [Tooltip("生成するブロックの種類と、その出現しやすさを設定します。")]
+    public BlockType[] blockTypes;
+    [Tooltip("値が小さいほど大きな塊に、大きいほど小さな塊になります。0.1前後がおすすめ。")]
+    public float noiseScale = 0.1f;
+    [Tooltip("この値よりノイズが大きい場所だけにブロックを生成します。値を上げると空間が増えます。")]
+    [Range(0, 1)]
+    public float blockThreshold = 0.4f;
 
-    // 生成済みのチャンク座標を記録するHashSet
+    [Header("Item Area Settings")]
+    [Tooltip("アイテムを置くための単独の空洞ができる確率。塊生成とは別に処理されます。")]
+    [Range(0, 1)]
+    public float itemAreaChance = 0.02f;
+
+    [Header("Internal Settings")]
+    [Tooltip("チャンクの1辺のタイル数")]
+    public int chunkSize = 16;
+    [Tooltip("プレイヤー中心に何チャンク先まで生成するか")]
+    public int generationRadiusInChunks = 2;
+
     private HashSet<Vector2Int> generatedChunks = new HashSet<Vector2Int>();
+    private Vector2[] noiseOffsets; // ブロックの種類ごとにノイズをずらすためのオフセット
 
     void Awake()
     {
         if (Instance == null) { Instance = this; } else { Destroy(gameObject); }
+
+        // ブロックの種類ごとに異なるノイズを生成するため、ランダムなオフセットを最初に作っておく
+        noiseOffsets = new Vector2[blockTypes.Length];
+        for (int i = 0; i < blockTypes.Length; i++)
+        {
+            // 非常に大きな値でオフセットを作り、事実上別のノイズ関数のように見せる
+            noiseOffsets[i] = new Vector2(Random.Range(-10000f, 10000f), Random.Range(-10000f, 10000f));
+        }
     }
 
     void Start()
     {
-        // ゲーム開始時にプレイヤー周辺のチャンクを生成
         CheckAndGenerateChunksAroundPlayer();
     }
-
+    
     /// <summary>
-    /// プレイヤーの現在位置からチャンク座標を計算する
+    /// 指定された座標のチャンク内に、パーリンノイズを使ってブロックの塊を生成する
     /// </summary>
+    private void GenerateChunk(Vector2Int chunkPos)
+    {
+        int startX = chunkPos.x * chunkSize;
+        int startY = chunkPos.y * chunkSize;
+        
+        for (int x = startX; x < startX + chunkSize; x++)
+        {
+            for (int y = startY; y < startY + chunkSize; y++)
+            {
+                Vector3Int tilePos = new Vector3Int(x, y, 0);
+                if (blockTilemap.HasTile(tilePos)) continue;
+
+                // --- 1. アイテム用の空洞を先に決める ---
+                if (Random.value < itemAreaChance)
+                {
+                    continue; // このマスは何もせず、空洞のままにする
+                }
+
+                // --- 2. パーリンノイズでどのブロックを置くか決める ---
+                BlockType chosenBlock = null;
+                float maxNoiseValue = -1f;
+
+                // 全てのブロックタイプに対してノイズ値を計算
+                for (int i = 0; i < blockTypes.Length; i++)
+                {
+                    // ノイズ計算用の座標を準備
+                    float noiseX = (x + noiseOffsets[i].x) * noiseScale;
+                    float noiseY = (y + noiseOffsets[i].y) * noiseScale;
+                    
+                    // パーリンノイズを計算し、出現しやすさで補正
+                    float currentNoise = Mathf.PerlinNoise(noiseX, noiseY) + blockTypes[i].probabilityWeight;
+
+                    // 最も値が大きいノイズを持つブロックを候補とする
+                    if (currentNoise > maxNoiseValue)
+                    {
+                        maxNoiseValue = currentNoise;
+                        chosenBlock = blockTypes[i];
+                    }
+                }
+
+                // --- 3. ブロックを配置する ---
+                // 最もノイズ値が大きかったブロックを、閾値を超えていれば配置
+                // 閾値以下の場所は自然な形の空洞になる
+                if (chosenBlock != null && maxNoiseValue > (blockThreshold + chosenBlock.probabilityWeight)) // probabilityWeightの分を閾値からも引く
+                {
+                    blockTilemap.SetTile(tilePos, chosenBlock.tile);
+                }
+            }
+        }
+    }
+    
+    // CheckAndGenerateChunksAroundPlayer, WorldToChunkPos, DestroyConnectedBlocks など、
+    // 他のメソッドは前のバージョンから変更ありません。
+    // ... (以下、変更のないメソッドは省略) ...
+    public void CheckAndGenerateChunksAroundPlayer()
+    {
+        if (playerTransform == null) return;
+        Vector2Int playerChunkPos = WorldToChunkPos(playerTransform.position);
+        for (int x = -generationRadiusInChunks; x <= generationRadiusInChunks; x++)
+        {
+            for (int y = -generationRadiusInChunks; y <= generationRadiusInChunks; y++)
+            {
+                Vector2Int targetChunkPos = new Vector2Int(playerChunkPos.x + x, playerChunkPos.y + y);
+                if (!generatedChunks.Contains(targetChunkPos))
+                {
+                    GenerateChunk(targetChunkPos);
+                    generatedChunks.Add(targetChunkPos);
+                }
+            }
+        }
+    }
     private Vector2Int WorldToChunkPos(Vector3 worldPos)
     {
         Vector3Int gridPos = blockTilemap.WorldToCell(worldPos);
         int x = Mathf.FloorToInt((float)gridPos.x / chunkSize);
         int y = Mathf.FloorToInt((float)gridPos.y / chunkSize);
         return new Vector2Int(x, y);
-    }
-
-    /// <summary>
-    /// プレイヤーの周囲のチャンクをチェックし、未生成なら生成する
-    /// </summary>
-    public void CheckAndGenerateChunksAroundPlayer()
-    {
-        if (playerTransform == null) return;
-
-        Vector2Int playerChunkPos = WorldToChunkPos(playerTransform.position);
-
-        // プレイヤー中心のチャンク範囲をループ
-        for (int x = -generationRadiusInChunks; x <= generationRadiusInChunks; x++)
-        {
-            for (int y = -generationRadiusInChunks; y <= generationRadiusInChunks; y++)
-            {
-                Vector2Int targetChunkPos = new Vector2Int(playerChunkPos.x + x, playerChunkPos.y + y);
-
-                // もし、そのチャンクがまだ生成されていなければ
-                if (!generatedChunks.Contains(targetChunkPos))
-                {
-                    GenerateChunk(targetChunkPos);
-                    // 生成済みとして記録
-                    generatedChunks.Add(targetChunkPos);
-                }
-            }
-        }
-    }
-
-    /// <summary>
-    /// 指定された座標のチャンク内にブロックを敷き詰める
-    /// </summary>
-    private void GenerateChunk(Vector2Int chunkPos)
-    {
-        int startX = chunkPos.x * chunkSize;
-        int startY = chunkPos.y * chunkSize;
-        int endX = startX + chunkSize;
-        int endY = startY + chunkSize;
-
-        // チャンク内の全タイルをループ
-        for (int x = startX; x < endX; x++)
-        {
-            for (int y = startY; y < endY; y++)
-            {
-                Vector3Int tilePos = new Vector3Int(x, y, 0);
-
-                // ※重要※ 既存の破壊処理との干渉を避けるため、
-                // 既に何らかのタイルがある場合は上書きしない
-                if (blockTilemap.HasTile(tilePos)) continue;
-
-                // プレイヤーの初期生成エリアなど、特定の場所を空けておくルールもここに追加できる
-                // 例：ゲーム開始地点(0,0)周辺は生成しない
-                if (Mathf.Abs(x) < 5 && y > -5)
-                {
-                    continue;
-                }
-
-                GenerateBlockAt(tilePos);
-            }
-        }
-    }
-
-    /// <summary>
-    /// 指定した座標にランダムなブロックを1つ配置する
-    /// </summary>
-    private void GenerateBlockAt(Vector3Int position)
-    {
-        if (blockTiles.Length == 0) return;
-        TileBase randomTile = blockTiles[Random.Range(0, blockTiles.Length)];
-        blockTilemap.SetTile(position, randomTile);
     }
 
 
