@@ -8,5 +8,3 @@
 aaa
 テストbyKato
 
-
-aaa
