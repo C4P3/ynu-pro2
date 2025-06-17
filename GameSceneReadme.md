@@ -69,40 +69,40 @@
 ```mermaid
 classDiagram
     class GameManager {
-        +Instance
-        +RecoverOxygen(float)
+        + Instance
+        + RecoverOxygen(float)
     }
     class LevelManager {
-        +Instance
-        +DestroyConnectedBlocks(Vector3Int)
-        +ExplodeBlocks(Vector3Int, int)
+        + Instance
+        + DestroyConnectedBlocks(Vector3Int)
+        + ExplodeBlocks(Vector3Int, int)
     }
     class PlayerController {
-        -PlayerState _currentState
-        -HandleRoamingState()
-        -HandleMovingState()
-        -HandleTypingEnded(bool)
+        - PlayerState _currentState
+        - HandleRoamingState()
+        - HandleMovingState()
+        - HandleTypingEnded(bool)
     }
     class TypingManager {
-        +StartTyping(Vector3Int)
-        +OnTypingEnded(bool) event
+        + StartTyping(Vector3Int)
+        + OnTypingEnded(bool) event
     }
     class ItemManager {
-        +Instance
-        +GetRandomItemToSpawn() : ItemData
-        +AcquireItem(TileBase, Vector3Int)
+        + Instance
+        + GetRandomItemToSpawn() : ItemData
+        + AcquireItem(TileBase, Vector3Int)
     }
     class ItemData {
         <<ScriptableObject>>
-        +itemName
-        +effectType
-        +itemTile
+        + itemName
+        + effectType
+        + itemTile
     }
 
     PlayerController --> TypingManager : "依頼(StartTyping)"
-    TypingManager -->> PlayerController : "イベント通知(OnTypingEnded)"
+    TypingManager --> PlayerController : "イベント通知(OnTypingEnded)"
     PlayerController --> LevelManager : "破壊依頼"
-    
+
     ItemManager "1" -- "N" ItemData : "管理する"
     LevelManager --> ItemManager : "配置アイテムを問い合わせ"
     PlayerController --> ItemManager : "取得を報告"
