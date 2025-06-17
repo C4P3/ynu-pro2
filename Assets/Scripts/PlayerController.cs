@@ -71,6 +71,7 @@ public class PlayerController : MonoBehaviour
         // 移動先にブロックがあればタイピングを開始
         if (blockTilemap.HasTile(nextGridPos))
         {
+            Debug.Log("② PlayerController: ブロック発見！タイピングを開始します。");
             typingManager.StartTyping(nextGridPos, moveVec);
             return;
         }
