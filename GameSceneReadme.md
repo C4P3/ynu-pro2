@@ -100,7 +100,7 @@ classDiagram
     }
 
     PlayerController --> TypingManager : "依頼(StartTyping)"
-    TypingManager -->> PlayerController : "イベント通知(OnTypingEnded)"
+    TypingManager --> PlayerController : "イベント通知(OnTypingEnded)"
     PlayerController --> LevelManager : "破壊依頼"
 
     ItemManager "1" -- "N" ItemData : "管理する"
