@@ -3,7 +3,17 @@ using UnityEngine;
 using UnityEngine.Tilemaps;
 
 /// <summary>
-/// プレイヤーの移動、入力、アイテム取得を管理するクラス
+/// プレイヤーの状態を定義する列挙型
+/// </summary>
+public enum PlayerState
+{
+    Roaming, // 自由に動ける状態
+    Moving,  // グリッド間を移動中
+    Typing   // タイピング中
+}
+
+/// <summary>
+/// プレイヤーの移動、入力、状態遷移を管理するクラス
 /// </summary>
 public class PlayerController : MonoBehaviour
 {
@@ -15,37 +25,55 @@ public class PlayerController : MonoBehaviour
     public Tilemap itemTilemap;
     public TypingManager typingManager;
 
-    private Vector3Int _targetGridPos;
-    private bool _isMoving = false;
+    // プレイヤーの現在の状態
+    private PlayerState _currentState = PlayerState.Roaming;
+    private Vector3Int _gridTargetPos;
+    private Vector3Int _typingTargetPos; // タイピング対象のブロック座標
+
+    #region Unity Lifecycle Methods
+    void OnEnable()
+    {
+        // TypingManagerのイベントに、自分のメソッドを登録
+        TypingManager.OnTypingEnded += HandleTypingEnded;
+    }
+
+    void OnDisable()
+    {
+        // オブジェクトが無効になるときに、登録を解除（メモリリーク防止）
+        TypingManager.OnTypingEnded -= HandleTypingEnded;
+    }
 
     void Start()
     {
-        _targetGridPos = blockTilemap.WorldToCell(transform.position);
-        transform.position = blockTilemap.GetCellCenterWorld(_targetGridPos);
-        CheckForItemAt(_targetGridPos);
+        _gridTargetPos = blockTilemap.WorldToCell(transform.position);
+        transform.position = blockTilemap.GetCellCenterWorld(_gridTargetPos);
+        CheckForItemAt(_gridTargetPos);
     }
 
     void Update()
     {
-        // 移動中は新しい入力を受け付けない
-        if (_isMoving)
+        // 状態に応じて処理を分岐
+        switch (_currentState)
         {
-            transform.position = Vector3.MoveTowards(transform.position, blockTilemap.GetCellCenterWorld(_targetGridPos), moveSpeed * Time.deltaTime);
-            if (Vector3.Distance(transform.position, blockTilemap.GetCellCenterWorld(_targetGridPos)) < 0.01f)
-            {
-                transform.position = blockTilemap.GetCellCenterWorld(_targetGridPos);
-                _isMoving = false;
-                CheckForItemAt(_targetGridPos);
-                if (LevelManager.Instance != null)
-                {
-                    LevelManager.Instance.CheckAndGenerateChunksAroundPlayer();
-                }
-            }
-            return;
+            case PlayerState.Roaming:
+                HandleRoamingState();
+                break;
+            case PlayerState.Moving:
+                HandleMovingState();
+                break;
+            case PlayerState.Typing:
+                // タイピング中はプレイヤー自身は何もしない
+                break;
         }
+    }
+    #endregion
 
-        // --- ★入力検知の変更 ---
-        // Shiftキーが押されている場合のみ、移動入力を検知する
+    #region State Handling
+    /// <summary>
+    /// Roaming（待機・自由移動）状態の処理
+    /// </summary>
+    private void HandleRoamingState()
+    {
         if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
         {
             Vector3Int moveVec = Vector3Int.zero;
@@ -56,30 +84,83 @@ public class PlayerController : MonoBehaviour
 
             if (moveVec != Vector3Int.zero)
             {
-                CheckMove(moveVec);
+                CheckAndMove(moveVec);
             }
         }
     }
 
     /// <summary>
-    /// 指定された方向に移動できるかチェックする
+    /// Moving（移動中）状態の処理
     /// </summary>
-    void CheckMove(Vector3Int moveVec)
+    private void HandleMovingState()
     {
-        Vector3Int nextGridPos = _targetGridPos + moveVec;
+        transform.position = Vector3.MoveTowards(transform.position, blockTilemap.GetCellCenterWorld(_gridTargetPos), moveSpeed * Time.deltaTime);
+        if (Vector3.Distance(transform.position, blockTilemap.GetCellCenterWorld(_gridTargetPos)) < 0.01f)
+        {
+            transform.position = blockTilemap.GetCellCenterWorld(_gridTargetPos);
+            CheckForItemAt(_gridTargetPos);
+            if (LevelManager.Instance != null)
+            {
+                LevelManager.Instance.CheckAndGenerateChunksAroundPlayer();
+            }
+            // 移動が完了したので、Roaming状態に戻る
+            _currentState = PlayerState.Roaming;
+        }
+    }
+
+    /// <summary>
+    /// TypingManagerからのイベントを処理するメソッド
+    /// </summary>
+    private void HandleTypingEnded(bool wasSuccessful)
+    {
+        if (wasSuccessful)
+        {
+            // ★修正: ブロックを破壊する処理をここに追加
+            if (LevelManager.Instance != null)
+            {
+                LevelManager.Instance.DestroyConnectedBlocks(_typingTargetPos);
+            }
+            
+            // タイピングに成功したら、対象ブロックへ移動を開始
+            MoveTo(_typingTargetPos);
+        }
+        else
+        {
+            // キャンセルされたら、Roaming状態に戻る
+            _currentState = PlayerState.Roaming;
+        }
+    }
+    #endregion
+
+    #region Actions
+    /// <summary>
+    /// 指定された方向に移動できるかチェックし、行動を決定する
+    /// </summary>
+    void CheckAndMove(Vector3Int moveVec)
+    {
+        Vector3Int nextGridPos = _gridTargetPos + moveVec;
         
-        // 移動先にブロックがあればタイピングを開始
         if (blockTilemap.HasTile(nextGridPos))
         {
-            //なぜか下のログをいれるとうまく動作します。
-            Debug.Log("② PlayerController: ブロック発見！タイピングを開始します。");
-            typingManager.StartTyping(nextGridPos, moveVec);
-            return;
+            // ブロックがある場合
+            _typingTargetPos = nextGridPos; // 対象を記憶
+            _currentState = PlayerState.Typing; // 自身の状態を「タイピング中」に変更
+            typingManager.StartTyping(moveVec); // TypingManagerに開始を依頼
         }
+        else
+        {
+            // ブロックがない場合
+            MoveTo(nextGridPos);
+        }
+    }
 
-        // ブロックがなければ移動開始
-        _targetGridPos = nextGridPos;
-        _isMoving = true;
+    /// <summary>
+    /// 指定された座標への移動を開始する
+    /// </summary>
+    public void MoveTo(Vector3Int targetPos)
+    {
+        _gridTargetPos = targetPos;
+        _currentState = PlayerState.Moving; // 自身の状態を「移動中」に変更
     }
 
     /// <summary>
@@ -94,13 +175,5 @@ public class PlayerController : MonoBehaviour
             itemTilemap.SetTile(position, null);
         }
     }
-    
-    /// <summary>
-    /// 外部からプレイヤーの移動を命令するためのメソッド
-    /// </summary>
-    public void MoveTo(Vector3Int targetPos)
-    {
-        _targetGridPos = targetPos;
-        _isMoving = true;
-    }
+    #endregion
 }

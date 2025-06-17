@@ -613,6 +613,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 9197907973035183811, guid: 713b83a4f74d340f2b4a699983dc1354, type: 3}
+      propertyPath: m_FlipX
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -650,7 +654,6 @@ MonoBehaviour:
   typingPanel: {fileID: 32447333}
   questionText: {fileID: 614576994}
   typedText: {fileID: 404595}
-  player: {fileID: 2132873796}
 --- !u!4 &463991951
 Transform:
   m_ObjectHideFlags: 0
@@ -1796,17 +1799,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &2132873796 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: -6508759534709864594, guid: 713b83a4f74d340f2b4a699983dc1354, type: 3}
-  m_PrefabInstance: {fileID: 171924334}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2486aa14188cd43008cda70c809d1307, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!4 &2132873798 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8285913966848699411, guid: 713b83a4f74d340f2b4a699983dc1354, type: 3}

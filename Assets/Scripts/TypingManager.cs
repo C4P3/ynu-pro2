@@ -1,25 +1,28 @@
 // TypingManager.cs
 using UnityEngine;
-using TMPro; // TextMeshProをインポート
+using TMPro;
 
 /// <summary>
 /// タイピングのUI表示と入力判定を管理するクラス
 /// </summary>
 public class TypingManager : MonoBehaviour
 {
+    // ★追加: タイピングが終了したことを通知するためのイベント
+    // boolは成功(true)かキャンセル(false)かを示す
+    public static event System.Action<bool> OnTypingEnded;
+
     [Header("UI References")]
     public GameObject typingPanel;
     public TextMeshProUGUI questionText;
     public TextMeshProUGUI typedText;
 
-    [Header("Game References")]
-    public PlayerController player;
+    // ★削除: PlayerControllerへの直接参照は不要になる
+    // public PlayerController player;
 
     private string[] _questions = { "unity", "game", "development", "drill", "block", "type", "item", "oxygen" };
     private string _currentQuestion;
     private int _typedIndex;
-    private Vector3Int _targetBlockPos;
-    private Vector3Int _initialMoveDirection; // ★追加: タイピングを開始した時の移動方向
+    private Vector3Int _initialMoveDirection;
 
     void Start()
     {
@@ -31,11 +34,9 @@ public class TypingManager : MonoBehaviour
 
     void Update()
     {
-        // タイピングUIが表示されていなければ何もしない
         if (typingPanel == null || !typingPanel.activeSelf) return;
 
-        // --- ★キャンセル機能の追加 ---
-        // タイピング中にShift+WASD入力があったかチェック
+        // キャンセル機能
         if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
         {
             Vector3Int cancelMoveVec = Vector3Int.zero;
@@ -44,15 +45,14 @@ public class TypingManager : MonoBehaviour
             if (Input.GetKeyDown(KeyCode.A)) cancelMoveVec = Vector3Int.left;
             if (Input.GetKeyDown(KeyCode.D)) cancelMoveVec = Vector3Int.right;
 
-            // 新しい移動入力があり、かつそれが最初の方向と違う場合
             if (cancelMoveVec != Vector3Int.zero && cancelMoveVec != _initialMoveDirection)
             {
                 CancelTyping();
-                return; // キャンセルしたので、このフレームの文字入力は受け付けない
+                return;
             }
         }
 
-        // --- 既存の文字入力処理 ---
+        // 文字入力処理
         foreach (char c in Input.inputString)
         {
             if (_typedIndex < _currentQuestion.Length && c == _currentQuestion[_typedIndex])
@@ -68,16 +68,11 @@ public class TypingManager : MonoBehaviour
     }
 
     /// <summary>
-    /// タイピングを開始する（PlayerControllerから呼ばれる）
+    /// タイピングを開始する
     /// </summary>
-    /// <param name="blockPos">対象ブロックの座標</param>
-    /// <param name="moveDirection">タイピングを開始した移動方向</param>
-    public void StartTyping(Vector3Int blockPos, Vector3Int moveDirection)
+    public void StartTyping(Vector3Int moveDirection)
     {
-        player.enabled = false;
-        _targetBlockPos = blockPos;
-        _initialMoveDirection = moveDirection; // ★追加: 方向を保存
-        
+        _initialMoveDirection = moveDirection;
         _currentQuestion = _questions[Random.Range(0, _questions.Length)];
         _typedIndex = 0;
         
@@ -99,12 +94,8 @@ public class TypingManager : MonoBehaviour
         {
             typingPanel.SetActive(false);
         }
-        if (LevelManager.Instance != null)
-        {
-            LevelManager.Instance.DestroyConnectedBlocks(_targetBlockPos);
-        }
-        player.enabled = true;
-        player.MoveTo(_targetBlockPos);
+        // ★変更: 成功した(true)ことをイベントで通知
+        OnTypingEnded?.Invoke(true);
     }
 
     /// <summary>
@@ -112,18 +103,14 @@ public class TypingManager : MonoBehaviour
     /// </summary>
     private void CancelTyping()
     {
-        Debug.Log("Typing Cancelled.");
         if (typingPanel != null)
         {
             typingPanel.SetActive(false);
         }
-        // プレイヤーの操作を元に戻す
-        player.enabled = true;
+        // ★変更: キャンセル(false)したことをイベントで通知
+        OnTypingEnded?.Invoke(false);
     }
 
-    /// <summary>
-    /// 入力済みテキストの表示を更新する
-    /// </summary>
     void UpdateTypedText()
     {
         string highlightedText = $"<color=red>{_currentQuestion.Substring(0, _typedIndex)}</color>";
