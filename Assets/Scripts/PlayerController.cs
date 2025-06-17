@@ -71,7 +71,6 @@ public class PlayerController : MonoBehaviour
         // 移動先にブロックがあればタイピングを開始
         if (blockTilemap.HasTile(nextGridPos))
         {
-            // ★変更点: TypingManagerに移動方向も渡す
             typingManager.StartTyping(nextGridPos, moveVec);
             return;
         }
