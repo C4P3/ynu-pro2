@@ -25,6 +25,10 @@ public class PlayerController : MonoBehaviour
     public Tilemap itemTilemap;
     public TypingManager typingManager;
 
+    [Header("Audio")]
+    [SerializeField] private AudioClip walkSound;
+    private AudioSource audioSource;
+
     // プレイヤーの現在の状態
     private PlayerState _currentState = PlayerState.Roaming;
     private Vector3Int _gridTargetPos;
@@ -45,6 +49,8 @@ public class PlayerController : MonoBehaviour
 
     void Start()
     {
+        audioSource = gameObject.AddComponent<AudioSource>(); //AudioSourceの初期化
+        audioSource.playOnAwake = false; // 自動再生を無効化
         _gridTargetPos = blockTilemap.WorldToCell(transform.position);
         transform.position = blockTilemap.GetCellCenterWorld(_gridTargetPos);
         CheckForItemAt(_gridTargetPos);
@@ -161,6 +167,12 @@ public class PlayerController : MonoBehaviour
     {
         _gridTargetPos = targetPos;
         _currentState = PlayerState.Moving; // 自身の状態を「移動中」に変更
+
+        //移動音を再生
+         if (walkSound != null && audioSource != null)
+    {
+        audioSource.PlayOneShot(walkSound);
+    }
     }
 
     /// <summary>
