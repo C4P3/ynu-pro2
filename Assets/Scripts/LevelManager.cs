@@ -23,10 +23,6 @@ public class LevelManager : MonoBehaviour
 {
     public static LevelManager Instance { get; private set; }
 
-    // ★追加: 爆弾エフェクトのPrefabへの参照
-    [Header("Effects")]
-    public GameObject bombExplosionEffectPrefab; // ここにBombExplosionEffectのPrefabをD&Dで設定
-
     [Header("Cluster Generation Settings")]
 
     [Header("References")]
@@ -191,26 +187,6 @@ public class LevelManager : MonoBehaviour
     /// </summary>
     public void ExplodeBlocks(Vector3Int center, int radius)
     {
-        if (bombExplosionEffectPrefab != null) // Prefabが設定されているか確認
-        {
-            // 爆発の中心座標をワールド座標に変換
-            // Tilemapのセル座標はタイルの左下なので、中心に合わせるためにcellSizeの半分を加算
-            Vector3 worldCenter = blockTilemap.CellToWorld(center) + blockTilemap.cellSize / 2f;
-
-            // 爆発エフェクトのインスタンスを生成
-            GameObject explosionInstance = Instantiate(bombExplosionEffectPrefab, worldCenter, Quaternion.identity);
-
-            // BombParticleControllerコンポーネントを取得して再生
-            BombParticleController controller = explosionInstance.GetComponent<BombParticleController>();            
-            if (controller != null)
-            {
-                controller.PlayAndDestroy();
-            }
-            else
-            {
-                Debug.LogWarning("生成されたBombExplosionEffectPrefabにBombParticleControllerが見つかりませんでした。");
-            }
-        }
         for (int x = -radius; x <= radius; x++)
         {
             for (int y = -radius; y <= radius; y++)
