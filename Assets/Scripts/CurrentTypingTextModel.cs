@@ -38,7 +38,17 @@ namespace Models
         {
             _charactersIndex = 0;
         }
-        
+
+        public int GetTypedLength()
+        {
+            return _charactersIndex;
+        }
+
+        public List<char> GetCharacters()
+        {
+            return _characters;
+        }
+
         public TypeResult TypeCharacter(char inputCharacter)
         {
             var currentCharactersIndex = _charactersIndex;

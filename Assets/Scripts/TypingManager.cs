@@ -11,7 +11,7 @@ public class TypingManager : MonoBehaviour
     // ★追加: タイピングが終了したことを通知するためのイベント
     // boolは成功(true)かキャンセル(false)かを示す
     public static event System.Action<bool> OnTypingEnded;
-    
+
     [Header("UI References")]
     public GameObject typingPanel;
     public TextMeshProUGUI questionText;
@@ -34,6 +34,7 @@ public class TypingManager : MonoBehaviour
             typingPanel.SetActive(false);
         }
     }
+
     public void StartTyping(Vector3Int moveDirection)
     {
         _initialMoveDirection = moveDirection;
@@ -53,6 +54,7 @@ public class TypingManager : MonoBehaviour
             typingPanel.SetActive(true);
         }
     }
+
     void Update()
     {
         if (typingPanel == null || !typingPanel.activeSelf) return;
