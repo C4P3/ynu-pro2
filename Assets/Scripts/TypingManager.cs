@@ -25,6 +25,7 @@ public class TypingManager : MonoBehaviour
     private string _currentRomaji;   // ローマ字変換後
     private int _typedIndex;
     private ConvertHiraganaToRomanModel _converter = new ConvertHiraganaToRomanModel();
+    private Vector3Int _initialMoveDirection; // 追加: 最初の移動方向を保持
 
     void Start()
     {
@@ -35,6 +36,7 @@ public class TypingManager : MonoBehaviour
     }
     public void StartTyping(Vector3Int moveDirection)
     {
+        _initialMoveDirection = moveDirection;
         _currentTypingText = _typingTextStore.RandomTypingText;
         _currentHiragana = _currentTypingText.hiragana;
         // ここで変換
@@ -55,18 +57,22 @@ public class TypingManager : MonoBehaviour
     {
         if (typingPanel == null || !typingPanel.activeSelf) return;
 
-        // キャンセル機能: Shift + WASD でキャンセル
+        // キャンセル機能
         if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
         {
-            if (Input.GetKeyDown(KeyCode.W) ||
-            Input.GetKeyDown(KeyCode.S) ||
-            Input.GetKeyDown(KeyCode.A) ||
-            Input.GetKeyDown(KeyCode.D))
+            Vector3Int cancelMoveVec = Vector3Int.zero;
+            if (Input.GetKeyDown(KeyCode.W)) cancelMoveVec = Vector3Int.up;
+            if (Input.GetKeyDown(KeyCode.S)) cancelMoveVec = Vector3Int.down;
+            if (Input.GetKeyDown(KeyCode.A)) cancelMoveVec = Vector3Int.left;
+            if (Input.GetKeyDown(KeyCode.D)) cancelMoveVec = Vector3Int.right;
+
+            if (cancelMoveVec != Vector3Int.zero && cancelMoveVec != _initialMoveDirection)
             {
-            CancelTyping();
-            return;
+                CancelTyping();
+                return;
             }
         }
+
         // 文字入力処理
         foreach (char c in Input.inputString)
         {
@@ -86,6 +92,20 @@ public class TypingManager : MonoBehaviour
 
     /// <summary>
     /// タイピングを開始する
+    /// </summary>
+    void OnTypingComplete()
+    {
+        if (typingPanel != null)
+        {
+            typingPanel.SetActive(false);
+        }
+        // ★変更: 成功した(true)ことをイベントで通知
+        OnTypingEnded?.Invoke(true);
+    }
+
+    /// <summary>
+    /// タイピングを中断する処理
+    /// </summary>
     private void CancelTyping()
     {
         if (typingPanel != null)
