@@ -23,6 +23,8 @@ public class LevelManager : MonoBehaviour
 {
     public static LevelManager Instance { get; private set; }
 
+    [Header("Cluster Generation Settings")]
+
     [Header("References")]
     public Tilemap blockTilemap;
     public Tilemap itemTilemap;
