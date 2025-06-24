@@ -13,6 +13,9 @@ public class GameManager : MonoBehaviour
 
     private float _currentOxygen;
 
+    private bool _isOxygenInvincible = false;
+    public bool IsOxygenInvincible => _isOxygenInvincible;
+
     void Awake()
     {
         if (Instance == null)
@@ -33,19 +36,22 @@ public class GameManager : MonoBehaviour
 
     void Update()
     {
-        // 酸素を時間で減らす
-        _currentOxygen -= oxygenDecreaseRate * Time.deltaTime;
-        _currentOxygen = Mathf.Max(_currentOxygen, 0); // 0未満にならないように
-        UpdateOxygenUI();
-
-        if (_currentOxygen <= 0)
+        if (!_isOxygenInvincible)
         {
-            Debug.Log("ゲームオーバー");
-            // ここにゲームオーバー処理（リザルト画面表示など）
-            Time.timeScale = 0; // 時間を止める
+            // 酸素を時間で減らす
+            _currentOxygen -= oxygenDecreaseRate * Time.deltaTime;
+            _currentOxygen = Mathf.Max(_currentOxygen, 0); // 0未満にならないように
+            UpdateOxygenUI();
+
+            if (_currentOxygen <= 0)
+            {
+                Debug.Log("ゲームオーバー");
+                // ここにゲームオーバー処理（リザルト画面表示など）
+                Time.timeScale = 0; // 時間を止める
+            }
         }
     }
-    
+
     // 酸素を回復する（アイテム取得時に呼ばれる）
     public void RecoverOxygen(float amount)
     {
@@ -60,5 +66,12 @@ public class GameManager : MonoBehaviour
         {
             oxygenSlider.value = _currentOxygen / maxOxygen;
         }
+    }
+
+    public System.Collections.IEnumerator TemporaryOxygenInvincibility(float duration)
+    {
+        _isOxygenInvincible = true;
+        yield return new WaitForSeconds(duration);
+        _isOxygenInvincible = false;
     }
 }
