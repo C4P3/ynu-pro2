@@ -1,2 +1,15 @@
 fileFormatVersion: 2
 guid: 2486aa14188cd43008cda70c809d1307
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - blockTilemap: {instanceID: 0}
+  - itemTilemap: {instanceID: 0}
+  - typingManager: {instanceID: 0}
+  - walkSound: {fileID: 8300000, guid: 7c6123e923b71d14985b88c0afcec2eb, type: 3}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
