@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7d9a55aa8ef552841a8ecdd1ca769129, type: 3}
   m_Name: Star
   m_EditorClassIdentifier: 
-  itemName: 
-  effectType: 0
-  itemTile: {fileID: 0}
+  itemName: starItem
+  effectType: 2
+  itemTile: {fileID: 11400000, guid: 36964f4679561ac4185f74de6047ba0e, type: 2}
   invincibleDuration: 5
