@@ -4,8 +4,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.EventSystems;
 
-public class MatchButton : MonoBehaviour, IButton,IPointerClickHandler,IPointerExitHandler
-{
+public class MatchButton : MonoBehaviour, IButton{
     [SerializeField] private AudioClip clickSound;
     private AudioSource audioSource;
 
@@ -14,7 +13,7 @@ public class MatchButton : MonoBehaviour, IButton,IPointerClickHandler,IPointerE
         audioSource = gameObject.AddComponent<AudioSource>();
         audioSource.playOnAwake = false;
     }
-    public void OnPointerClick(PointerEventData eventData)
+    public void OnPointerClick()
     {
         if (clickSound != null)
         {
@@ -25,10 +24,10 @@ public class MatchButton : MonoBehaviour, IButton,IPointerClickHandler,IPointerE
     }
 
     private IEnumerator LoadSceneWithDelay(float delay)
-    {
-        yield return new WaitForSeconds(delay);
-        SceneManager.LoadScene("GameScene");
-    }
+{
+    yield return new WaitForSeconds(delay);
+    SceneManager.LoadScene("GameScene");
+}
 
     public void OnPointerEnter(){
 
