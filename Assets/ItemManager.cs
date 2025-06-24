@@ -104,6 +104,14 @@ public class ItemManager : MonoBehaviour
                     LevelManager.Instance.ExplodeBlocks(itemPosition, bombData.radius);
                 }
                 break;
+
+            case ItemEffectType.Star:
+                var starData = data as StarItemData;
+                if (starData != null && GameManager.Instance != null)
+                {
+                    GameManager.Instance.StartCoroutine(GameManager.Instance.TemporaryOxygenInvincibility(starData.invincibleDuration));
+                }
+                break;
         }
     }
 }
