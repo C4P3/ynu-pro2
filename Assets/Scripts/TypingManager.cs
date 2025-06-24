@@ -11,10 +11,9 @@ public class TypingManager : MonoBehaviour
     // ★追加: タイピングが終了したことを通知するためのイベント
     // boolは成功(true)かキャンセル(false)かを示す
     public static event System.Action<bool> OnTypingEnded;
-
+    
     [Header("UI References")]
     public GameObject typingPanel;
-    public TextMeshProUGUI questionText;
     public TextMeshProUGUI typedText;
 
     // ★削除: PlayerControllerへの直接参照は不要になる
@@ -34,7 +33,6 @@ public class TypingManager : MonoBehaviour
             typingPanel.SetActive(false);
         }
     }
-
     public void StartTyping(Vector3Int moveDirection)
     {
         _initialMoveDirection = moveDirection;
@@ -46,7 +44,6 @@ public class TypingManager : MonoBehaviour
         _typedIndex = 0;
 
         // title（日本語）を出題
-        questionText.text = _currentTypingText.title;
         UpdateTypedText();
 
         if (typingPanel != null)
@@ -54,7 +51,6 @@ public class TypingManager : MonoBehaviour
             typingPanel.SetActive(true);
         }
     }
-
     void Update()
     {
         if (typingPanel == null || !typingPanel.activeSelf) return;
@@ -119,8 +115,14 @@ public class TypingManager : MonoBehaviour
     }
     void UpdateTypedText()
     {
+        // 1行目: 日本語タイトル
+        string title = _currentTypingText.title;
+        // 2行目: ローマ字（入力進捗を色分け）
         string highlightedText = $"<color=red>{_currentRomaji.Substring(0, _typedIndex)}</color>";
         string remainingText = _currentRomaji.Substring(_typedIndex);
-        typedText.text = highlightedText + remainingText;
+        string romajiLine = highlightedText + remainingText;
+
+        // 2行表示（1行目: 日本語, 2行目: ローマ字）
+        typedText.text = $"{title}\n{romajiLine}";
     }
 }
