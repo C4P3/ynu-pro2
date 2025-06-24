@@ -55,6 +55,21 @@ public class TypingManager : MonoBehaviour
     {
         if (typingPanel == null || !typingPanel.activeSelf) return;
 
+        // キャンセル機能
+        if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
+        {
+            Vector3Int cancelMoveVec = Vector3Int.zero;
+            if (Input.GetKeyDown(KeyCode.W)) cancelMoveVec = Vector3Int.up;
+            if (Input.GetKeyDown(KeyCode.S)) cancelMoveVec = Vector3Int.down;
+            if (Input.GetKeyDown(KeyCode.A)) cancelMoveVec = Vector3Int.left;
+            if (Input.GetKeyDown(KeyCode.D)) cancelMoveVec = Vector3Int.right;
+
+            if (cancelMoveVec != Vector3Int.zero && cancelMoveVec != _initialMoveDirection)
+            {
+                CancelTyping();
+                return;
+            }
+        }
         // 文字入力処理
         foreach (char c in Input.inputString)
         {
@@ -74,6 +89,15 @@ public class TypingManager : MonoBehaviour
 
     /// <summary>
     /// タイピングを開始する
+    private void CancelTyping()
+    {
+        if (typingPanel != null)
+        {
+            typingPanel.SetActive(false);
+        }
+        // ★変更: キャンセル(false)したことをイベントで通知
+        OnTypingEnded?.Invoke(false);
+    }
     void UpdateTypedText()
     {
         string highlightedText = $"<color=red>{_currentRomaji.Substring(0, _typedIndex)}</color>";
