@@ -4,9 +4,7 @@ using UnityEngine;
 
 public class RecordButton : MonoBehaviour, IButton
 {
-    public GameObject title;
-    public MatchButton matchButton;
-    public ConfigButton configButton;
+    public GameObject HomeCanvas;
     public GameObject RecordCanvas;
 
     public void OnPointerClick()
@@ -14,12 +12,8 @@ public class RecordButton : MonoBehaviour, IButton
         // Implement the logic for when the button is clicked
         Debug.Log("Record Button Clicked");
         // Here you can add functionality to start or stop recording
-        title.gameObject.SetActive(false);
-        matchButton.gameObject.SetActive(false);
-        this.gameObject.SetActive(false);
-        configButton.gameObject.SetActive(false);
-
-        RecordCanvas.SetActive(true);
+        HomeCanvas.GetComponent<UnityEngine.Canvas>().enabled = false;
+        RecordCanvas.GetComponent<UnityEngine.Canvas>().enabled = true;
 
     }
     public void OnPointerEnter()
