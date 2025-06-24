@@ -6,6 +6,8 @@ public enum ItemEffectType
 {
     OxygenRecovery,
     Bomb,
+    Star
+
     // 将来のマルチプレイ用
     // OpponentDebuff _LockBlocks,
     // OpponentDebuff _NarrowVision
