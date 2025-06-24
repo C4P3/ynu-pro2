@@ -322,7 +322,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxOxygen: 100
-  oxygenDecreaseRate: 1
+  oxygenDecreaseRate: 2
   oxygenSlider: {fileID: 1670346875}
 --- !u!4 &93972838
 Transform:
@@ -1159,6 +1159,8 @@ MonoBehaviour:
     spawnWeight: 0.1
   - itemData: {fileID: 11400000, guid: d426c16892d6f412d9671993090451d5, type: 2}
     spawnWeight: 0.1
+  - itemData: {fileID: 11400000, guid: 140479964ad045e45848bf33017d8578, type: 2}
+    spawnWeight: 0.1
 --- !u!4 &947737121
 Transform:
   m_ObjectHideFlags: 0
@@ -1770,20 +1772,29 @@ MonoBehaviour:
   itemTilemap: {fileID: 97169668}
   playerTransform: {fileID: 2132873798}
   blockTypes:
-  - name: 1
-    tile: {fileID: 11400000, guid: 4d6f52a5b972646348928aaf3fe8ae68, type: 2}
+  - name: "\u6C34\u8272\u30D6\u30ED\u30C3\u30AF"
+    tile: {fileID: 11400000, guid: 1362087bd6b4e404d9e259a3b0a88701, type: 2}
     probabilityWeight: 0.2
-  - name: 2
-    tile: {fileID: 11400000, guid: e125c43dcff774be7bb115118d407902, type: 2}
+  - name: "\u9752\u8272\u30D6\u30ED\u30C3\u30AF"
+    tile: {fileID: 11400000, guid: afc0fff9f08d84279849db3bf799276a, type: 2}
     probabilityWeight: 0.2
-  - name: 3
-    tile: {fileID: 11400000, guid: fb049068acfbd4dce807f38b9cf073c8, type: 2}
+  - name: "\u6843\u8272\u30D6\u30ED\u30C3\u30AF"
+    tile: {fileID: 11400000, guid: 8289a85b11caa4a2d9bdd92ec9b5e914, type: 2}
     probabilityWeight: 0.2
-  - name: 4
-    tile: {fileID: 11400000, guid: 1df4c0c84bf6d44debd3b0767a57f44d, type: 2}
+  - name: "\u7D2B\u8272\u30D6\u30ED\u30C3\u30AF"
+    tile: {fileID: 11400000, guid: b68c430b9a40747029451d1e0d01fe88, type: 2}
     probabilityWeight: 0.2
-  - name: 5
-    tile: {fileID: 11400000, guid: 1fe065e0e5a0f40bba36b1a0f7f67864, type: 2}
+  - name: "\u8D64\u8272\u30D6\u30ED\u30C3\u30AF"
+    tile: {fileID: 11400000, guid: dd6a166fec79b464eb7aac0f901fce1b, type: 2}
+    probabilityWeight: 0.2
+  - name: "\u9EC4\u8272\u30D6\u30ED\u30C3\u30AF"
+    tile: {fileID: 11400000, guid: fa791cc9833aa458cb77093386ea3fec, type: 2}
+    probabilityWeight: 0.2
+  - name: "\u7DD1\u8272\u30D6\u30ED\u30C3\u30AF"
+    tile: {fileID: 11400000, guid: 511668c2d34e341ce9e7260f7f41fb24, type: 2}
+    probabilityWeight: 0.2
+  - name: "\u7070\u8272\u30D6\u30ED\u30C3\u30AF"
+    tile: {fileID: 11400000, guid: abcafb59ab0604d6282698bb0cb02067, type: 2}
     probabilityWeight: 0.2
   noiseScale: 0.4
   blockThreshold: 0.4
