@@ -4,17 +4,17 @@ using UnityEngine;
 
 public class BackButton : MonoBehaviour, IButton
 {
-    public GameObject HomeCanvas;
-    public GameObject RecordCanvas;
-    public GameObject ConfigCanvas;
+    public GameObject HomeUI;
+    public GameObject RecordUI;
+    public GameObject ConfigUI;
     public void OnPointerClick()
     {
         // Implement the logic for when the button is clicked
         Debug.Log("Back Button Clicked");
         // Here you can add functionality to start or stop recording
-        ConfigCanvas.GetComponent<UnityEngine.Canvas>().enabled = false;
-        RecordCanvas.GetComponent<UnityEngine.Canvas>().enabled = false;
-        HomeCanvas.GetComponent<UnityEngine.Canvas>().enabled = true;
+        // ConfigUI.GetComponent<UnityEngine.Transform>().enabled = false;
+        // RecordUI.GetComponent<UnityEngine.Transform>().enabled = false;
+        // HomeUI.GetComponent<UnityEngine.Transform>().enabled = true;
 
     }
     public void OnPointerEnter()
