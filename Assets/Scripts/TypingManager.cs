@@ -55,19 +55,16 @@ public class TypingManager : MonoBehaviour
     {
         if (typingPanel == null || !typingPanel.activeSelf) return;
 
-        // キャンセル機能
+        // キャンセル機能: Shift + WASD でキャンセル
         if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
         {
-            Vector3Int cancelMoveVec = Vector3Int.zero;
-            if (Input.GetKeyDown(KeyCode.W)) cancelMoveVec = Vector3Int.up;
-            if (Input.GetKeyDown(KeyCode.S)) cancelMoveVec = Vector3Int.down;
-            if (Input.GetKeyDown(KeyCode.A)) cancelMoveVec = Vector3Int.left;
-            if (Input.GetKeyDown(KeyCode.D)) cancelMoveVec = Vector3Int.right;
-
-            if (cancelMoveVec != Vector3Int.zero && cancelMoveVec != _initialMoveDirection)
+            if (Input.GetKeyDown(KeyCode.W) ||
+            Input.GetKeyDown(KeyCode.S) ||
+            Input.GetKeyDown(KeyCode.A) ||
+            Input.GetKeyDown(KeyCode.D))
             {
-                CancelTyping();
-                return;
+            CancelTyping();
+            return;
             }
         }
         // 文字入力処理
