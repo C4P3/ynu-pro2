@@ -5,12 +5,16 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using TMPro;
 
-public class LoginButton : MonoBehaviour, IButton
+public class LoginButton : IButton
 {
     [SerializeField] TMP_InputField inputField;
+    [SerializeField] CanvasGroup homeUI;
+    [SerializeField] CanvasGroup loginUI;
 
-    public void OnPointerClick(){
-                var authManager = FindFirstObjectByType<PlayFabAuthManager>();
+    public override void OnPointerClick(){
+
+        var authManager = FindFirstObjectByType<PlayFabAuthManager>();
+
         if(authManager == null)
         {
             Debug.LogError("PlayFabAuthManagerが見つかりません。");
@@ -24,11 +28,15 @@ public class LoginButton : MonoBehaviour, IButton
         }
 
         authManager.SetDisplayName(inputField.text);
-    }
-    public void OnPointerEnter(){
+
+        ChangeUI(homeUI, 1, true, true); //homeUIを表示
+        ChangeUI(loginUI, 0, false, false); //homeUIを非表示
 
     }
-    public void OnPointerExit(){
+    public override void OnPointerEnter(){
+
+    }
+    public override void OnPointerExit(){
 
     }
 }
