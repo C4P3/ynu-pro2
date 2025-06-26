@@ -549,6 +549,10 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: -6508759534709864594, guid: 713b83a4f74d340f2b4a699983dc1354, type: 3}
+      propertyPath: walkSound
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: -6508759534709864594, guid: 713b83a4f74d340f2b4a699983dc1354, type: 3}
       propertyPath: itemTilemap
       value: 
       objectReference: {fileID: 97169668}
