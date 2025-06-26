@@ -86,3 +86,6 @@ crashlytics-build.properties
 
 #for mac
 .DS_Store
+
+#Mirror
+[Aa]ssets/Mirror/
