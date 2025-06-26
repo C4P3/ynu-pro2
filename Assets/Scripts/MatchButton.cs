@@ -2,9 +2,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.EventSystems;
+using UnityEngine.UI;
+using TMPro;
 
-public class MatchButton : MonoBehaviour, IButton{
+public class MatchButton : IButton
+{
     [SerializeField] private AudioClip clickSound;
     private AudioSource audioSource;
 
@@ -13,7 +15,7 @@ public class MatchButton : MonoBehaviour, IButton{
         audioSource = gameObject.AddComponent<AudioSource>();
         audioSource.playOnAwake = false;
     }
-    public void OnPointerClick()
+    public override void OnPointerClick()
     {
         if (clickSound != null)
         {
@@ -29,10 +31,10 @@ public class MatchButton : MonoBehaviour, IButton{
     SceneManager.LoadScene("GameScene");
 }
 
-    public void OnPointerEnter(){
+    public override void OnPointerEnter(){
 
     }
-    public void OnPointerExit(){
+    public override void OnPointerExit(){
 
     }
 }
