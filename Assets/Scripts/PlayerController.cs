@@ -1,8 +1,6 @@
 // PlayerController.cs
 using UnityEngine;
 using UnityEngine.Tilemaps;
-// Mirrorを忘れずに追加
-using Mirror;
 
 /// <summary>
 /// プレイヤーの状態を定義する列挙型
@@ -16,9 +14,8 @@ public enum PlayerState
 
 /// <summary>
 /// プレイヤーの移動、入力、状態遷移を管理するクラス
-/// NetworkBehaviourを継承するように変更
 /// </summary>
-public class PlayerController : NetworkBehaviour
+public class PlayerController : MonoBehaviour
 {
     [Header("Movement")]
     public float moveSpeed = 5f;
@@ -40,23 +37,16 @@ public class PlayerController : NetworkBehaviour
     #region Unity Lifecycle Methods
     void OnEnable()
     {
+        // TypingManagerのイベントに、自分のメソッドを登録
         TypingManager.OnTypingEnded += HandleTypingEnded;
     }
 
     void OnDisable()
     {
+        // オブジェクトが無効になるときに、登録を解除（メモリリーク防止）
         TypingManager.OnTypingEnded -= HandleTypingEnded;
     }
 
-    // ★追加: ネットワーク上でオブジェクトが生成されたときに呼ばれる
-    public override void OnStartLocalPlayer()
-    {
-        base.OnStartLocalPlayer();
-        // このオブジェクトが自分のプレイヤーなら、カメラが追従するように設定
-        // （シーンに追従カメラ用のスクリプトがある場合）
-        // FindObjectOfType<YourCameraFollowScript>()?.SetTarget(transform);
-    }
-    
     void Start()
     {
         audioSource = gameObject.AddComponent<AudioSource>(); //AudioSourceの初期化
@@ -68,13 +58,6 @@ public class PlayerController : NetworkBehaviour
 
     void Update()
     {
-        // ★追加: このオブジェクトが、操作しているプレイヤーのものでなければ、Update処理を中断する
-        // これにより、他人のキャラクターを誤って操作することがなくなる
-        if (!isLocalPlayer)
-        {
-            return;
-        }
-
         // 状態に応じて処理を分岐
         switch (_currentState)
         {
