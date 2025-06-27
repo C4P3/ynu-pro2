@@ -1,4 +1,3 @@
-// ItemManager.cs
 using UnityEngine;
 using UnityEngine.Tilemaps;
 using System.Collections.Generic;
@@ -31,9 +30,8 @@ public class ItemManager : MonoBehaviour
 
     void Awake()
     {
-        // シングルトンパターンの実装
-        if (Instance == null) { Instance = this; } else { Destroy(gameObject); }
-        // ゲーム開始時にデータベースを構築する
+        // 【修正】マルチプレイヤー対応のため、シングルトンの自己破棄ロジックを修正
+        Instance = this;
         BuildDatabase();
     }
 
@@ -65,10 +63,7 @@ public class ItemManager : MonoBehaviour
         float randomValue = Random.Range(0, totalWeight);
         foreach (var setting in _itemSpawnSettings)
         {
-            if (randomValue < setting.spawnWeight)
-            {
-                return setting.itemData;
-            }
+            if (randomValue < setting.spawnWeight) return setting.itemData;
             randomValue -= setting.spawnWeight;
         }
         return null;
@@ -83,7 +78,6 @@ public class ItemManager : MonoBehaviour
     {
         // データベースに登録されていないタイルであれば何もしない
         if (!_itemDatabase.TryGetValue(itemTile, out ItemData data)) return;
-
         Debug.Log($"Acquired: {data.itemName}");
 
         // アイテムの種類に応じて効果を発動
@@ -96,7 +90,6 @@ public class ItemManager : MonoBehaviour
                     GameManager.Instance.RecoverOxygen(oxygenData.recoveryAmount);
                 }
                 break;
-
             case ItemEffectType.Bomb:
                 var bombData = data as BombItemData;
                 if (bombData != null && LevelManager.Instance != null)

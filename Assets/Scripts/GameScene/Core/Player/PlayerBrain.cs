@@ -1,42 +1,31 @@
-// PlayerController.cs
+// 【新規】
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
-/// <summary>
-/// プレイヤーの状態を定義する列挙型
-/// </summary>
 public enum PlayerState
 {
-    Roaming, // 自由に動ける状態
-    Moving,  // グリッド間を移動中
-    Typing   // タイピング中
+    Roaming,
+    Moving,
+    Typing
 }
 
 /// <summary>
-/// プレイヤーの移動、入力、状態遷移を管理するクラス
-/// NetworkBehaviourを継承するように変更
+/// プレイヤーの動作ロジック（頭脳）を担当する。ネットワークに依存しない。
 /// </summary>
 public class PlayerBrain : MonoBehaviour
 {
     [Header("Movement")]
-    public float moveSpeed = 5f;
-
-    // --- ★変更点: ワールドプレハブへの参照を追加 ---
-    [Header("Multiplayer Setup")]
-    [Tooltip("プレイヤーごとに生成するワールド環境のプレハブ")]
-    public GameObject worldPrefab;
-    [Tooltip("P2（クライアント側）のワールドを生成する位置オフセット")]
-    public Vector3 p2_worldOffset = new Vector3(1000, 0, 0);
-
-    // --- ★変更点: public参照をprivateに変更し、動的に設定する ---
-    private Tilemap blockTilemap;
-    private Tilemap itemTilemap;
-    private TypingManager typingManager;
+    [SerializeField] private float moveSpeed = 5f;
 
     [Header("Audio")]
     [SerializeField] private AudioClip walkSound;
     private AudioSource audioSource;
     
+    // 参照はprivateにし、InitializeForSceneで設定する
+    private Tilemap blockTilemap;
+    private Tilemap itemTilemap;
+    private TypingManager typingManager;
+
     private PlayerState _currentState = PlayerState.Roaming;
     private Vector3Int _gridTargetPos;
     private Vector3Int _typingTargetPos;
@@ -51,75 +40,59 @@ public class PlayerBrain : MonoBehaviour
 
     void OnDisable()
     {
-        // --- ★変更点: typingManagerがnullの場合を考慮 ---
-        // シーン終了時にオブジェクトが破棄される順序によって発生するエラーを防止
-        if (typingManager != null)
+        if (typingManager != null) // 安全のためnullチェック
         {
             TypingManager.OnTypingEnded -= HandleTypingEnded;
         }
     }
 
+    void Update()
+    {
+        // 初期化が済んでいない場合は何もしない
+        if (blockTilemap == null) return;
+
+        switch (_currentState)
+        {
+            case PlayerState.Roaming: HandleRoamingState(); break;
+            case PlayerState.Moving: HandleMovingState(); break;
+            case PlayerState.Typing: break;
+        }
+    }
+
     /// <summary>
-    /// シーン開始時に必要なコンポーネント参照などを設定する初期化メソッド
+    /// NetworkPlayerやSingleplayerInitializerから呼び出される初期化メソッド
     /// </summary>
-    /// <param name="worldInstance">プレイヤーが活動するワールドのルートオブジェクト</param>
-    /// <param name="worldOffset">ワールドの座標オフセット</param>
     public void InitializeForScene(GameObject worldInstance, Vector3 worldOffset)
     {
-        // ワールド内のコンポーネントへの参照を取得
-        // (GetComponentInChildrenは、シングルトンよりも安全に自分専用のインスタンスを見つけられる)
-        blockTilemap = worldInstance.GetComponentInChildren<Tilemap>(true); // BlockTilemapを取得
+        // 1. ワールド内のコンポーネント参照を取得
         foreach (var tm in worldInstance.GetComponentsInChildren<Tilemap>(true))
         {
             if (tm.gameObject.name.Contains("Item")) itemTilemap = tm;
             else if (tm.gameObject.name.Contains("Block")) blockTilemap = tm;
         }
         typingManager = worldInstance.GetComponentInChildren<TypingManager>(true);
-        
-        // プレイヤーの初期位置を設定
+
+        // 2. プレイヤー自身のコンポーネントを初期化
+        audioSource = gameObject.AddComponent<AudioSource>();
+        audioSource.playOnAwake = false;
+
+        // 3. プレイヤーの位置を初期化
         transform.position += worldOffset;
         _gridTargetPos = blockTilemap.WorldToCell(transform.position);
         transform.position = blockTilemap.GetCellCenterWorld(_gridTargetPos);
         
-        // ... その他の初期化処理 ...
+        // 4. LevelManagerを初期化
+        if (LevelManager.Instance != null)
+        {
+            LevelManager.Instance.Initialize(this.transform);
+        }
+
+        // 5. 初期位置のアイテムをチェック
         CheckForItemAt(_gridTargetPos);
     }
-
-
-    void Update()
-    {
-        // ★追加: 必要なコンポーネントが揃うまで待機
-        if (blockTilemap == null || typingManager == null) return;
-        
-        switch (_currentState)
-        {
-            case PlayerState.Roaming:
-                HandleRoamingState();
-                break;
-            case PlayerState.Moving:
-                HandleMovingState();
-                break;
-            case PlayerState.Typing:
-                break;
-        }
-    }
-
-    /// <summary>
-    /// GameObjectとそのすべての子オブジェクトのレイヤーを再帰的に設定するヘルパーメソッド
-    /// </summary>
-    private void SetLayerRecursively(GameObject obj, int layer)
-    {
-        obj.layer = layer;
-        foreach (Transform child in obj.transform)
-        {
-            SetLayerRecursively(child.gameObject, layer);
-        }
-    }
-
     #endregion
 
     #region State Handling
-    // ... (HandleRoamingState, HandleMovingState, HandleTypingEnded は変更なし)
     /// <summary>
     /// Roaming（待機・自由移動）状態の処理
     /// </summary>

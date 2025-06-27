@@ -1,4 +1,3 @@
-// LevelManager.cs
 using UnityEngine;
 using UnityEngine.Tilemaps;
 using System.Collections.Generic;
@@ -23,12 +22,10 @@ public class LevelManager : MonoBehaviour
 {
     public static LevelManager Instance { get; private set; }
 
-    [Header("Cluster Generation Settings")]
-
     [Header("References")]
     public Tilemap blockTilemap;
     public Tilemap itemTilemap;
-    public Transform playerTransform;
+    public Transform playerTransform; // この参照は動的に設定される
 
     [Header("Cluster Generation Settings")]
     public BlockType[] blockTypes;
@@ -52,7 +49,8 @@ public class LevelManager : MonoBehaviour
 
     void Awake()
     {
-        if (Instance == null) { Instance = this; } else { Destroy(gameObject); }
+        // 【修正】マルチプレイヤー対応のため、シングルトンの自己破棄ロジックを修正
+        Instance = this;
 
         // ブロックの種類ごとに異なるノイズを生成するため、ランダムなオフセットを最初に作っておく
         noiseOffsets = new Vector2[blockTypes.Length];
@@ -62,15 +60,17 @@ public class LevelManager : MonoBehaviour
         }
     }
 
-    void Start()
+    // StartはPlayerBrainからInitializeされるので、ここでは何もしないか、
+    // シングルプレイ用に残しておくこともできる
+    void Start() {}
+
+    public void Initialize(Transform newPlayerTransform)
     {
-        // ★追加: ゲーム開始時のプレイヤー座標をグリッド座標として保存
+        playerTransform = newPlayerTransform;
         if(playerTransform != null)
         {
             _playerStartPosition = blockTilemap.WorldToCell(playerTransform.position);
         }
-        
-        // ゲーム開始時にプレイヤー周辺のチャンクを生成
         CheckAndGenerateChunksAroundPlayer();
     }
 

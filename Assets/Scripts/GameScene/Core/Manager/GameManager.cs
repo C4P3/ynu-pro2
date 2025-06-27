@@ -1,31 +1,26 @@
 using UnityEngine;
-using UnityEngine.UI; // Sliderを使う場合
-using TMPro;
+using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
-    public static GameManager Instance { get; private set; } // シングルトン
+    public static GameManager Instance { get; private set; }
 
     [Header("Oxygen")]
     public float maxOxygen = 100f;
-    public float oxygenDecreaseRate = 1f; // 1秒あたりに減る酸素量
-    public Slider oxygenSlider; // 酸素ゲージUI
+    public float oxygenDecreaseRate = 1f;
+    public Slider oxygenSlider;
+    
+    // privateなフィールドでUIの参照を保持する
+    private Slider _oxygenSlider; 
 
     private float _currentOxygen;
-
     private bool _isOxygenInvincible = false;
     public bool IsOxygenInvincible => _isOxygenInvincible;
 
     void Awake()
     {
-        if (Instance == null)
-        {
-            Instance = this;
-        }
-        else
-        {
-            Destroy(gameObject);
-        }
+        // 【修正】マルチプレイヤー対応のため、シングルトンの自己破棄ロジックを修正
+        Instance = this;
     }
 
     void Start()
@@ -36,35 +31,40 @@ public class GameManager : MonoBehaviour
 
     void Update()
     {
-        if (!_isOxygenInvincible)
-        {
-            // 酸素を時間で減らす
-            _currentOxygen -= oxygenDecreaseRate * Time.deltaTime;
-            _currentOxygen = Mathf.Max(_currentOxygen, 0); // 0未満にならないように
-            UpdateOxygenUI();
+        if (_isOxygenInvincible) return;
 
-            if (_currentOxygen <= 0)
-            {
-                Debug.Log("ゲームオーバー");
-                // ここにゲームオーバー処理（リザルト画面表示など）
-                Time.timeScale = 0; // 時間を止める
-            }
+        _currentOxygen -= oxygenDecreaseRate * Time.deltaTime;
+        _currentOxygen = Mathf.Max(_currentOxygen, 0);
+        UpdateOxygenUI();
+
+        if (_currentOxygen <= 0)
+        {
+            Debug.Log("ゲームオーバー");
+            Time.timeScale = 0;
         }
     }
 
-    // 酸素を回復する（アイテム取得時に呼ばれる）
     public void RecoverOxygen(float amount)
     {
         _currentOxygen += amount;
-        _currentOxygen = Mathf.Min(_currentOxygen, maxOxygen); // 最大値を超えないように
+        _currentOxygen = Mathf.Min(_currentOxygen, maxOxygen);
         UpdateOxygenUI();
+    }
+
+    /// <summary>
+    /// 【重要】初期化役から呼び出され、このManagerが操作するUIスライダーを設定する
+    /// </summary>
+    public void SetOxygenSlider(Slider slider)
+    {
+        _oxygenSlider = slider;
+        UpdateOxygenUI(); // 受け取った直後にUIを最新の状態に更新
     }
 
     void UpdateOxygenUI()
     {
-        if (oxygenSlider != null)
+        if (_oxygenSlider != null)
         {
-            oxygenSlider.value = _currentOxygen / maxOxygen;
+            _oxygenSlider.value = _currentOxygen / maxOxygen;
         }
     }
 
