@@ -2,7 +2,8 @@
     "name": "Game.Multiplayer",
     "rootNamespace": "",
     "references": [
-        "GUID:f0ccbde6bbe5e442392936d08bd51ef1"
+        "GUID:f0ccbde6bbe5e442392936d08bd51ef1",
+        "GUID:30817c1a0e6d646d99c048fc403f5979"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
