@@ -1,3 +1,16 @@
 {
-	"name": "Game.Multiplayer"
+    "name": "Game.Multiplayer",
+    "rootNamespace": "",
+    "references": [
+        "GUID:f0ccbde6bbe5e442392936d08bd51ef1"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
 }
