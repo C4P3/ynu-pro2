@@ -8,8 +8,6 @@ using TMPro;
 public class LoginButton : IButton
 {
     [SerializeField] TMP_InputField inputField;
-    [SerializeField] CanvasGroup homeUI;
-    [SerializeField] CanvasGroup loginUI;
 
     public override void OnPointerClick(){
 
@@ -29,10 +27,6 @@ public class LoginButton : IButton
 
         base.OnPointerClick();
         authManager.SetDisplayName(inputField.text);
-
-        ChangeUI(homeUI, 1, true, true); //homeUIを表示
-        ChangeUI(loginUI, 0, false, false); //homeUIを非表示
-
     }
     public override void OnPointerEnter(){
 

@@ -4,6 +4,10 @@ using UnityEngine;
 
 public class PlayFabAuthManager : MonoBehaviour
 {
+    [SerializeField] CanvasGroup loginUI;
+    [SerializeField] CanvasGroup homeUI;
+    [SerializeField] CanvasGroup recordUI;
+    [SerializeField] CanvasGroup configUI;
     // 初回起動時にCustom ID（端末ID）で匿名ログインする
     void Start()
     {
@@ -24,7 +28,22 @@ public class PlayFabAuthManager : MonoBehaviour
 
     void OnLoginSuccess(LoginResult result)
     {
-        Debug.Log("匿名ログイン成功！ PlayFabId: " + result.PlayFabId);
+        if (result.NewlyCreated)
+        {
+        Debug.Log("初回ログイン（新規アカウント作成）！");
+        // 初回ログイン専用処理（例：ニックネーム設定画面へ遷移）
+        SetUI(loginUI, 1, true, true);
+        SetUI(homeUI, 0, false, false);
+        }
+        else
+        {
+        Debug.Log("既存アカウントでログイン成功！");
+        // 通常のホーム画面へ遷移など
+        SetUI(loginUI, 0, false, false);
+        SetUI(homeUI, 1, true, true);
+        }
+        SetUI(recordUI, 0, false, false);
+        SetUI(configUI, 0, false, false);
     }
 
     void OnLoginFailure(PlayFabError error)
@@ -46,10 +65,18 @@ public class PlayFabAuthManager : MonoBehaviour
     void OnDisplayNameSet(UpdateUserTitleDisplayNameResult result)
     {
         Debug.Log("ニックネーム設定成功: " + result.DisplayName);
+        SetUI(loginUI, 0, false, false);
+        SetUI(homeUI, 1, true, true);
     }
 
     void OnDisplayNameSetFailure(PlayFabError error)
     {
         Debug.LogError("ニックネーム設定失敗: " + error.GenerateErrorReport());
+    }
+
+    public void SetUI(CanvasGroup canvasGroup, int alfha, bool interactable, bool blocksRaycasts){
+        canvasGroup.alpha = alfha;
+        canvasGroup.interactable = interactable;
+        canvasGroup.blocksRaycasts = blocksRaycasts;
     }
 }
