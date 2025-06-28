@@ -9,7 +9,7 @@ public class BackButton : IButton
 {
     public override void OnPointerClick()
     {
-
+        base.OnPointerClick();
     }
     public override void OnPointerEnter()
     {
@@ -19,4 +19,13 @@ public class BackButton : IButton
     {
 
     }
+    // public override void OnPointerDown()
+    // {
+    //     buttonImage.color = buttonImage.color * 0.7f;
+    // }
+
+    // public override void OnPointerUp()
+    // {
+    //     buttonImage.color = buttonImage.color / 0.7f;
+    // }
 }

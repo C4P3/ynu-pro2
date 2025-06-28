@@ -27,6 +27,7 @@ public class LoginButton : IButton
             return;
         }
 
+        base.OnPointerClick();
         authManager.SetDisplayName(inputField.text);
 
         ChangeUI(homeUI, 1, true, true); //homeUIを表示
@@ -39,4 +40,13 @@ public class LoginButton : IButton
     public override void OnPointerExit(){
 
     }
+    // public override void OnPointerDown()
+    // {
+    //     buttonImage.color = buttonImage.color * 0.7f;
+    // }
+
+    // public override void OnPointerUp()
+    // {
+    //     buttonImage.color = buttonImage.color / 0.7f;
+    // }
 }
