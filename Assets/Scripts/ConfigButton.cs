@@ -1,26 +1,31 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
+using TMPro;
 
-public class ConfigButton : MonoBehaviour, IButton
+public class ConfigButton : IButton
 {
-    public GameObject HomeCanvas;
-    public GameObject ConfigCanvas;
-    public void OnPointerClick()
+    public override void OnPointerClick()
     {
-        // Implement the logic for when the button is clicked
-        Debug.Log("Config Button Clicked");
-        // Here you can add functionality to open the configuration menu
-        HomeCanvas.GetComponent<UnityEngine.Canvas>().enabled = false;
-        ConfigCanvas.GetComponent<UnityEngine.Canvas>().enabled = true;
-
+        base.OnPointerClick();
     }
-    public void OnPointerEnter()
+    public override void OnPointerEnter()
     {
 
     }
-    public void OnPointerExit()
+    public override void OnPointerExit()
     {
 
     }
+    // public override void OnPointerDown()
+    // {
+    //     buttonImage.color = buttonImage.color * 0.7f;
+    // }
+
+    // public override void OnPointerUp()
+    // {
+    //     buttonImage.color = buttonImage.color / 0.7f;
+    // }
 }

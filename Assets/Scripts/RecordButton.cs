@@ -1,27 +1,31 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
+using TMPro;
 
-public class RecordButton : MonoBehaviour, IButton
+public class RecordButton : IButton
 {
-    public GameObject HomeCanvas;
-    public GameObject RecordCanvas;
-
-    public void OnPointerClick()
+    public override void OnPointerClick()
     {
-        // Implement the logic for when the button is clicked
-        Debug.Log("Record Button Clicked");
-        // Here you can add functionality to start or stop recording
-        HomeCanvas.GetComponent<UnityEngine.Canvas>().enabled = false;
-        RecordCanvas.GetComponent<UnityEngine.Canvas>().enabled = true;
-
+        base.OnPointerClick();
     }
-    public void OnPointerEnter()
+    public override void OnPointerEnter()
     {
 
     }
-    public void OnPointerExit()
+    public override void OnPointerExit()
     {
 
     }
+    // public override void OnPointerDown()
+    // {
+    //     buttonImage.color = buttonImage.color * 0.7f;
+    // }
+
+    // public override void OnPointerUp()
+    // {
+    //     buttonImage.color = buttonImage.color / 0.7f;
+    // }
 }
