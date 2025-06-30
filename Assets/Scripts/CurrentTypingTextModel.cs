@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using UnityEngine;
 
 namespace Models
 {
@@ -18,6 +20,16 @@ namespace Models
         private List<char> _characters = new List<char>();
         private int _charactersIndex = 0;
         private OperatingSystemName _operatingSystemName = OperatingSystemName.None;
+
+        /// 現在のお題のタイトルを取得します。
+        public string Title => _title;
+
+        /// 現在の入力済み文字数を取得します。
+        public int TypedIndex => _charactersIndex;
+
+        /// 現在のローマ字表記をstring型で取得します。
+        /// <returns>現在のローマ字文字列</returns>
+        public string GetRomajiString() => new string(_characters.ToArray());
 
         public void SetOperatingSystemName(OperatingSystemName operatingSystemName)
         {

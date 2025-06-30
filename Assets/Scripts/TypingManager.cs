@@ -8,23 +8,16 @@ using Models;
 /// </summary>
 public class TypingManager : MonoBehaviour
 {
-    // ★追加: タイピングが終了したことを通知するためのイベント
-    // boolは成功(true)かキャンセル(false)かを示す
     public static event System.Action<bool> OnTypingEnded;
     
     [Header("UI References")]
     public GameObject typingPanel;
     public TextMeshProUGUI typedText;
 
-    // ★削除: PlayerControllerへの直接参照は不要になる
-    // public PlayerController player;
     private TypingTextStore _typingTextStore = new TypingTextStore();
-    private Models.TypingText _currentTypingText;
-    private string _currentHiragana; // ひらがな
-    private string _currentRomaji;   // ローマ字変換後
-    private int _typedIndex;
-    private ConvertHiraganaToRomanModel _converter = new ConvertHiraganaToRomanModel();
-    private Vector3Int _initialMoveDirection; // 追加: 最初の移動方向を保持
+    // ★変更: 古い変数を削除し、新しい入力判定モデルのインスタンスを保持する
+    private CurrentTypingTextModel _typingModel = new CurrentTypingTextModel();
+    private Vector3Int _initialMoveDirection;
 
     void Start()
     {
@@ -32,18 +25,24 @@ public class TypingManager : MonoBehaviour
         {
             typingPanel.SetActive(false);
         }
+        // ★追加: 必要に応じてOSを設定します。Mac環境でテストする場合は OperatingSystemName.Mac を設定してください。
+        _typingModel.SetOperatingSystemName(OperatingSystemName.Windows);
     }
+
     public void StartTyping(Vector3Int moveDirection)
     {
         _initialMoveDirection = moveDirection;
-        _currentTypingText = _typingTextStore.RandomTypingText;
-        _currentHiragana = _currentTypingText.hiragana;
-        // ここで変換
-        var romanChars = _converter.ConvertHiraganaToRoman(_currentHiragana.ToCharArray());
-        _currentRomaji = new string(System.Linq.Enumerable.ToArray(romanChars));
-        _typedIndex = 0;
+        TypingText currentTypingText = _typingTextStore.RandomTypingText;
 
-        // title（日本語）を出題
+        // ローマ字変換モデルを使って初期ローマ字を生成
+        var converter = new ConvertHiraganaToRomanModel();
+        var initialRomanChars = converter.ConvertHiraganaToRoman(currentTypingText.hiragana.ToCharArray());
+
+        // ★変更: 新しい入力判定モデルを初期化
+        _typingModel.SetTitle(currentTypingText.title);
+        _typingModel.SetCharacters(initialRomanChars);
+        _typingModel.ResetCharactersIndex();
+        
         UpdateTypedText();
 
         if (typingPanel != null)
@@ -51,11 +50,12 @@ public class TypingManager : MonoBehaviour
             typingPanel.SetActive(true);
         }
     }
+
     void Update()
     {
         if (typingPanel == null || !typingPanel.activeSelf) return;
 
-        // キャンセル機能
+        // キャンセル機能 (変更なし)
         if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
         {
             Vector3Int cancelMoveVec = Vector3Int.zero;
@@ -71,25 +71,36 @@ public class TypingManager : MonoBehaviour
             }
         }
 
-        // 文字入力処理
-        foreach (char c in Input.inputString)
+        // ★★★ 変更: 文字入力処理を全面的に書き換え ★★★
+        if (!string.IsNullOrEmpty(Input.inputString))
         {
-            if (_typedIndex < _currentRomaji.Length && c == _currentRomaji[_typedIndex])
+            foreach (char c in Input.inputString)
             {
-                _typedIndex++;
-                UpdateTypedText();
-                if (_typedIndex >= _currentRomaji.Length)
+                // アルファベット小文字のみを処理対象とする
+                if ((c >= 'a' && c <= 'z') || c == '-')
                 {
-                    OnTypingEnded?.Invoke(true);
-                    typingPanel.SetActive(false);
+                    // 入力判定モデルに文字を渡して判定を依頼
+                    var result = _typingModel.TypeCharacter(c);
+
+                    // 正しい入力、または完了した場合
+                    if (result != TypeResult.Incorrect)
+                    {
+                        UpdateTypedText(); // 表示を更新
+                    }
+
+                    // タイピングが完了した場合
+                    if (result == TypeResult.Finished)
+                    {
+                        OnTypingComplete();
+                        return; // このフレームのUpdate処理を抜ける
+                    }
                 }
             }
-            // キャンセル処理などは必要に応じて追加
         }
     }
 
     /// <summary>
-    /// タイピングを開始する
+    /// タイピングが成功裏に完了した際の処理
     /// </summary>
     void OnTypingComplete()
     {
@@ -97,7 +108,6 @@ public class TypingManager : MonoBehaviour
         {
             typingPanel.SetActive(false);
         }
-        // ★変更: 成功した(true)ことをイベントで通知
         OnTypingEnded?.Invoke(true);
     }
 
@@ -110,16 +120,23 @@ public class TypingManager : MonoBehaviour
         {
             typingPanel.SetActive(false);
         }
-        // ★変更: キャンセル(false)したことをイベントで通知
         OnTypingEnded?.Invoke(false);
     }
+
+    /// <summary>
+    /// ★★★ 変更: UIのテキストを更新する処理 ★★★
+    /// </summary>
     void UpdateTypedText()
     {
+        // 入力判定モデルから最新の情報を取得
+        string title = _typingModel.Title;
+        string currentRomaji = _typingModel.GetRomajiString();
+        int typedIndex = _typingModel.TypedIndex;
+
         // 1行目: 日本語タイトル
-        string title = _currentTypingText.title;
         // 2行目: ローマ字（入力進捗を色分け）
-        string highlightedText = $"<color=red>{_currentRomaji.Substring(0, _typedIndex)}</color>";
-        string remainingText = _currentRomaji.Substring(_typedIndex);
+        string highlightedText = $"<color=red>{currentRomaji.Substring(0, typedIndex)}</color>";
+        string remainingText = currentRomaji.Substring(typedIndex);
         string romajiLine = highlightedText + remainingText;
 
         // 2行表示（1行目: 日本語, 2行目: ローマ字）
