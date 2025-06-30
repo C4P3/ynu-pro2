@@ -21,4 +21,8 @@ public class ItemData : ScriptableObject
     public string itemName;
     public ItemEffectType effectType; // このアイテムがどの種類の効果を持つか
     public TileBase itemTile; // タイルマップに表示されるときのタイル
+
+    [Header("Visuals & Effects")]
+    [Tooltip("このアイテムを取得した時に再生されるエフェクトのプレハブ")]
+    public GameObject acquisitionEffectPrefab; // アイテム取得時に再生するエフェクト
 }

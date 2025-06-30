@@ -15,4 +15,5 @@ MonoBehaviour:
   itemName: Bomb3
   effectType: 1
   itemTile: {fileID: 11400000, guid: 73ee71444ac3c473ebba0a9d713bd6cf, type: 2}
+  acquisitionEffectPrefab: {fileID: 4331274140685187152, guid: 74224abbcb88d5645a61319c9dc5af57, type: 3}
   radius: 3

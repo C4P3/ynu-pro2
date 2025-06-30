@@ -1,6 +1,6 @@
 // EffectManager.cs
 using UnityEngine;
-
+using UnityEngine.Tilemaps; // Tilemapクラスを利用するために追加
 /// <summary>
 /// ゲーム内のエフェクト（パーティクルなど）の再生と管理を行うクラス
 /// </summary>
@@ -8,6 +8,10 @@ public class EffectManager : MonoBehaviour
 {
     // シングルトンパターンの実装
     public static EffectManager Instance { get; private set; }
+
+    [Header("References")]
+    [Tooltip("エフェクトの座標変換の基準となるタイルマップ。LevelManagerのBlockTilemapなどを設定してください。")]
+    public Tilemap referenceTilemap; // ワールド座標への変換に利用する
 
     void Awake()
     {
@@ -19,6 +23,35 @@ public class EffectManager : MonoBehaviour
         {
             Destroy(gameObject);
         }
+    }
+
+    /// <summary>
+    /// アイテムデータとグリッド座標から、アイテム取得エフェクトを再生する
+    /// </summary>
+    /// <param name="itemData">取得されたアイテムのデータ</param>
+    /// <param name="gridPosition">アイテムが存在したグリッド座標</param>
+    public void PlayItemAcquisitionEffect(ItemData itemData, Vector3Int gridPosition)
+    {
+        // ItemDataまたは、その中にエフェクトプレハブが設定されていなければ何もしない
+        if (itemData == null || itemData.acquisitionEffectPrefab == null)
+        {
+            return;
+        }
+
+        // 座標変換の基準となるタイルマップが未設定の場合は警告を出す
+        if (referenceTilemap == null)
+        {
+            Debug.LogWarning("EffectManagerにreferenceTilemapが設定されていません。エフェクトは原点に表示されます。");
+            // 基準タイルマップがなくても、とりあえず原点でエフェクトを再生する
+            PlayEffect(itemData.acquisitionEffectPrefab, Vector3.zero);
+            return;
+        }
+
+        // グリッド座標を、そのセルの中央のワールド座標に変換する
+        Vector3 worldPosition = referenceTilemap.GetCellCenterWorld(gridPosition);
+
+        // 既存のPlayEffectメソッドを呼び出して、指定の座標でエフェクトを再生
+        PlayEffect(itemData.acquisitionEffectPrefab, worldPosition);
     }
 
     /// <summary>

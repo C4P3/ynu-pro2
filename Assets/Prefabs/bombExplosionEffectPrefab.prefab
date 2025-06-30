@@ -11,7 +11,6 @@ GameObject:
   - component: {fileID: 4137206832856987440}
   - component: {fileID: 3462308635834289077}
   - component: {fileID: 6834033723620317803}
-  - component: {fileID: 5444580016355591242}
   m_Layer: 0
   m_Name: bombExplosionEffectPrefab
   m_TagString: Untagged
@@ -43,7 +42,7 @@ ParticleSystem:
   m_GameObject: {fileID: 4331274140685187152}
   serializedVersion: 8
   lengthInSec: 5
-  simulationSpeed: 10
+  simulationSpeed: 30
   stopAction: 0
   cullingMode: 0
   ringBufferMode: 0
@@ -57,7 +56,7 @@ ParticleSystem:
   startDelay:
     serializedVersion: 2
     minMaxState: 0
-    scalar: 2
+    scalar: 0
     minScalar: 0
     maxCurve:
       serializedVersion: 2
@@ -1051,8 +1050,8 @@ ParticleSystem:
             outSlope: 0
             tangentMode: 0
             weightedMode: 0
-            inWeight: 0
-            outWeight: 0
+            inWeight: 0.33333334
+            outWeight: 0.33333334
           - serializedVersion: 3
             time: 1
             value: 1
@@ -1060,8 +1059,8 @@ ParticleSystem:
             outSlope: 0
             tangentMode: 0
             weightedMode: 0
-            inWeight: 0
-            outWeight: 0
+            inWeight: 0.33333334
+            outWeight: 0.33333334
           m_PreInfinity: 2
           m_PostInfinity: 2
           m_RotationOrder: 4
@@ -1075,8 +1074,8 @@ ParticleSystem:
             outSlope: 0
             tangentMode: 0
             weightedMode: 0
-            inWeight: 0
-            outWeight: 0
+            inWeight: 0.33333334
+            outWeight: 0.33333334
           - serializedVersion: 3
             time: 1
             value: 1
@@ -1084,8 +1083,8 @@ ParticleSystem:
             outSlope: 0
             tangentMode: 0
             weightedMode: 0
-            inWeight: 0
-            outWeight: 0
+            inWeight: 0.33333334
+            outWeight: 0.33333334
           m_PreInfinity: 2
           m_PostInfinity: 2
           m_RotationOrder: 4
@@ -4950,15 +4949,3 @@ ParticleSystemRenderer:
   m_MeshWeighting2: 1
   m_MeshWeighting3: 1
   m_MaskInteraction: 0
---- !u!114 &5444580016355591242
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4331274140685187152}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cb9dd7ecdbafb484c928c9c8f2396c15, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 

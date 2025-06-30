@@ -86,6 +86,12 @@ public class ItemManager : MonoBehaviour
 
         Debug.Log($"Acquired: {data.itemName}");
 
+        // EffectManagerに、どのアイテムをどの場所で取得したかを伝え、エフェクト再生を依頼する
+        if (EffectManager.Instance != null)
+        {
+            EffectManager.Instance.PlayItemAcquisitionEffect(data, itemPosition);
+        }
+
         // アイテムの種類に応じて効果を発動
         switch (data.effectType)
         {
