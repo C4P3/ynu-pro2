@@ -33,6 +33,7 @@ public class PlayerController : MonoBehaviour
     private PlayerState _currentState = PlayerState.Roaming;
     private Vector3Int _gridTargetPos;
     private Vector3Int _typingTargetPos; // タイピング対象のブロック座標
+    private Vector3Int _lastMoveDirection = Vector3Int.right; // デフォルト右向き
 
     #region Unity Lifecycle Methods
     void OnEnable()
@@ -158,6 +159,11 @@ public class PlayerController : MonoBehaviour
             // ブロックがない場合
             MoveTo(nextGridPos);
         }
+
+        if (moveVec != Vector3Int.zero)
+        {
+            _lastMoveDirection = moveVec;
+        }
     }
 
     /// <summary>
@@ -186,6 +192,11 @@ public class PlayerController : MonoBehaviour
             ItemManager.Instance.AcquireItem(itemTile, position);
             itemTilemap.SetTile(position, null);
         }
+    }
+
+    public Vector3Int GetLastMoveDirection()
+    {
+        return _lastMoveDirection;
     }
     #endregion
 }

@@ -21,13 +21,13 @@ namespace Models
         private int _charactersIndex = 0;
         private OperatingSystemName _operatingSystemName = OperatingSystemName.None;
 
-        /// 現在のお題のタイトルを取得します。
+        /// 現在のお題のタイトルを取得
         public string Title => _title;
 
-        /// 現在の入力済み文字数を取得します。
+        /// 現在の入力済み文字数を取得
         public int TypedIndex => _charactersIndex;
 
-        /// 現在のローマ字表記をstring型で取得します。
+        /// 現在のローマ字表記をstring型で取得
         /// <returns>現在のローマ字文字列</returns>
         public string GetRomajiString() => new string(_characters.ToArray());
 
