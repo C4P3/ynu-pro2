@@ -1,61 +1,73 @@
-// TypingManager.cs
 using UnityEngine;
 using TMPro;
 using Models;
 
-/// <summary>
 /// タイピングのUI表示と入力判定を管理するクラス
-/// </summary>
+
 public class TypingManager : MonoBehaviour
 {
-    // ★追加: タイピングが終了したことを通知するためのイベント
-    // boolは成功(true)かキャンセル(false)かを示す
-    public static event System.Action<bool> OnTypingEnded;
-    
+    // タイピング終了時のイベント
+    public static event System.Action<bool> OnTypingEnded; 
+    // UIの参照
     [Header("UI References")]
     public GameObject typingPanel;
     public TextMeshProUGUI typedText;
-
-    // ★削除: PlayerControllerへの直接参照は不要になる
-    // public PlayerController player;
+    // タイピング用データ管理
     private TypingTextStore _typingTextStore = new TypingTextStore();
-    private Models.TypingText _currentTypingText;
-    private string _currentHiragana; // ひらがな
-    private string _currentRomaji;   // ローマ字変換後
-    private int _typedIndex;
-    private ConvertHiraganaToRomanModel _converter = new ConvertHiraganaToRomanModel();
-    private Vector3Int _initialMoveDirection; // 追加: 最初の移動方向を保持
+    private CurrentTypingTextModel _typingModel = new CurrentTypingTextModel();
+    private Vector3Int _initialMoveDirection;
 
     void Start()
     {
+        // パネルを非表示にしておく
         if (typingPanel != null)
         {
             typingPanel.SetActive(false);
         }
+
+        // OSを自動判定して設定
+        #if UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX
+            // Mac環境の場合
+            _typingModel.SetOperatingSystemName(OperatingSystemName.Mac);
+            Debug.Log("OS: Macに設定しました。");
+        #elif UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
+            // Windows環境の場合
+            _typingModel.SetOperatingSystemName(OperatingSystemName.Windows);
+            Debug.Log("OS: Windowsに設定しました。");
+        #else
+            // その他の環境（Linuxなど）の場合、デフォルトとしてWindowsを設定
+            _typingModel.SetOperatingSystemName(OperatingSystemName.Windows);
+            Debug.Log("OS: その他（デフォルトでWindows）に設定しました。");
+        #endif
     }
+
+    // タイピン開始時の初期化処理
     public void StartTyping(Vector3Int moveDirection)
     {
         _initialMoveDirection = moveDirection;
-        _currentTypingText = _typingTextStore.RandomTypingText;
-        _currentHiragana = _currentTypingText.hiragana;
-        // ここで変換
-        var romanChars = _converter.ConvertHiraganaToRoman(_currentHiragana.ToCharArray());
-        _currentRomaji = new string(System.Linq.Enumerable.ToArray(romanChars));
-        _typedIndex = 0;
+        TypingText currentTypingText = _typingTextStore.RandomTypingText;
 
-        // title（日本語）を出題
+        // ひらがなをローマ字に変換
+        var converter = new ConvertHiraganaToRomanModel();
+        var initialRomanChars = converter.ConvertHiraganaToRoman(currentTypingText.hiragana.ToCharArray());
+        // モデルに情報をセット
+        _typingModel.SetTitle(currentTypingText.title);
+        _typingModel.SetCharacters(initialRomanChars);
+        _typingModel.ResetCharactersIndex();
+        // UIの更新
         UpdateTypedText();
-
+        // パネルの表示
         if (typingPanel != null)
         {
             typingPanel.SetActive(true);
         }
     }
+
     void Update()
     {
+        // パネルが非表示なら何も行わない
         if (typingPanel == null || !typingPanel.activeSelf) return;
-
-        // キャンセル機能
+        // シフト+移動キーでキャンセル
         if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
         {
             Vector3Int cancelMoveVec = Vector3Int.zero;
@@ -70,59 +82,63 @@ public class TypingManager : MonoBehaviour
                 return;
             }
         }
-
-        // 文字入力処理
-        foreach (char c in Input.inputString)
+        // 入力文字を1文字ずつ判定
+        if (!string.IsNullOrEmpty(Input.inputString))
         {
-            if (_typedIndex < _currentRomaji.Length && c == _currentRomaji[_typedIndex])
+            foreach (char c in Input.inputString)
             {
-                _typedIndex++;
-                UpdateTypedText();
-                if (_typedIndex >= _currentRomaji.Length)
+                // アルファベット小文字とハイフン(-)を処理対象とする
+                if ((c >= 'a' && c <= 'z') || c == '-')
                 {
-                    OnTypingEnded?.Invoke(true);
-                    typingPanel.SetActive(false);
+                    var result = _typingModel.TypeCharacter(c);
+                    // 正しい入力ならUIを更新
+                    if (result != TypeResult.Incorrect)
+                    {
+                        UpdateTypedText();
+                    }
+                    // 入力が正しく完了したら終了処理
+                    if (result == TypeResult.Finished)
+                    {
+                        OnTypingComplete();
+                        return;
+                    }
                 }
             }
-            // キャンセル処理などは必要に応じて追加
         }
     }
 
-    /// <summary>
-    /// タイピングを開始する
-    /// </summary>
+    // タイピングが成功裏に完了した際の処理
     void OnTypingComplete()
     {
         if (typingPanel != null)
         {
             typingPanel.SetActive(false);
         }
-        // ★変更: 成功した(true)ことをイベントで通知
         OnTypingEnded?.Invoke(true);
     }
 
-    /// <summary>
-    /// タイピングを中断する処理
-    /// </summary>
+    // タイピングを中断する処理
     private void CancelTyping()
     {
         if (typingPanel != null)
         {
             typingPanel.SetActive(false);
         }
-        // ★変更: キャンセル(false)したことをイベントで通知
         OnTypingEnded?.Invoke(false);
     }
+
+    // UIのテキストを更新する処理
     void UpdateTypedText()
     {
-        // 1行目: 日本語タイトル
-        string title = _currentTypingText.title;
-        // 2行目: ローマ字（入力進捗を色分け）
-        string highlightedText = $"<color=red>{_currentRomaji.Substring(0, _typedIndex)}</color>";
-        string remainingText = _currentRomaji.Substring(_typedIndex);
+        // タイトル（日本語）とローマ字進捗を表示
+        string title = _typingModel.Title;
+        string currentRomaji = _typingModel.GetRomajiString();
+        int typedIndex = _typingModel.TypedIndex;
+        // 入力済み部分を赤色で表示
+        string highlightedText = $"<color=red>{currentRomaji.Substring(0, typedIndex)}</color>";
+        string remainingText = currentRomaji.Substring(typedIndex);
         string romajiLine = highlightedText + remainingText;
 
-        // 2行表示（1行目: 日本語, 2行目: ローマ字）
         typedText.text = $"{title}\n{romajiLine}";
     }
 }
