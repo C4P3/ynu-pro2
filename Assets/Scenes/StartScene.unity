@@ -1189,9 +1189,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7e98a6b23844d92438c971a30ede6ffd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  title: {fileID: 0}
-  matchButton: {fileID: 0}
-  configButton: {fileID: 0}
+  HomeCanvas: {fileID: 0}
   RecordCanvas: {fileID: 0}
 --- !u!114 &910507763
 MonoBehaviour:
@@ -2466,7 +2464,7 @@ AudioSource:
   m_audioClip: {fileID: 8300000, guid: 615df5c96111e7445a0dcbf83572f5af, type: 3}
   m_Resource: {fileID: 8300000, guid: 615df5c96111e7445a0dcbf83572f5af, type: 3}
   m_PlayOnAwake: 1
-  m_Volume: 0.5
+  m_Volume: 0
   m_Pitch: 1
   Loop: 0
   Mute: 0

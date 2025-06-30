@@ -1,6 +1,7 @@
 // PlayerController.cs
 using UnityEngine;
 using UnityEngine.Tilemaps;
+using System.Collections;
 
 /// <summary>
 /// プレイヤーの状態を定義する列挙型
@@ -26,8 +27,10 @@ public class PlayerController : MonoBehaviour
     public TypingManager typingManager;
 
     [Header("Audio")]
-    [SerializeField] private AudioClip walkSound;
+    [SerializeField] private AudioClip[] walkSounds;
+    [SerializeField] private float walkSoundInterval = 0.4f;
     private AudioSource audioSource;
+    private Coroutine walkSoundCoroutine;
 
     // プレイヤーの現在の状態
     private PlayerState _currentState = PlayerState.Roaming;
@@ -104,7 +107,14 @@ public class PlayerController : MonoBehaviour
         if (Vector3.Distance(transform.position, blockTilemap.GetCellCenterWorld(_gridTargetPos)) < 0.01f)
         {
             transform.position = blockTilemap.GetCellCenterWorld(_gridTargetPos);
+            if (walkSoundCoroutine != null)
+            {
+                StopCoroutine(walkSoundCoroutine);
+                walkSoundCoroutine = null;
+            }
+
             CheckForItemAt(_gridTargetPos);
+
             if (LevelManager.Instance != null)
             {
                 LevelManager.Instance.CheckAndGenerateChunksAroundPlayer();
@@ -160,6 +170,24 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    private void PlayWalkSound()
+    {
+        if (walkSounds != null && walkSounds.Length > 0 && audioSource != null)
+    {
+        int index = Random.Range(0, walkSounds.Length);
+        audioSource.PlayOneShot(walkSounds[index]);
+    }
+    }
+
+    private IEnumerator WalkSoundLoop()
+    {
+        while (_currentState == PlayerState.Moving)
+    {
+        PlayWalkSound();
+        yield return new WaitForSeconds(walkSoundInterval);
+    }
+
+    }
     /// <summary>
     /// 指定された座標への移動を開始する
     /// </summary>
@@ -169,10 +197,12 @@ public class PlayerController : MonoBehaviour
         _currentState = PlayerState.Moving; // 自身の状態を「移動中」に変更
 
         //移動音を再生
-         if (walkSound != null && audioSource != null)
+         if (walkSoundCoroutine != null)
     {
-        audioSource.PlayOneShot(walkSound);
+        StopCoroutine(walkSoundCoroutine);
     }
+    walkSoundCoroutine = StartCoroutine(WalkSoundLoop());
+
     }
 
     /// <summary>

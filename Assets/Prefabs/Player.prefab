@@ -102,3 +102,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   moveSpeed: 5
   blockTilemap: {fileID: 0}
+  itemTilemap: {fileID: 0}
+  typingManager: {fileID: 0}
+  walkSounds:
+  - {fileID: 0}
+  walkSoundInterval: 0.4
