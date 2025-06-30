@@ -16,6 +16,6 @@ MonoBehaviour:
   effectType: 2
   itemTile: {fileID: 11400000, guid: 36964f4679561ac4185f74de6047ba0e, type: 2}
   acquisitionEffectPrefab: {fileID: 0}
-  followEffectPrefab: {fileID: 4331274140685187152, guid: 74224abbcb88d5645a61319c9dc5af57, type: 3}
+  followEffectPrefab: {fileID: 7611452570050137665, guid: e0ec43f96e1f452498ac0804550f832e, type: 3}
   followEffectDuration: 3
   invincibleDuration: 5
