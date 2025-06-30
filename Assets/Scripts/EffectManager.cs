@@ -1,6 +1,7 @@
 // EffectManager.cs
 using UnityEngine;
 using UnityEngine.Tilemaps; // Tilemapクラスを利用するために追加
+using System.Collections; // コルーチンを使うために追加
 /// <summary>
 /// ゲーム内のエフェクト（パーティクルなど）の再生と管理を行うクラス
 /// </summary>
@@ -12,6 +13,9 @@ public class EffectManager : MonoBehaviour
     [Header("References")]
     [Tooltip("エフェクトの座標変換の基準となるタイルマップ。LevelManagerのBlockTilemapなどを設定してください。")]
     public Tilemap referenceTilemap; // ワールド座標への変換に利用する
+
+    [Tooltip("エフェクトを追従させる対象のTransform。通常はプレイヤーを設定します。")]
+    public Transform followTarget; // エフェクトが追従する対象
 
     void Awake()
     {
@@ -67,10 +71,9 @@ public class EffectManager : MonoBehaviour
             return;
         }
 
-        // ★変更点: 生成したエフェクトのインスタンスを保持する
+        // 生成したエフェクトのインスタンスを保持する
         GameObject effectInstance = Instantiate(effectPrefab, position, Quaternion.identity);
 
-        // --- ★ここから追加 ---
         // 生成したエフェクトにParticleSystemがついているかチェック
         ParticleSystem ps = effectInstance.GetComponent<ParticleSystem>();
         if (ps != null)
@@ -88,6 +91,45 @@ public class EffectManager : MonoBehaviour
             Destroy(effectInstance, 5f);
             Debug.LogWarning($"The effect '{effectInstance.name}' does not have a ParticleSystem component. It will be destroyed in 5 seconds.");
         }
-        // --- ★ここまで追加 ---
+    }
+    /// <summary>
+    /// 指定された対象に追従するエフェクトを一定時間再生します。
+    /// </summary>
+    /// <param name="effectPrefab">再生するエフェクトのプレハブ</param>
+    /// <param name="duration">再生時間（秒）</param>
+    public void PlayFollowEffect(GameObject effectPrefab, float duration)
+    {
+        if (effectPrefab == null)
+        {
+            Debug.LogWarning("PlayFollowEffect was called with a null prefab.");
+            return;
+        }
+        // 追従対象が設定されていない場合は警告を出し、処理を中断
+        if (followTarget == null)
+        {
+            Debug.LogWarning("EffectManagerにFollow Targetが設定されていません。追従エフェクトを再生できません。");
+            return;
+        }
+
+        // 追従と時間経過後の破棄を行うコルーチンを開始
+        StartCoroutine(FollowAndDestroyCoroutine(effectPrefab, duration));
+    }
+
+    /// <summary>
+    /// エフェクトを追従させ、指定時間後に破棄するコルーチン
+    /// </summary>
+    private IEnumerator FollowAndDestroyCoroutine(GameObject effectPrefab, float duration)
+    {
+        // 追従対象の子オブジェクトとしてエフェクトを生成。これにより、対象の移動に自動で追従する。
+        GameObject effectInstance = Instantiate(effectPrefab, followTarget.position, Quaternion.identity, followTarget);
+
+        // 指定された時間だけ待機
+        yield return new WaitForSeconds(duration);
+
+        // 待機後、エフェクトオブジェクトがまだ存在していれば（何らかの理由で先に破棄されていないか確認）破棄する
+        if (effectInstance != null)
+        {
+            Destroy(effectInstance);
+        }
     }
 }
