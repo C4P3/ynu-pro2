@@ -16,6 +16,6 @@ MonoBehaviour:
   effectType: 0
   itemTile: {fileID: 11400000, guid: 55a2d7eeeb80c4e808ed7d7c706813e8, type: 2}
   acquisitionEffectPrefab: {fileID: 0}
-  followEffectPrefab: {fileID: 4331274140685187152, guid: 74224abbcb88d5645a61319c9dc5af57, type: 3}
-  followEffectDuration: 3
+  followEffectPrefab: {fileID: 170940224733326813, guid: 4aa93f882d5d86244ae2b8d556e767be, type: 3}
+  followEffectDuration: 1.5
   recoveryAmount: 25
