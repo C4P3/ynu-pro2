@@ -86,6 +86,18 @@ public class ItemManager : MonoBehaviour
 
         Debug.Log($"Acquired: {data.itemName}");
 
+        // EffectManagerに、どのアイテムをどの場所で取得したかを伝え、エフェクト再生を依頼する
+        if (EffectManager.Instance != null)
+        {
+            EffectManager.Instance.PlayItemAcquisitionEffect(data, itemPosition);
+            // 追従エフェクトが設定されていれば、再生を依頼する
+            if (data.followEffectPrefab != null)
+            {
+                // 新しいメソッドを呼び出し、プレハブと表示時間を渡す
+                EffectManager.Instance.PlayFollowEffect(data.followEffectPrefab, data.followEffectDuration);
+            }
+        }
+
         // アイテムの種類に応じて効果を発動
         switch (data.effectType)
         {
@@ -102,6 +114,17 @@ public class ItemManager : MonoBehaviour
                 if (bombData != null && LevelManager.Instance != null)
                 {
                     LevelManager.Instance.ExplodeBlocks(itemPosition, bombData.radius);
+                }
+                break;
+
+            case ItemEffectType.Star:
+                var starData = data as StarItemData;
+                // StarItemDataに無敵時間が設定されていれば、GameManagerに無敵化を依頼
+                if (starData != null && GameManager.Instance != null)
+                {
+                    GameManager.Instance.StartCoroutine(
+                        GameManager.Instance.TemporaryOxygenInvincibility(starData.invincibleDuration)
+                    );
                 }
                 break;
         }

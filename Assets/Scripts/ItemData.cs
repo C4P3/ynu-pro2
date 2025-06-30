@@ -21,4 +21,14 @@ public class ItemData : ScriptableObject
     public string itemName;
     public ItemEffectType effectType; // このアイテムがどの種類の効果を持つか
     public TileBase itemTile; // タイルマップに表示されるときのタイル
+
+    [Header("Visuals & Effects")]
+    [Tooltip("このアイテムを取得した時に再生されるエフェクトのプレハブ")]
+    public GameObject acquisitionEffectPrefab; // アイテム取得時に再生するエフェクト
+
+    [Header("Follow Effect (Optional)")]
+    [Tooltip("取得後、プレイヤーに追従して表示されるエフェクトのプレハブ")]
+    public GameObject followEffectPrefab; // プレイヤー追従エフェクト
+    [Tooltip("追従エフェクトの表示時間（秒）")]
+    public float followEffectDuration = 3f; // 表示時間。デフォルトを3秒に設定
 }
