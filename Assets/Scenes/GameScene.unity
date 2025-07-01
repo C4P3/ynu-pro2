@@ -1023,6 +1023,8 @@ MonoBehaviour:
     spawnWeight: 0.1
   - itemData: {fileID: 11400000, guid: 140479964ad045e45848bf33017d8578, type: 2}
     spawnWeight: 0.1
+  - itemData: {fileID: 11400000, guid: 1cd64fa6129df144db8cc726c097e20f, type: 2}
+    spawnWeight: 0.1
 --- !u!4 &947737121
 Transform:
   m_ObjectHideFlags: 0
