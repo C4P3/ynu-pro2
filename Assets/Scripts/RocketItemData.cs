@@ -18,8 +18,8 @@ public class RocketItemData : ItemData
         // プレイヤーの現在位置をグリッド座標に変換
         Vector3Int startPos = blockTilemap.WorldToCell(player.position);
 
-        // 7マス分、指定方向にブロックを破壊
-        for (int i = 1; i <= 7; i++)
+        // 10マス分、指定方向にブロックを破壊
+        for (int i = 1; i <= 10; i++)
         {
             Vector3Int targetPos = startPos + direction * i;
             if (blockTilemap.HasTile(targetPos))
@@ -27,8 +27,6 @@ public class RocketItemData : ItemData
                 blockTilemap.SetTile(targetPos, null);
             }
         }
-        Debug.Log("ロケットアイテム");
-
         // エフェクト再生（任意）
         if (effectPrefab != null)
         {
@@ -36,10 +34,3 @@ public class RocketItemData : ItemData
         }
     }
 }
-
-// // 例: Item取得処理
-// if (itemData is RocketItemData rocketItem)
-// {
-//     // プレイヤーのTransform, 向き, Tilemapを渡す
-//     rocketItem.Activate(player.transform, direction, blockTilemap);
-// }
