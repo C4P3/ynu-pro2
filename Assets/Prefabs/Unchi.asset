@@ -18,4 +18,4 @@ MonoBehaviour:
   acquisitionEffectPrefab: {fileID: 0}
   followEffectPrefab: {fileID: 0}
   followEffectDuration: 3
-  unchiTile: {fileID: 11400000, guid: dd3dffa1ff0e43a469001cde90de6c63, type: 2}
+  unchiTile: {fileID: 11400000, guid: 0391580d28d72674994c520da464c81d, type: 2}
