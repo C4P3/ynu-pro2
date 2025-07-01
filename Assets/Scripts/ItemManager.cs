@@ -79,7 +79,8 @@ public class ItemManager : MonoBehaviour
     /// </summary>
     /// <param name="itemTile">取得したアイテムのタイル</param>
     /// <param name="itemPosition">取得したアイテムのタイルマップ座標</param>
-    public void AcquireItem(TileBase itemTile, Vector3Int itemPosition)
+    /// <param name="levelManager">アイテムを取得したプレイヤーが所属するLevelManager</param> // ★★★ 引数を追加 ★★★
+    public void AcquireItem(TileBase itemTile, Vector3Int itemPosition, LevelManager levelManager, Transform playerTransform)
     {
         // データベースに登録されていないタイルであれば何もしない
         if (!_itemDatabase.TryGetValue(itemTile, out ItemData data)) return;
@@ -89,12 +90,13 @@ public class ItemManager : MonoBehaviour
         // EffectManagerに、どのアイテムをどの場所で取得したかを伝え、エフェクト再生を依頼する
         if (EffectManager.Instance != null)
         {
-            EffectManager.Instance.PlayItemAcquisitionEffect(data, itemPosition);
-            // 追従エフェクトが設定されていれば、再生を依頼する
+            // ★★★ 引数に levelManager.itemTilemap を渡す ★★★
+            EffectManager.Instance.PlayItemAcquisitionEffect(data, itemPosition, levelManager.itemTilemap);
+            
             if (data.followEffectPrefab != null)
             {
-                // 新しいメソッドを呼び出し、プレハブと表示時間を渡す
-                EffectManager.Instance.PlayFollowEffect(data.followEffectPrefab, data.followEffectDuration);
+                // ★★★ 引数に playerTransform を渡す ★★★
+                EffectManager.Instance.PlayFollowEffect(data.followEffectPrefab, data.followEffectDuration, playerTransform);
             }
         }
 
@@ -111,9 +113,10 @@ public class ItemManager : MonoBehaviour
 
             case ItemEffectType.Bomb:
                 var bombData = data as BombItemData;
-                if (bombData != null && LevelManager.Instance != null)
+                // ★★★ Instanceではなく、引数で渡されたlevelManagerを使う ★★★
+                if (bombData != null && levelManager != null)
                 {
-                    LevelManager.Instance.ExplodeBlocks(itemPosition, bombData.radius);
+                    levelManager.ExplodeBlocks(itemPosition, bombData.radius);
                 }
                 break;
 

@@ -10,13 +10,6 @@ public class EffectManager : MonoBehaviour
     // シングルトンパターンの実装
     public static EffectManager Instance { get; private set; }
 
-    [Header("References")]
-    [Tooltip("エフェクトの座標変換の基準となるタイルマップ。LevelManagerのBlockTilemapなどを設定してください。")]
-    public Tilemap referenceTilemap; // ワールド座標への変換に利用する
-
-    [Tooltip("エフェクトを追従させる対象のTransform。通常はプレイヤーを設定します。")]
-    public Transform followTarget; // エフェクトが追従する対象
-
     void Awake()
     {
         if (Instance == null)
@@ -32,29 +25,20 @@ public class EffectManager : MonoBehaviour
     /// <summary>
     /// アイテムデータとグリッド座標から、アイテム取得エフェクトを再生する
     /// </summary>
-    /// <param name="itemData">取得されたアイテムのデータ</param>
-    /// <param name="gridPosition">アイテムが存在したグリッド座標</param>
-    public void PlayItemAcquisitionEffect(ItemData itemData, Vector3Int gridPosition)
+    /// <param name="referenceTilemap">座標変換の基準となるタイルマップ</param>  // ★★★ 引数を追加 ★★★
+    public void PlayItemAcquisitionEffect(ItemData itemData, Vector3Int gridPosition, Tilemap referenceTilemap)
     {
-        // ItemDataまたは、その中にエフェクトプレハブが設定されていなければ何もしない
-        if (itemData == null || itemData.acquisitionEffectPrefab == null)
-        {
-            return;
-        }
+        if (itemData == null || itemData.acquisitionEffectPrefab == null) return;
 
-        // 座標変換の基準となるタイルマップが未設定の場合は警告を出す
+        // ★★★ 引数で渡されたタイルマップを基準にする ★★★
         if (referenceTilemap == null)
         {
-            Debug.LogWarning("EffectManagerにreferenceTilemapが設定されていません。エフェクトは原点に表示されます。");
-            // 基準タイルマップがなくても、とりあえず原点でエフェクトを再生する
+            Debug.LogWarning("PlayItemAcquisitionEffectにreferenceTilemapが渡されませんでした。");
             PlayEffect(itemData.acquisitionEffectPrefab, Vector3.zero);
             return;
         }
 
-        // グリッド座標を、そのセルの中央のワールド座標に変換する
         Vector3 worldPosition = referenceTilemap.GetCellCenterWorld(gridPosition);
-
-        // 既存のPlayEffectメソッドを呼び出して、指定の座標でエフェクトを再生
         PlayEffect(itemData.acquisitionEffectPrefab, worldPosition);
     }
 
@@ -92,41 +76,32 @@ public class EffectManager : MonoBehaviour
             Debug.LogWarning($"The effect '{effectInstance.name}' does not have a ParticleSystem component. It will be destroyed in 5 seconds.");
         }
     }
+
     /// <summary>
     /// 指定された対象に追従するエフェクトを一定時間再生します。
     /// </summary>
-    /// <param name="effectPrefab">再生するエフェクトのプレハブ</param>
-    /// <param name="duration">再生時間（秒）</param>
-    public void PlayFollowEffect(GameObject effectPrefab, float duration)
+    /// <param name="followTarget">エフェクトが追従する対象</param> // ★★★ 引数を追加 ★★★
+    public void PlayFollowEffect(GameObject effectPrefab, float duration, Transform followTarget)
     {
-        if (effectPrefab == null)
-        {
-            Debug.LogWarning("PlayFollowEffect was called with a null prefab.");
-            return;
-        }
-        // 追従対象が設定されていない場合は警告を出し、処理を中断
+        if (effectPrefab == null) return;
+        
+        // ★★★ 引数で渡された追従対象を使う ★★★
         if (followTarget == null)
         {
-            Debug.LogWarning("EffectManagerにFollow Targetが設定されていません。追従エフェクトを再生できません。");
+            Debug.LogWarning("PlayFollowEffectにFollow Targetが渡されませんでした。");
             return;
         }
 
-        // 追従と時間経過後の破棄を行うコルーチンを開始
-        StartCoroutine(FollowAndDestroyCoroutine(effectPrefab, duration));
+        StartCoroutine(FollowAndDestroyCoroutine(effectPrefab, duration, followTarget));
     }
 
     /// <summary>
     /// エフェクトを追従させ、指定時間後に破棄するコルーチン
     /// </summary>
-    private IEnumerator FollowAndDestroyCoroutine(GameObject effectPrefab, float duration)
+    private IEnumerator FollowAndDestroyCoroutine(GameObject effectPrefab, float duration, Transform followTarget)
     {
-        // 追従対象の子オブジェクトとしてエフェクトを生成。これにより、対象の移動に自動で追従する。
         GameObject effectInstance = Instantiate(effectPrefab, followTarget.position, Quaternion.identity, followTarget);
-
-        // 指定された時間だけ待機
         yield return new WaitForSeconds(duration);
-
-        // 待機後、エフェクトオブジェクトがまだ存在していれば（何らかの理由で先に破棄されていないか確認）破棄する
         if (effectInstance != null)
         {
             Destroy(effectInstance);

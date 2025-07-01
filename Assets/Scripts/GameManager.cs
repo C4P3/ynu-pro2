@@ -18,6 +18,8 @@ public class GameManager : MonoBehaviour
     public float oxygenDecreaseRate = 1f;       // 1秒あたりに減る酸素量
     public Slider oxygenSlider;                 // 酸素ゲージUI
 
+    public PlayerController LocalPlayer { get; private set; }
+
     private float _currentOxygen;               // 現在の酸素量
     private bool _isOxygenInvincible = false;   // 酸素減少無効グラフ
     public bool IsOxygenInvincible => _isOxygenInvincible;
@@ -95,5 +97,15 @@ public class GameManager : MonoBehaviour
         _isOxygenInvincible = true;
         yield return new WaitForSeconds(duration);
         _isOxygenInvincible = false;
+    }
+
+    /// <summary>
+    /// ローカルプレイヤーをGameManagerに登録する
+    /// </summary>
+    /// <param name="player">登録するプレイヤーのPlayerController</param>
+    public void RegisterLocalPlayer(PlayerController player)
+    {
+        LocalPlayer = player;
+        Debug.Log($"Local Player '{player.name}' has been registered.");
     }
 }
