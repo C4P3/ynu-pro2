@@ -30,6 +30,9 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private AudioClip walkSound;
     private AudioSource audioSource;
 
+     [Header("Animation")]
+    private Animator _animator; // アニメーションを制御するためのAnimatorコンポーネント
+
     // プレイヤーの現在の状態
     private PlayerState _currentState = PlayerState.Roaming;
     private Vector3Int _gridTargetPos;
