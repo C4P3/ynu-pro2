@@ -664,16 +664,24 @@ PrefabInstance:
       objectReference: {fileID: 463991950}
     - target: {fileID: -6508759534709864594, guid: 713b83a4f74d340f2b4a699983dc1354, type: 3}
       propertyPath: walkSounds.Array.size
-      value: 2
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: -6508759534709864594, guid: 713b83a4f74d340f2b4a699983dc1354, type: 3}
       propertyPath: 'walkSounds.Array.data[0]'
       value: 
-      objectReference: {fileID: 8300000, guid: 009a19866f3044448be33b4d87ecd4af, type: 3}
+      objectReference: {fileID: 8300000, guid: 494b85bd7d6b7b24aba95edcab4c5183, type: 3}
     - target: {fileID: -6508759534709864594, guid: 713b83a4f74d340f2b4a699983dc1354, type: 3}
       propertyPath: 'walkSounds.Array.data[1]'
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 8300000, guid: 6648ab327008be04b860029adccccf7e, type: 3}
+    - target: {fileID: -6508759534709864594, guid: 713b83a4f74d340f2b4a699983dc1354, type: 3}
+      propertyPath: 'walkSounds.Array.data[2]'
+      value: 
+      objectReference: {fileID: 8300000, guid: b9410ec0ed694e647b61db1d4d3f0479, type: 3}
+    - target: {fileID: -6508759534709864594, guid: 713b83a4f74d340f2b4a699983dc1354, type: 3}
+      propertyPath: 'walkSounds.Array.data[3]'
+      value: 
+      objectReference: {fileID: 8300000, guid: 707df71af87fdda48a404d97c51623f0, type: 3}
     - target: {fileID: 7757349515784494314, guid: 713b83a4f74d340f2b4a699983dc1354, type: 3}
       propertyPath: m_Name
       value: Player
@@ -1555,8 +1563,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 938936b8697745f429a1ee3b2a14c1e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  referenceTilemap: {fileID: 2142259994}
-  followTarget: {fileID: 2132873798}
 --- !u!1 &1392880536
 GameObject:
   m_ObjectHideFlags: 0
