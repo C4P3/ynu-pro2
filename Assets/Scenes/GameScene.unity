@@ -2117,7 +2117,7 @@ MonoBehaviour:
   itemAreaChance: 0.02
   chunkSize: 16
   generationRadiusInChunks: 2
-  unchiItemData: {fileID: 0}
+  unchiItemData: {fileID: 11400000, guid: 2b52397f5ebbeb84da4af078c3b1a0f9, type: 2}
 --- !u!4 &2122600639
 Transform:
   m_ObjectHideFlags: 0

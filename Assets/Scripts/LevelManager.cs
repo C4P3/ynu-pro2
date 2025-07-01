@@ -190,7 +190,7 @@ public class LevelManager : MonoBehaviour
         foreach (Vector3Int pos in blocksToDestroy)
         {
             // 例：DestroyConnectedBlocksやExplodeBlocksなどのSetTile(null)前に
-            if (blockTilemap.GetTile(pos) == unchiItemData.unchiTile) continue; // unchiTileはUnchiItemDataから参照
+            if (blockTilemap.GetTile(pos) == unchiItemData.unchiTile) continue;
             blockTilemap.SetTile(pos, null);
         }
     }
@@ -207,7 +207,7 @@ public class LevelManager : MonoBehaviour
                 if(x*x + y*y > radius*radius) continue; // 円形の範囲
                 Vector3Int pos = center + new Vector3Int(x, y, 0);
                 // 例：DestroyConnectedBlocksやExplodeBlocksなどのSetTile(null)前に
-                if (blockTilemap.GetTile(pos) == unchiItemData.unchiTile) continue; // unchiTileはUnchiItemDataから参照
+                if (blockTilemap.GetTile(pos) == unchiItemData.unchiTile) continue;
                 blockTilemap.SetTile(pos, null);
                 itemTilemap.SetTile(pos, null);
             }
