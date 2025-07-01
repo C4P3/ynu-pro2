@@ -27,7 +27,7 @@ public class NetworkPlayerInput : NetworkBehaviour
 
         // LevelManager と TypingManager を探す処理を、プレイヤー番号に応じて変更
         LevelManager levelManager = null;
-        GameObject gridObject = null; 
+        GameObject gridObject = null;
 
         if (playerIndex == 1)
         {
@@ -51,7 +51,7 @@ public class NetworkPlayerInput : NetworkBehaviour
         }
 
         Debug.Log($"Found LevelManager component on: {(levelManager != null ? levelManager.gameObject.name : "NULL")}", gameObject);
-        
+
 
         if (levelManager != null)
         {
@@ -63,7 +63,7 @@ public class NetworkPlayerInput : NetworkBehaviour
 
             // ★★★ 最重要チェック ★★★
             Debug.Log($"IMMEDIATELY AFTER ASSIGNMENT, levelManager.playerTransform is: {(levelManager.playerTransform != null ? levelManager.playerTransform.name : "NULL")}", gameObject);
-            
+
             // 他の参照設定
             _playerController.blockTilemap = levelManager.blockTilemap;
             _playerController.itemTilemap = levelManager.itemTilemap;
@@ -76,7 +76,7 @@ public class NetworkPlayerInput : NetworkBehaviour
         {
             Debug.LogError($"Player {playerIndex} のLevelManagerが見つかりません！");
         }
-        
+
         // TypingManagerはシーンに1つしかないので、そのままでOK
         var typingManager = Object.FindFirstObjectByType<TypingManager>();
         if (typingManager != null)
@@ -85,34 +85,37 @@ public class NetworkPlayerInput : NetworkBehaviour
         }
         else
         {
-             Debug.LogError("TypingManagerが見つかりません！");
+            Debug.LogError("TypingManagerが見つかりません！");
         }
 
         _playerController.Initialize();
-        
-        // ★★★ isServerでの判定を、playerIndexを使った判定に変更 ★★★
+
         switch (playerIndex)
         {
             case 1: // 1人目のプレイヤー
                 SetLayerRecursively(gameObject, LayerMask.NameToLayer("Player1"));
-                // VCam1を探してFollowターゲットに設定
                 var vcam1 = GameObject.Find("VCam1")?.GetComponent<Unity.Cinemachine.CinemachineCamera>();
-                if (vcam1 != null) vcam1.Follow = transform;
+                if (vcam1 != null)
+                {
+                    vcam1.Follow = transform;
+                    vcam1.gameObject.layer = LayerMask.NameToLayer("Player1"); // ★★★ VCam1のレイヤーを設定 ★★★
+                }
                 break;
+
             case 2: // 2人目のプレイヤー
                 SetLayerRecursively(gameObject, LayerMask.NameToLayer("Player2"));
-                // VCam2を探してFollowターゲットに設定
                 var vcam2 = GameObject.Find("VCam2")?.GetComponent<Unity.Cinemachine.CinemachineCamera>();
-                if (vcam2 != null) vcam2.Follow = transform;
-                break;
-            default:
-                Debug.LogWarning($"無効なPlayerIndexです: {playerIndex}");
+                if (vcam2 != null)
+                {
+                    vcam2.Follow = transform;
+                    vcam2.gameObject.layer = LayerMask.NameToLayer("Player2"); // ★★★ VCam2のレイヤーを設定 ★★★
+                }
                 break;
         }
     }
 
     // ★★★ 階層下のオブジェクトも含めてレイヤーを再帰的に設定するヘルパー関数 ★★★
-    void SetLayerRecursively(GameObject obj, int newLayer)
+        void SetLayerRecursively(GameObject obj, int newLayer)
     {
         if (obj == null) return;
 
