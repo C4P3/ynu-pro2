@@ -37,9 +37,9 @@ public class RocketItemData : ItemData
     }
 }
 
-// 例: Item取得処理
-if (itemData is RocketItemData rocketItem)
-{
-    // プレイヤーのTransform, 向き, Tilemapを渡す
-    rocketItem.Activate(player.transform, direction, blockTilemap);
-}
+// // 例: Item取得処理
+// if (itemData is RocketItemData rocketItem)
+// {
+//     // プレイヤーのTransform, 向き, Tilemapを渡す
+//     rocketItem.Activate(player.transform, direction, blockTilemap);
+// }
