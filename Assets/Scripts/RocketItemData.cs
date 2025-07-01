@@ -1,11 +1,11 @@
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
-[CreateAssetMenu(fileName = "RocketItemData", menuName = "TypingDriller/Rocket Item Data")]
-public class RocketItemData : ScriptableObject
+[CreateAssetMenu(menuName = "Item/RocketItemData")]
+public class RocketItemData : ItemData
 {
     [Header("ロケットアイテムの設定")]
-    public string itemName = "Rocket";
+    public new string itemName = "Rocket";
     public GameObject effectPrefab; // 取得時エフェクト（任意）
 
     /// <summary>
