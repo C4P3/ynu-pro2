@@ -74,7 +74,6 @@ namespace Models
             new TypingText { title = "統計数理工学", hiragana = "とうけいすうりこうがく" },
             new TypingText { title = "先端電子情報工学", hiragana = "せんたんでんしじょうほうこうがく" },
             new TypingText { title = "医工学連携基礎", hiragana = "いこうがくれんけいきそ" },
-
         };
 
         public TypingText RandomTypingText =>

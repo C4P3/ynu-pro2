@@ -7,7 +7,8 @@ public enum ItemEffectType
     OxygenRecovery,
     Bomb,
     Star,
-    Rocket
+    Rocket,
+    Unchi
 
     // 将来のマルチプレイ用
     // OpponentDebuff _LockBlocks,
