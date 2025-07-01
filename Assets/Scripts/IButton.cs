@@ -6,8 +6,8 @@ public class IButton : MonoBehaviour
     [SerializeField] protected Image buttonImage;
     [SerializeField] protected AudioClip clickSound;
     [SerializeField] protected AudioSource audioSource;
-    [SerializeField] protected Color hoverColor = Color.red;
-    [SerializeField] protected Color normalColor = new Color(0, 0, 0, 0); // 透明
+    protected Color hoverColor = new Color(1, 1, 0, 1);
+    protected Color normalColor = new Color(1, 1, 1, 1); // 透明
     protected Material matInstance;
 
     protected void Start()
@@ -37,7 +37,6 @@ public class IButton : MonoBehaviour
 
     public virtual void OnPointerEnter(){
         matInstance.SetFloat("_IsHover", 1f);
-        Debug.Log("排他");
     }
 
     public virtual void OnPointerExit(){
