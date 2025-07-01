@@ -2,42 +2,30 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.EventSystems;
+using UnityEngine.UI;
+using TMPro;
 
-public class BackButton : MonoBehaviour, IButton
+public class BackButton : IButton
 {
-    public GameObject HomeCanvas;
-    public GameObject RecordCanvas;
-    public GameObject ConfigCanvas;
-    [SerializeField] private AudioClip clickSound;
-    private AudioSource audioSource;
-
-    private void Start()
+    public override void OnPointerClick()
     {
-        audioSource = gameObject.AddComponent<AudioSource>();
-        audioSource.playOnAwake = false;
+        base.OnPointerClick();
     }
-
-    public void OnPointerClick()
-    {
-        if (clickSound != null)
-        {
-            audioSource.PlayOneShot(clickSound);
-        }
-        // Implement the logic for when the button is clicked
-        Debug.Log("Back Button Clicked");
-        // Here you can add functionality to start or stop recording
-        ConfigCanvas.GetComponent<UnityEngine.Canvas>().enabled = false;
-        RecordCanvas.GetComponent<UnityEngine.Canvas>().enabled = false;
-        HomeCanvas.GetComponent<UnityEngine.Canvas>().enabled = true;
-
-    }
-    public void OnPointerEnter()
+    public override void OnPointerEnter()
     {
 
     }
-    public void OnPointerExit()
+    public override void OnPointerExit()
     {
 
     }
+    // public override void OnPointerDown()
+    // {
+    //     buttonImage.color = buttonImage.color * 0.7f;
+    // }
+
+    // public override void OnPointerUp()
+    // {
+    //     buttonImage.color = buttonImage.color / 0.7f;
+    // }
 }

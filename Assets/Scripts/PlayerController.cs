@@ -25,6 +25,7 @@ public class PlayerController : MonoBehaviour
     public Tilemap blockTilemap;
     public Tilemap itemTilemap;
     public TypingManager typingManager;
+    public LevelManager levelManager;
 
     [Header("Audio")]
     [SerializeField] private AudioClip[] walkSounds;
@@ -36,6 +37,7 @@ public class PlayerController : MonoBehaviour
     private PlayerState _currentState = PlayerState.Roaming;
     private Vector3Int _gridTargetPos;
     private Vector3Int _typingTargetPos; // タイピング対象のブロック座標
+    private Vector3Int _lastMoveDirection = Vector3Int.right; // デフォルト右向き
 
     #region Unity Lifecycle Methods
     void OnEnable()
@@ -52,8 +54,17 @@ public class PlayerController : MonoBehaviour
 
     void Start()
     {
-        audioSource = gameObject.AddComponent<AudioSource>(); //AudioSourceの初期化
-        audioSource.playOnAwake = false; // 自動再生を無効化
+        audioSource = gameObject.AddComponent<AudioSource>();
+        audioSource.playOnAwake = false;
+    }
+
+    // ★★★ ここから新しいメソッドを追加 ★★★
+    /// <summary>
+    /// Tilemapなどの参照が設定された後に呼び出す初期化処理
+    /// </summary>
+    public void Initialize()
+    {
+        // Start()から移動してきたコード
         _gridTargetPos = blockTilemap.WorldToCell(transform.position);
         transform.position = blockTilemap.GetCellCenterWorld(_gridTargetPos);
         CheckForItemAt(_gridTargetPos);
@@ -83,19 +94,24 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     private void HandleRoamingState()
     {
-        if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
-        {
-            Vector3Int moveVec = Vector3Int.zero;
-            if (Input.GetKeyDown(KeyCode.W)) moveVec = Vector3Int.up;
-            if (Input.GetKeyDown(KeyCode.S)) moveVec = Vector3Int.down;
-            if (Input.GetKeyDown(KeyCode.A)) moveVec = Vector3Int.left;
-            if (Input.GetKeyDown(KeyCode.D)) moveVec = Vector3Int.right;
-
-            if (moveVec != Vector3Int.zero)
-            {
-                CheckAndMove(moveVec);
-            }
-        }
+        // ★★★ 変更点 ★★★
+        // このメソッド内のキー入力処理は、後で新しく作る入力用スクリプトに移動させるため、
+        // 残しておいても良いですが、最終的には削除、またはコメントアウトします。
+        // 今回の設計では、このメソッドはUpdateから呼ばれ続けますが、中身は空っぽでも問題ありません。
+        
+        // if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
+        // {
+        //     Vector3Int moveVec = Vector3Int.zero;
+        //     if (Input.GetKeyDown(KeyCode.W)) moveVec = Vector3Int.up;
+        //     if (Input.GetKeyDown(KeyCode.S)) moveVec = Vector3Int.down;
+        //     if (Input.GetKeyDown(KeyCode.A)) moveVec = Vector3Int.left;
+        //     if (Input.GetKeyDown(KeyCode.D)) moveVec = Vector3Int.right;
+        //
+        //     if (moveVec != Vector3Int.zero)
+        //     {
+        //         OnMoveInput(moveVec); // 新しいメソッドを呼ぶように変更
+        //     }
+        // }
     }
 
     /// <summary>
@@ -114,10 +130,9 @@ public class PlayerController : MonoBehaviour
             }
 
             CheckForItemAt(_gridTargetPos);
-
-            if (LevelManager.Instance != null)
+            if (levelManager != null)
             {
-                LevelManager.Instance.CheckAndGenerateChunksAroundPlayer();
+                levelManager.CheckAndGenerateChunksAroundPlayer();
             }
             // 移動が完了したので、Roaming状態に戻る
             _currentState = PlayerState.Roaming;
@@ -131,10 +146,9 @@ public class PlayerController : MonoBehaviour
     {
         if (wasSuccessful)
         {
-            // ★修正: ブロックを破壊する処理をここに追加
-            if (LevelManager.Instance != null)
+            if (levelManager != null)
             {
-                LevelManager.Instance.DestroyConnectedBlocks(_typingTargetPos);
+                levelManager.DestroyConnectedBlocks(_typingTargetPos);
             }
             
             // タイピングに成功したら、対象ブロックへ移動を開始
@@ -149,6 +163,22 @@ public class PlayerController : MonoBehaviour
     #endregion
 
     #region Actions
+    /// <summary>
+    /// 外部からの移動入力に基づいて行動を開始する公開メソッド
+    /// </summary>
+    /// <param name="moveVec">移動方向のベクトル</param>
+    public void OnMoveInput(Vector3Int moveVec)
+    {
+        // Roaming状態でない場合や、移動ベクトルがゼロの場合は何もしない
+        if (_currentState != PlayerState.Roaming || moveVec == Vector3Int.zero)
+        {
+            return;
+        }
+
+        // 元々の HandleRoamingState にあったロジックをここに集約
+        CheckAndMove(moveVec);
+    }
+
     /// <summary>
     /// 指定された方向に移動できるかチェックし、行動を決定する
     /// </summary>
@@ -167,6 +197,11 @@ public class PlayerController : MonoBehaviour
         {
             // ブロックがない場合
             MoveTo(nextGridPos);
+        }
+
+        if (moveVec != Vector3Int.zero)
+        {
+            _lastMoveDirection = moveVec;
         }
     }
 
@@ -213,9 +248,15 @@ public class PlayerController : MonoBehaviour
         TileBase itemTile = itemTilemap.GetTile(position);
         if (itemTile != null && ItemManager.Instance != null)
         {
-            ItemManager.Instance.AcquireItem(itemTile, position);
+            // ★★★ 第3引数に自身のlevelManagerを渡す ★★★
+            ItemManager.Instance.AcquireItem(itemTile, position, levelManager, this.transform);
             itemTilemap.SetTile(position, null);
         }
+    }
+
+    public Vector3Int GetLastMoveDirection()
+    {
+        return _lastMoveDirection;
     }
     #endregion
 }

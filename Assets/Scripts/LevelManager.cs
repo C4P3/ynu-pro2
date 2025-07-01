@@ -21,7 +21,7 @@ public class BlockType
 /// </summary>
 public class LevelManager : MonoBehaviour
 {
-    public static LevelManager Instance { get; private set; }
+    [Header("Cluster Generation Settings")]
 
     [Header("References")]
     public Tilemap blockTilemap;
@@ -50,8 +50,6 @@ public class LevelManager : MonoBehaviour
 
     void Awake()
     {
-        if (Instance == null) { Instance = this; } else { Destroy(gameObject); }
-
         // ブロックの種類ごとに異なるノイズを生成するため、ランダムなオフセットを最初に作っておく
         noiseOffsets = new Vector2[blockTypes.Length];
         for (int i = 0; i < blockTypes.Length; i++)
@@ -62,13 +60,26 @@ public class LevelManager : MonoBehaviour
 
     void Start()
     {
-        // ★追加: ゲーム開始時のプレイヤー座標をグリッド座標として保存
-        if(playerTransform != null)
+        // ★★★ このメソッド内の処理を、下のInitialGenerate()に移動します ★★★
+        // このメソッドは空にするか、Awakeから移動してきたノイズ設定だけを残します。
+    }
+
+    // ★★★ 新しい公開メソッドを追加 ★★★
+    /// <summary>
+    /// プレイヤーの参照が設定された後に、初期チャンクを生成する
+    /// </summary>
+    public void InitialGenerate()
+    {
+        // ★★★ 以下の2行を追加 ★★★
+        Debug.Log($"InitialGenerate called for {gameObject.name}", gameObject);
+        Debug.Log($"Player Transform is: {(playerTransform != null ? playerTransform.name : "NULL")}", gameObject);
+
+        // Start()から移動してきたコード
+        if (playerTransform != null)
         {
             _playerStartPosition = blockTilemap.WorldToCell(playerTransform.position);
         }
         
-        // ゲーム開始時にプレイヤー周辺のチャンクを生成
         CheckAndGenerateChunksAroundPlayer();
     }
 
