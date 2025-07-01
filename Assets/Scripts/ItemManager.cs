@@ -99,7 +99,6 @@ public class ItemManager : MonoBehaviour
                 EffectManager.Instance.PlayFollowEffect(data.followEffectPrefab, data.followEffectDuration, playerTransform);
             }
         }
-        Debug.Log($"Activating Rocket: {data.effectType}");
         // アイテムの種類に応じて効果を発動
         switch (data.effectType)
         {
@@ -134,8 +133,6 @@ public class ItemManager : MonoBehaviour
             case ItemEffectType.Rocket:
                 var rocketData = data as RocketItemData;
                 // RocketItemDataに設定されたエフェクトを再生し、ブロックを破壊
-                Debug.Log($"Activating Rocket: {rocketData}");
-
                 if (rocketData != null && levelManager != null)
                 {
 
