@@ -1946,10 +1946,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _lowHealthEffectPanel: {fileID: 1594737431}
-  _blinkAlpha: 0.5
+  _blinkAlpha: 0.3
   _dangerThreshold: 0.3
   _dangerBlinkInterval: 0.5
-  _criticalThreshold: 0.1
+  _criticalThreshold: 0.15
   _criticalBlinkInterval: 0.3
 --- !u!4 &1962468403
 Transform:
