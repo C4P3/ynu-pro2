@@ -220,7 +220,7 @@ public class PlayerController : MonoBehaviour
         if (itemTile != null && ItemManager.Instance != null)
         {
             // ★★★ 第3引数に自身のlevelManagerを渡す ★★★
-            ItemManager.Instance.AcquireItem(itemTile, position, levelManager);
+            ItemManager.Instance.AcquireItem(itemTile, position, levelManager, this.transform);
             itemTilemap.SetTile(position, null);
         }
     }

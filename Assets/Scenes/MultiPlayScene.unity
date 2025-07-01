@@ -1930,8 +1930,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 938936b8697745f429a1ee3b2a14c1e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  referenceTilemap: {fileID: 2142259994}
-  followTarget: {fileID: 0}
 --- !u!1 &1392880536
 GameObject:
   m_ObjectHideFlags: 0

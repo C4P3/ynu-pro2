@@ -80,7 +80,7 @@ public class ItemManager : MonoBehaviour
     /// <param name="itemTile">取得したアイテムのタイル</param>
     /// <param name="itemPosition">取得したアイテムのタイルマップ座標</param>
     /// <param name="levelManager">アイテムを取得したプレイヤーが所属するLevelManager</param> // ★★★ 引数を追加 ★★★
-    public void AcquireItem(TileBase itemTile, Vector3Int itemPosition, LevelManager levelManager)
+    public void AcquireItem(TileBase itemTile, Vector3Int itemPosition, LevelManager levelManager, Transform playerTransform)
     {
         // データベースに登録されていないタイルであれば何もしない
         if (!_itemDatabase.TryGetValue(itemTile, out ItemData data)) return;
@@ -90,12 +90,13 @@ public class ItemManager : MonoBehaviour
         // EffectManagerに、どのアイテムをどの場所で取得したかを伝え、エフェクト再生を依頼する
         if (EffectManager.Instance != null)
         {
-            EffectManager.Instance.PlayItemAcquisitionEffect(data, itemPosition);
-            // 追従エフェクトが設定されていれば、再生を依頼する
+            // ★★★ 引数に levelManager.itemTilemap を渡す ★★★
+            EffectManager.Instance.PlayItemAcquisitionEffect(data, itemPosition, levelManager.itemTilemap);
+            
             if (data.followEffectPrefab != null)
             {
-                // 新しいメソッドを呼び出し、プレハブと表示時間を渡す
-                EffectManager.Instance.PlayFollowEffect(data.followEffectPrefab, data.followEffectDuration);
+                // ★★★ 引数に playerTransform を渡す ★★★
+                EffectManager.Instance.PlayFollowEffect(data.followEffectPrefab, data.followEffectDuration, playerTransform);
             }
         }
 
