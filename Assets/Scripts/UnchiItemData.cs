@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEngine.Tilemaps;
-using System.Linq;
 
 [CreateAssetMenu(menuName = "Item/UnchiItemData")]
 public class UnchiItemData : ItemData
@@ -20,17 +19,19 @@ public class UnchiItemData : ItemData
         BoundsInt bounds = itemTilemap.cellBounds;
         foreach (Vector3Int pos in bounds.allPositionsWithin)
         {
-            if (itemTilemap.GetTile(pos) != null)
+            var tile = itemTilemap.GetTile(pos);
+            // 既にウンチタイルでないアイテムタイルのみ対象
+            if (tile != null && tile != unchiTile)
             {
                 float dist = (pos - center).sqrMagnitude;
                 if (dist < minDist)
                 {
                     minDist = dist;
                     nearestItemPos = pos;
+                    Debug.Log($"最も近いアイテムタイル: {pos} 距離: {Mathf.Sqrt(minDist)}");
                 }
             }
         }
-
         // 最も近いアイテムタイルをウンチタイルに変更
         if (nearestItemPos.HasValue)
         {
