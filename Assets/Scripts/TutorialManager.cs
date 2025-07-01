@@ -26,6 +26,11 @@ public class TutorialManager : MonoBehaviour
 
     void Start()
     {
+        if (steps == null || steps.Count == 0)
+        {
+            Debug.LogError("チュートリアルステップが設定されていません。");
+            return;
+        }
         ShowCurrentStep();
     }
 
