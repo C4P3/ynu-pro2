@@ -144,6 +144,17 @@ public class ItemManager : MonoBehaviour
                     rocketData.Activate(playerTransform, direction, levelManager.blockTilemap);
                 }
                 break;
+
+            case ItemEffectType.Unchi:
+                var unchiData = data as UnchiItemData;
+                if (unchiData != null && levelManager != null)
+                {
+                    // UnchiItemDataの効果を正しく発動
+                    // プレイヤーの現在位置を中心にする
+                    Vector3Int center = levelManager.blockTilemap.WorldToCell(playerTransform.position);
+                    unchiData.Activate(center, levelManager.blockTilemap, levelManager.itemTilemap);
+                }
+                break;
         }
     }
 }

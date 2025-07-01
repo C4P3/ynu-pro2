@@ -416,7 +416,7 @@ TilemapRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_ChunkSize: {x: 32, y: 32, z: 32}
-  m_ChunkCullingBounds: {x: 0, y: 0, z: 0}
+  m_ChunkCullingBounds: {x: 0.22100002, y: 0.012000024, z: 0}
   m_MaxChunkCount: 16
   m_MaxFrameAge: 16
   m_SortOrder: 0
@@ -2117,7 +2117,7 @@ MonoBehaviour:
   itemAreaChance: 0.02
   chunkSize: 16
   generationRadiusInChunks: 2
-  unchiItemData: {fileID: 11400000, guid: 2b52397f5ebbeb84da4af078c3b1a0f9, type: 2}
+  unchiItemData: {fileID: 0}
 --- !u!4 &2122600639
 Transform:
   m_ObjectHideFlags: 0
