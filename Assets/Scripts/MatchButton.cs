@@ -21,12 +21,12 @@ public class MatchButton : IButton
 
     public override void OnPointerEnter()
     {
-        
+        base.OnPointerEnter();
     }
 
     public override void OnPointerExit()
     {
-
+        base.OnPointerExit();
     }
 
     public override void OnPointerDown()
