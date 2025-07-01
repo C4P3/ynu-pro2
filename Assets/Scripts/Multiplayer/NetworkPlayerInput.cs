@@ -22,17 +22,62 @@ public class NetworkPlayerInput : NetworkBehaviour
 
     void Start()
     {
-        // この処理は全プレイヤー（ホスト、クライアント）で実行される
-        if (LevelManager.Instance != null)
+        Debug.Log($"--- Debug Start for {gameObject.name} ---");
+        Debug.Log($"My playerIndex is [{playerIndex}]", gameObject);
+
+        // LevelManager と TypingManager を探す処理を、プレイヤー番号に応じて変更
+        LevelManager levelManager = null;
+        GameObject gridObject = null; 
+
+        if (playerIndex == 1)
         {
-            _playerController.blockTilemap = LevelManager.Instance.blockTilemap;
-            _playerController.itemTilemap = LevelManager.Instance.itemTilemap;
+            gridObject = GameObject.Find("Grid_P1");
+            Debug.Log("playerIndex is 1, trying to find Grid_P1...", gameObject);
+        }
+        else if (playerIndex == 2)
+        {
+            gridObject = GameObject.Find("Grid_P2");
+            Debug.Log("playerIndex is 2, trying to find Grid_P2...", gameObject);
+        }
+
+        if (gridObject != null)
+        {
+            levelManager = gridObject.GetComponent<LevelManager>();
+            Debug.Log($"Found GameObject: {gridObject.name}", gameObject);
         }
         else
         {
-            Debug.LogError("LevelManagerが見つかりません！");
+            Debug.LogError("Could not find Grid GameObject!", gameObject);
         }
 
+        Debug.Log($"Found LevelManager component on: {(levelManager != null ? levelManager.gameObject.name : "NULL")}", gameObject);
+        
+
+        if (levelManager != null)
+        {
+            // --- デバッグここから ---
+            Debug.Log($"Assigning my transform ('{this.transform.name}') to {levelManager.gameObject.name}'s playerTransform.", gameObject);
+            // --- デバッグここまで ---
+
+            levelManager.playerTransform = this.transform;
+
+            // ★★★ 最重要チェック ★★★
+            Debug.Log($"IMMEDIATELY AFTER ASSIGNMENT, levelManager.playerTransform is: {(levelManager.playerTransform != null ? levelManager.playerTransform.name : "NULL")}", gameObject);
+            
+            // 他の参照設定
+            _playerController.blockTilemap = levelManager.blockTilemap;
+            _playerController.itemTilemap = levelManager.itemTilemap;
+            _playerController.levelManager = levelManager;
+
+            // 生成を呼び出し
+            levelManager.InitialGenerate();
+        }
+        else
+        {
+            Debug.LogError($"Player {playerIndex} のLevelManagerが見つかりません！");
+        }
+        
+        // TypingManagerはシーンに1つしかないので、そのままでOK
         var typingManager = Object.FindFirstObjectByType<TypingManager>();
         if (typingManager != null)
         {
@@ -40,10 +85,9 @@ public class NetworkPlayerInput : NetworkBehaviour
         }
         else
         {
-            Debug.LogError("TypingManagerが見つかりません！");
+             Debug.LogError("TypingManagerが見つかりません！");
         }
 
-        // ★★★ 参照設定が終わった直後に、プレイヤーの初期化処理を呼び出す ★★★
         _playerController.Initialize();
         
         // ★★★ isServerでの判定を、playerIndexを使った判定に変更 ★★★
@@ -84,31 +128,6 @@ public class NetworkPlayerInput : NetworkBehaviour
     // ★★★ ここから追加 ★★★
     public override void OnStartServer()
     {
-        // このメソッドはサーバー上でプレイヤーが生成された時に一度だけ呼ばれる
-        // PlayerControllerが必要とする参照を、実行時に探して設定する
-
-        // LevelManagerはシングルトンなので、Instanceから簡単にアクセスできる
-        if (LevelManager.Instance != null)
-        {
-            // LevelManagerが持っているTilemapへの参照を、PlayerControllerに渡す
-            _playerController.blockTilemap = LevelManager.Instance.blockTilemap;
-            _playerController.itemTilemap = LevelManager.Instance.itemTilemap;
-        }
-        else
-        {
-            Debug.LogError("LevelManagerが見つかりません！ MultiPlaySceneに配置されていますか？");
-        }
-
-        // PlayerControllerはTypingManagerも必要とするので、同様に設定する
-        var typingManager = Object.FindFirstObjectByType<TypingManager>();
-        if (typingManager != null)
-        {
-            _playerController.typingManager = typingManager;
-        }
-        else
-        {
-            Debug.LogError("TypingManagerが見つかりません！ MultiPlaySceneに配置されていますか？");
-        }
     }
     // ★★★ ここまで追加 ★★★
 

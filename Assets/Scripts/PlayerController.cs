@@ -24,6 +24,7 @@ public class PlayerController : MonoBehaviour
     public Tilemap blockTilemap;
     public Tilemap itemTilemap;
     public TypingManager typingManager;
+    public LevelManager levelManager;
 
     [Header("Audio")]
     [SerializeField] private AudioClip walkSound;
@@ -120,9 +121,9 @@ public class PlayerController : MonoBehaviour
         {
             transform.position = blockTilemap.GetCellCenterWorld(_gridTargetPos);
             CheckForItemAt(_gridTargetPos);
-            if (LevelManager.Instance != null)
+            if (levelManager != null)
             {
-                LevelManager.Instance.CheckAndGenerateChunksAroundPlayer();
+                levelManager.CheckAndGenerateChunksAroundPlayer();
             }
             // 移動が完了したので、Roaming状態に戻る
             _currentState = PlayerState.Roaming;
@@ -136,10 +137,9 @@ public class PlayerController : MonoBehaviour
     {
         if (wasSuccessful)
         {
-            // ★修正: ブロックを破壊する処理をここに追加
-            if (LevelManager.Instance != null)
+            if (levelManager != null)
             {
-                LevelManager.Instance.DestroyConnectedBlocks(_typingTargetPos);
+                levelManager.DestroyConnectedBlocks(_typingTargetPos);
             }
             
             // タイピングに成功したら、対象ブロックへ移動を開始
@@ -219,7 +219,8 @@ public class PlayerController : MonoBehaviour
         TileBase itemTile = itemTilemap.GetTile(position);
         if (itemTile != null && ItemManager.Instance != null)
         {
-            ItemManager.Instance.AcquireItem(itemTile, position);
+            // ★★★ 第3引数に自身のlevelManagerを渡す ★★★
+            ItemManager.Instance.AcquireItem(itemTile, position, levelManager);
             itemTilemap.SetTile(position, null);
         }
     }

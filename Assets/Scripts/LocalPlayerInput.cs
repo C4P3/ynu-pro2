@@ -16,10 +16,19 @@ public class LocalPlayerInput : MonoBehaviour
 
     void Start()
     {
-         if (LevelManager.Instance != null)
+        
+        var levelManager = Object.FindFirstObjectByType<LevelManager>();
+        if (levelManager != null)
         {
-            _playerController.blockTilemap = LevelManager.Instance.blockTilemap;
-            _playerController.itemTilemap = LevelManager.Instance.itemTilemap;
+            levelManager.playerTransform = this.transform; // ★★★ これがあなたのプレイヤーです、と教える ★★★
+            _playerController.blockTilemap = levelManager.blockTilemap;
+            _playerController.itemTilemap = levelManager.itemTilemap;
+            _playerController.levelManager = levelManager;
+            levelManager.InitialGenerate(); // ★★★ ワールドの初期生成を指示 ★★★
+        }
+        else
+        {
+            Debug.LogError("LevelManagerが見つかりません！ シングルプレイ用のシーンに配置されていますか？");
         }
         var typingManager = Object.FindFirstObjectByType<TypingManager>();
         if (typingManager != null)
