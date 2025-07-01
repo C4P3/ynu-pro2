@@ -561,6 +561,18 @@ PrefabInstance:
       propertyPath: typingManager
       value: 
       objectReference: {fileID: 463991950}
+    - target: {fileID: -6508759534709864594, guid: 713b83a4f74d340f2b4a699983dc1354, type: 3}
+      propertyPath: walkSounds.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: -6508759534709864594, guid: 713b83a4f74d340f2b4a699983dc1354, type: 3}
+      propertyPath: 'walkSounds.Array.data[0]'
+      value: 
+      objectReference: {fileID: 8300000, guid: 009a19866f3044448be33b4d87ecd4af, type: 3}
+    - target: {fileID: -6508759534709864594, guid: 713b83a4f74d340f2b4a699983dc1354, type: 3}
+      propertyPath: 'walkSounds.Array.data[1]'
+      value: 
+      objectReference: {fileID: 0}
     - target: {fileID: 7757349515784494314, guid: 713b83a4f74d340f2b4a699983dc1354, type: 3}
       propertyPath: m_Name
       value: Player
