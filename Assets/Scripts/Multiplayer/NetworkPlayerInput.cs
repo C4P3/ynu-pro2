@@ -7,6 +7,11 @@ using Mirror;
 [RequireComponent(typeof(PlayerController))]
 public class NetworkPlayerInput : NetworkBehaviour
 {
+    [Header("Player Info")]
+    [Tooltip("サーバーから割り当てられるプレイヤー番号")]
+    [SyncVar] // この変数がサーバーから全クライアントに自動同期される
+    public int playerIndex = 0;
+
     private PlayerController _playerController;
 
     void Awake()
@@ -27,7 +32,7 @@ public class NetworkPlayerInput : NetworkBehaviour
         {
             Debug.LogError("LevelManagerが見つかりません！");
         }
-        
+
         var typingManager = Object.FindFirstObjectByType<TypingManager>();
         if (typingManager != null)
         {
@@ -35,11 +40,45 @@ public class NetworkPlayerInput : NetworkBehaviour
         }
         else
         {
-             Debug.LogError("TypingManagerが見つかりません！");
+            Debug.LogError("TypingManagerが見つかりません！");
         }
 
         // ★★★ 参照設定が終わった直後に、プレイヤーの初期化処理を呼び出す ★★★
         _playerController.Initialize();
+        
+        // ★★★ isServerでの判定を、playerIndexを使った判定に変更 ★★★
+        switch (playerIndex)
+        {
+            case 1: // 1人目のプレイヤー
+                SetLayerRecursively(gameObject, LayerMask.NameToLayer("Player1"));
+                // VCam1を探してFollowターゲットに設定
+                var vcam1 = GameObject.Find("VCam1")?.GetComponent<Unity.Cinemachine.CinemachineCamera>();
+                if (vcam1 != null) vcam1.Follow = transform;
+                break;
+            case 2: // 2人目のプレイヤー
+                SetLayerRecursively(gameObject, LayerMask.NameToLayer("Player2"));
+                // VCam2を探してFollowターゲットに設定
+                var vcam2 = GameObject.Find("VCam2")?.GetComponent<Unity.Cinemachine.CinemachineCamera>();
+                if (vcam2 != null) vcam2.Follow = transform;
+                break;
+            default:
+                Debug.LogWarning($"無効なPlayerIndexです: {playerIndex}");
+                break;
+        }
+    }
+
+    // ★★★ 階層下のオブジェクトも含めてレイヤーを再帰的に設定するヘルパー関数 ★★★
+    void SetLayerRecursively(GameObject obj, int newLayer)
+    {
+        if (obj == null) return;
+
+        obj.layer = newLayer;
+
+        foreach (Transform child in obj.transform)
+        {
+            if (child == null) continue;
+            SetLayerRecursively(child.gameObject, newLayer);
+        }
     }
 
     // ★★★ ここから追加 ★★★
