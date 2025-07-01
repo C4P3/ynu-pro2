@@ -29,10 +29,17 @@ public class ItemManager : MonoBehaviour
     // タイルからItemDataを高速に逆引きするための辞書
     private Dictionary<TileBase, ItemData> _itemDatabase;
 
+    // 効果音を再生するためのAudioSource
+    private AudioSource _audioSource;
+
     void Awake()
     {
         // シングルトンパターンの実装
         if (Instance == null) { Instance = this; } else { Destroy(gameObject); }
+
+        // AudioSourceの初期化
+        _audioSource = gameObject.AddComponent<AudioSource>();
+        _audioSource.playOnAwake = false; // 自動再生を無効化
         // ゲーム開始時にデータベースを構築する
         BuildDatabase();
     }
@@ -86,6 +93,12 @@ public class ItemManager : MonoBehaviour
         if (!_itemDatabase.TryGetValue(itemTile, out ItemData data)) return;
 
         Debug.Log($"Acquired: {data.itemName}");
+
+        // アイテムの効果音を再生
+        if (data.useSound != null && _audioSource != null)
+        {
+            _audioSource.PlayOneShot(data.useSound);
+        }
 
         // EffectManagerに、どのアイテムをどの場所で取得したかを伝え、エフェクト再生を依頼する
         if (EffectManager.Instance != null)
