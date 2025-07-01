@@ -37,6 +37,13 @@ public class PlayerController : MonoBehaviour
     private Vector3Int _lastMoveDirection = Vector3Int.right; // デフォルト右向き
 
     #region Unity Lifecycle Methods
+
+    void Awake()
+    {
+        // ★★★ このメソッドを追加、または追記 ★★★
+        // 自分のゲームオブジェクトについているTypingManagerを取得する
+        typingManager = GetComponent<TypingManager>();
+    }
     void OnEnable()
     {
         // TypingManagerのイベントに、自分のメソッドを登録

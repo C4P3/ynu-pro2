@@ -5,6 +5,7 @@ using Mirror;
 /// マルチプレイ時にローカルプレイヤーの入力を検知し、サーバーにコマンドを送信するクラス
 /// </summary>
 [RequireComponent(typeof(PlayerController))]
+[RequireComponent(typeof(TypingManager))] 
 public class NetworkPlayerInput : NetworkBehaviour
 {
     [Header("Player Info")]
@@ -13,11 +14,15 @@ public class NetworkPlayerInput : NetworkBehaviour
     public int playerIndex = 0;
 
     private PlayerController _playerController;
+    private TypingManager _typingManager;
 
     void Awake()
     {
-        // 自身がアタッチされているGameObjectのPlayerControllerを取得
         _playerController = GetComponent<PlayerController>();
+        _typingManager = GetComponent<TypingManager>(); // 参照を取得
+
+        // ★★★ まずはTypingManagerを無効にしておく ★★★
+        _typingManager.enabled = false;
     }
 
     void Start()
@@ -77,17 +82,16 @@ public class NetworkPlayerInput : NetworkBehaviour
             Debug.LogError($"Player {playerIndex} のLevelManagerが見つかりません！");
         }
 
-        // TypingManagerはシーンに1つしかないので、そのままでOK
-        var typingManager = Object.FindFirstObjectByType<TypingManager>();
-        if (typingManager != null)
+        // ★★★ 対応するTypingPanelをTypingManagerに設定する ★★★
+        if (playerIndex == 1)
         {
-            _playerController.typingManager = typingManager;
+            _typingManager.typingPanel = GameObject.Find("TypingPanel_P1");
         }
-        else
+        else if (playerIndex == 2)
         {
-            Debug.LogError("TypingManagerが見つかりません！");
+            _typingManager.typingPanel = GameObject.Find("TypingPanel_P2");
         }
-
+        
         _playerController.Initialize();
 
         switch (playerIndex)
@@ -137,6 +141,8 @@ public class NetworkPlayerInput : NetworkBehaviour
 
     public override void OnStartLocalPlayer()
     {
+        // ★★★ ローカルプレイヤーのTypingManagerだけを有効にする ★★★
+        _typingManager.enabled = true;
     }
 
     void Update()
