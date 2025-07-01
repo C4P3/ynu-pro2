@@ -3,8 +3,8 @@ Shader "Custom/WhitePartColorHoverClickDarkenSaturation"
     Properties
     {
         _MainTex ("Texture", 2D) = "white" {}
-        _HoverColor ("Hover Color", Color) = (1, 0, 0, 1)
-        _NormalColor ("Normal Color", Color) = (0, 0, 0, 0)
+        _HoverColor ("Hover Color", Color) = (1, 1, 0, 1)
+        _NormalColor ("Normal Color", Color) = (1, 1, 1, 1)
         _Tolerance ("Tolerance", Range(0, 0.5)) = 0.05
         _IsHover ("Is Hover", Float) = 0
         _ClickDarkness ("Click Darkness", Range(0.5, 1.0)) = 1.0
