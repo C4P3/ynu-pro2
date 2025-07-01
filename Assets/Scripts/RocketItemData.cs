@@ -5,7 +5,6 @@ using UnityEngine.Tilemaps;
 public class RocketItemData : ItemData
 {
     [Header("ロケットアイテムの設定")]
-    public new string itemName = "Rocket";
     public GameObject effectPrefab; // 取得時エフェクト（任意）
 
     /// <summary>
@@ -28,6 +27,7 @@ public class RocketItemData : ItemData
                 blockTilemap.SetTile(targetPos, null);
             }
         }
+        Debug.Log("ロケットアイテム");
 
         // エフェクト再生（任意）
         if (effectPrefab != null)
@@ -35,4 +35,11 @@ public class RocketItemData : ItemData
             GameObject.Instantiate(effectPrefab, player.position, Quaternion.identity);
         }
     }
+}
+
+// 例: Item取得処理
+if (itemData is RocketItemData rocketItem)
+{
+    // プレイヤーのTransform, 向き, Tilemapを渡す
+    rocketItem.Activate(player.transform, direction, blockTilemap);
 }

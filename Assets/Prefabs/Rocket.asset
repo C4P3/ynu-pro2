@@ -12,12 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a641e91f2a195804d817b0fc074a9184, type: 3}
   m_Name: Rocket
   m_EditorClassIdentifier: 
-  itemName: Rocket
+  itemName: RocketItem
   effectType: 0
   itemTile: {fileID: 11400000, guid: 75a57a663d20a6e4f9b7677712d82546, type: 2}
   acquisitionEffectPrefab: {fileID: 0}
   followEffectPrefab: {fileID: 0}
   followEffectDuration: 3
   rocketItemData: {fileID: 0}
-  itemName: 
   effectPrefab: {fileID: 0}
