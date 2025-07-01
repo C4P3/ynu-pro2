@@ -32,7 +32,4 @@ public class ItemData : ScriptableObject
     public GameObject followEffectPrefab; // プレイヤー追従エフェクト
     [Tooltip("追従エフェクトの表示時間（秒）")]
     public float followEffectDuration = 3f; // 表示時間。デフォルトを3秒に設定
-
-    [Header("Rocket Specific")]
-    public RocketItemData rocketItemData; // Rocketアイテム用データ（Rocketの場合のみセット）
 }

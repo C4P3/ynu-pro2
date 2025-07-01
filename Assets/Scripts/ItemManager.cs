@@ -99,7 +99,6 @@ public class ItemManager : MonoBehaviour
                 EffectManager.Instance.PlayFollowEffect(data.followEffectPrefab, data.followEffectDuration, playerTransform);
             }
         }
-
         // アイテムの種類に応じて効果を発動
         switch (data.effectType)
         {
@@ -133,14 +132,18 @@ public class ItemManager : MonoBehaviour
 
             case ItemEffectType.Rocket:
                 var rocketData = data as RocketItemData;
-                // RocketItemDataに設定されたエフェクトを再生し、ブロックを破壊
                 if (rocketData != null && levelManager != null)
                 {
-                    // プレイヤーの向き（Vector3Int）を取得
-                    Vector3Int direction = playerTransform.up == Vector3.up ? Vector3Int.up : Vector3Int.right;
+                    // プレイヤーの向きをPlayerControllerから取得
+                    PlayerController playerController = playerTransform.GetComponent<PlayerController>();
+                    Vector3Int direction = Vector3Int.right; // デフォルト
+                    if (playerController != null)
+                    {
+                        direction = playerController.GetLastMoveDirection();
+                    }
                     rocketData.Activate(playerTransform, direction, levelManager.blockTilemap);
                 }
-                break;  
+                break;
         }
     }
 }
