@@ -48,6 +48,8 @@ public class LevelManager : MonoBehaviour
 
     private Vector3Int _playerStartPosition;
 
+    public UnchiItemData unchiItemData; // Inspectorで「うんち」アセットをセット
+
     void Awake()
     {
         // ブロックの種類ごとに異なるノイズを生成するため、ランダムなオフセットを最初に作っておく
@@ -188,7 +190,7 @@ public class LevelManager : MonoBehaviour
         foreach (Vector3Int pos in blocksToDestroy)
         {
             // 例：DestroyConnectedBlocksやExplodeBlocksなどのSetTile(null)前に
-            if (blockTilemap.GetTile(pos) == unchiTile) continue; // unchiTileはUnchiItemDataから参照
+            if (blockTilemap.GetTile(pos) == unchiItemData.unchiTile) continue; // unchiTileはUnchiItemDataから参照
             blockTilemap.SetTile(pos, null);
         }
     }
@@ -205,7 +207,7 @@ public class LevelManager : MonoBehaviour
                 if(x*x + y*y > radius*radius) continue; // 円形の範囲
                 Vector3Int pos = center + new Vector3Int(x, y, 0);
                 // 例：DestroyConnectedBlocksやExplodeBlocksなどのSetTile(null)前に
-                if (blockTilemap.GetTile(pos) == unchiTile) continue; // unchiTileはUnchiItemDataから参照
+                if (blockTilemap.GetTile(pos) == unchiItemData.unchiTile) continue; // unchiTileはUnchiItemDataから参照
                 blockTilemap.SetTile(pos, null);
                 itemTilemap.SetTile(pos, null);
             }
