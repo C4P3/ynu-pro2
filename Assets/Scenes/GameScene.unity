@@ -784,6 +784,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   typingPanel: {fileID: 32447333}
   typedText: {fileID: 404595}
+  typingSound: {fileID: 8300000, guid: 61a1ede7af06e4046b180a55c0f153ad, type: 3}
+  successSound: {fileID: 8300000, guid: 74e0b3926fa12c04da48c7ea1b4a8e81, type: 3}
+  missSound: {fileID: 8300000, guid: 37256a5fe114fe04db255a4ab5b2fc9d, type: 3}
 --- !u!4 &463991951
 Transform:
   m_ObjectHideFlags: 0
