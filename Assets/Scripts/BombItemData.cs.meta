@@ -1,2 +1,15 @@
 fileFormatVersion: 2
 guid: 19386e4cfa5a944c3bfa7af2e388d68c
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - itemTile: {instanceID: 0}
+  - acquisitionEffectPrefab: {instanceID: 0}
+  - followEffectPrefab: {instanceID: 0}
+  - useSound: {instanceID: 0}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
