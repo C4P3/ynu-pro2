@@ -26,6 +26,7 @@ public class PlayerController : MonoBehaviour
     public Tilemap itemTilemap;
     public TypingManager typingManager;
     public LevelManager levelManager;
+    public AnimationManager animationManager;
 
     [Header("Audio")]
     [SerializeField] private AudioClip[] walkSounds;
@@ -37,7 +38,7 @@ public class PlayerController : MonoBehaviour
     private PlayerState _currentState = PlayerState.Roaming;
     private Vector3Int _gridTargetPos;
     private Vector3Int _typingTargetPos; // タイピング対象のブロック座標
-    private Vector3Int _lastMoveDirection = Vector3Int.right; // デフォルト右向き
+    private Vector3Int _lastMoveDirection = Vector3Int.up; // デフォルト上向き
 
     #region Unity Lifecycle Methods
     void OnEnable()
@@ -68,6 +69,12 @@ public class PlayerController : MonoBehaviour
         _gridTargetPos = blockTilemap.WorldToCell(transform.position);
         transform.position = blockTilemap.GetCellCenterWorld(_gridTargetPos);
         CheckForItemAt(_gridTargetPos);
+        // アニメーションを初期状態(Idle)に設定
+        if (animationManager != null)
+        {
+            animationManager.SetWalking(false);
+            animationManager.UpdateSpriteDirection(_lastMoveDirection);
+        }
     }
 
     void Update()
@@ -136,6 +143,12 @@ public class PlayerController : MonoBehaviour
             }
             // 移動が完了したので、Roaming状態に戻る
             _currentState = PlayerState.Roaming;
+
+            //　移動が完了したので、アニメーションをIdleに戻す
+            if (animationManager != null)
+            {
+                animationManager.SetWalking(false);
+            }
         }
     }
 
@@ -144,6 +157,11 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     private void HandleTypingEnded(bool wasSuccessful)
     {
+        // タイピングが成功/失敗問わず終了したので、アニメーションを停止する
+        if (animationManager != null)
+        {
+            animationManager.SetTyping(false);
+        }
         if (wasSuccessful)
         {
             if (levelManager != null)
@@ -191,6 +209,13 @@ public class PlayerController : MonoBehaviour
             // ブロックがある場合
             _typingTargetPos = nextGridPos; // 対象を記憶
             _currentState = PlayerState.Typing; // 自身の状態を「タイピング中」に変更
+
+            // タイピング開始に合わせて、Attackアニメーションを開始する
+            if (animationManager != null)
+            {
+                animationManager.SetTyping(true);
+            }
+
             typingManager.StartTyping(moveVec); // TypingManagerに開始を依頼
         }
         else
@@ -202,6 +227,11 @@ public class PlayerController : MonoBehaviour
         if (moveVec != Vector3Int.zero)
         {
             _lastMoveDirection = moveVec;
+            // プレイヤーの向きが変わったら、スプライトの向きも更新
+            if (animationManager != null)
+            {
+                animationManager.UpdateSpriteDirection(_lastMoveDirection);
+            }
         }
     }
 
@@ -230,6 +260,12 @@ public class PlayerController : MonoBehaviour
     {
         _gridTargetPos = targetPos;
         _currentState = PlayerState.Moving; // 自身の状態を「移動中」に変更
+
+        // 移動開始に合わせて、歩行アニメーションを開始
+        if (animationManager != null)
+        {
+            animationManager.SetWalking(true);
+        }
 
         //移動音を再生
          if (walkSoundCoroutine != null)
