@@ -51,17 +51,27 @@ public class PlayerController : MonoBehaviour
         // 自分のゲームオブジェクトについているTypingManagerを取得する
         typingManager = GetComponent<TypingManager>();
         _networkInput = GetComponent<NetworkPlayerInput>();
+
+        // 自分のTypingManagerのイベントだけを購読する
+        if (typingManager != null)
+        {
+            typingManager.OnTypingEnded += HandleTypingEnded;
+        }
     }
     void OnEnable()
     {
-        // TypingManagerのイベントに、自分のメソッドを登録
-        TypingManager.OnTypingEnded += HandleTypingEnded;
     }
 
     void OnDisable()
     {
-        // オブジェクトが無効になるときに、登録を解除（メモリリーク防止）
-        TypingManager.OnTypingEnded -= HandleTypingEnded;
+    }
+    void OnDestroy()
+    {
+        // オブジェクトが破棄される時に、イベントの購読を解除する（メモリリーク防止）
+        if (typingManager != null)
+        {
+            typingManager.OnTypingEnded -= HandleTypingEnded;
+        }
     }
 
     void Start()
@@ -175,11 +185,21 @@ public class PlayerController : MonoBehaviour
         }
         if (wasSuccessful)
         {
-            if (levelManager != null)
+            // ★★★ ここを修正 ★★★
+            if (_networkInput != null)
             {
-                levelManager.DestroyConnectedBlocks(_typingTargetPos);
+                // 【マルチプレイ時】NetworkPlayerInputに破壊を依頼
+                _networkInput.CmdDestroyBlock(_typingTargetPos);
             }
-            
+            else
+            {
+                // 【シングルプレイ時】直接LevelManagerを呼ぶ
+                if (levelManager != null)
+                {
+                    levelManager.DestroyConnectedBlocks(_typingTargetPos);
+                }
+            }
+
             // タイピングに成功したら、対象ブロックへ移動を開始
             MoveTo(_typingTargetPos);
         }

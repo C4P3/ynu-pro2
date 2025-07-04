@@ -8,7 +8,7 @@ using Models;
 public class TypingManager : MonoBehaviour
 {
     // タイピング終了時のイベント
-    public static event System.Action<bool> OnTypingEnded; 
+    public event System.Action<bool> OnTypingEnded; 
     // UIの参照
     [Header("UI References")]
     public GameObject typingPanel;

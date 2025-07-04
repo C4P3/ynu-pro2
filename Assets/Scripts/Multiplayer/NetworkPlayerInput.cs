@@ -6,7 +6,7 @@ using TMPro;
 /// マルチプレイ時にローカルプレイヤーの入力を検知し、サーバーにコマンドを送信するクラス
 /// </summary>
 [RequireComponent(typeof(PlayerController))]
-[RequireComponent(typeof(TypingManager))] 
+[RequireComponent(typeof(TypingManager))]
 public class NetworkPlayerInput : NetworkBehaviour
 {
     [Header("Player Info")]
@@ -16,6 +16,7 @@ public class NetworkPlayerInput : NetworkBehaviour
 
     private PlayerController _playerController;
     private TypingManager _typingManager;
+
 
     void Awake()
     {
@@ -89,8 +90,8 @@ public class NetworkPlayerInput : NetworkBehaviour
         {
             _typingManager.typingPanel = GameObject.Find("TypingPanel_P2");
         }
-        if(_typingManager.typingPanel == null ){Debug.LogError($"Player {playerIndex} のTypingPanelが見つかりません！");}
-        
+        if (_typingManager.typingPanel == null) { Debug.LogError($"Player {playerIndex} のTypingPanelが見つかりません！"); }
+
         _playerController.Initialize();
 
         switch (playerIndex)
@@ -118,7 +119,7 @@ public class NetworkPlayerInput : NetworkBehaviour
     }
 
     // ★★★ 階層下のオブジェクトも含めてレイヤーを再帰的に設定するヘルパー関数 ★★★
-        void SetLayerRecursively(GameObject obj, int newLayer)
+    void SetLayerRecursively(GameObject obj, int newLayer)
     {
         if (obj == null) return;
 
@@ -150,7 +151,7 @@ public class NetworkPlayerInput : NetworkBehaviour
         if (GameDataSync.Instance.currentState != GameState.Playing) return;
 
         if (!isLocalPlayer) return;
-        
+
         // Roaming状態のときだけ入力を受け付ける
         // （PlayerControllerの内部状態を直接参照するのは設計上あまり良くないが、
         //  不要なコマンド送信を防ぐための最適化として許容範囲）
@@ -176,7 +177,7 @@ public class NetworkPlayerInput : NetworkBehaviour
     }
 
     // --- サーバーへのコマンド送信 ---
-    
+
     /// <summary>
     /// [Command]属性: ローカルプレイヤーからサーバーへメッセージを送信する
     /// 移動入力をサーバーに伝える
@@ -187,7 +188,14 @@ public class NetworkPlayerInput : NetworkBehaviour
         // サーバー側で受け取ったコマンドを、全てのクライアントに伝える
         RpcReceiveMoveInput(moveVec);
     }
-    
+    // ★★★ ブロック破壊用のCommandを追加 ★★★
+    [Command]
+    public void CmdDestroyBlock(Vector3Int gridPos)
+    {
+        // サーバーが受け取ったら、全クライアントに破壊を命令するRPCを呼び出す
+        RpcDestroyBlock(gridPos);
+    }
+
     // --- 全クライアントへのRPC ---
 
     /// <summary>
@@ -199,5 +207,16 @@ public class NetworkPlayerInput : NetworkBehaviour
     {
         // 全てのクライアント（自分自身も含む）で、PlayerControllerのメソッドを呼び出す
         _playerController.OnMoveInput(moveVec);
+    }
+    // ★★★ ブロック破壊用のClientRpcを追加 ★★★
+    [ClientRpc]
+    private void RpcDestroyBlock(Vector3Int gridPos)
+    {
+        // このRPCは、このコンポーネントがアタッチされているプレイヤーオブジェクトに対して実行される
+        // そのため、各クライアントで、対応するプレイヤーのLevelManagerが正しく呼ばれる
+        if (_playerController != null && _playerController.levelManager != null)
+        {
+            _playerController.levelManager.DestroyConnectedBlocks(gridPos);
+        }
     }
 }

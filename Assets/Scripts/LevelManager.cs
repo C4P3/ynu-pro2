@@ -52,6 +52,7 @@ public class LevelManager : MonoBehaviour
     private Vector2[] noiseOffsets;
 
     private Vector3Int _playerStartPosition;
+    private System.Random _prng;
 
     void Awake()
     {
@@ -104,11 +105,13 @@ public class LevelManager : MonoBehaviour
             this.mapSeed = System.DateTime.Now.Ticks;
         }
 
-        System.Random prng = new System.Random((int)mapSeed);
+        _prng = new System.Random((int)mapSeed);
+        
+        // ★★★ prngではなく_prngを使うように変更 ★★★
         noiseOffsets = new Vector2[blockTypes.Length];
         for (int i = 0; i < blockTypes.Length; i++)
         {
-            noiseOffsets[i] = new Vector2(prng.Next(-10000, 10000), prng.Next(-10000, 10000));
+            noiseOffsets[i] = new Vector2(_prng.Next(-10000, 10000), _prng.Next(-10000, 10000));
         }
 
         // 以前InitialGenerateにあったワールド生成処理もここに統合する
@@ -190,17 +193,19 @@ public class LevelManager : MonoBehaviour
                 if (blockTilemap.HasTile(tilePos) || itemTilemap.HasTile(tilePos)) continue;
 
                 // --- アイテム配置ロジック ---
-                if (Random.value < itemAreaChance)
+                // ★★★ UnityのRandom.valueではなく、_prng.NextDouble()を使う ★★★
+                if (_prng.NextDouble() < itemAreaChance)
                 {
                     if (ItemManager.Instance != null)
                     {
-                        ItemData selectedItem = ItemManager.Instance.GetRandomItemToSpawn();
+                        // ★★★ ItemManagerに、保持している_prngを渡す ★★★
+                        ItemData selectedItem = ItemManager.Instance.GetRandomItemToSpawn(_prng);
                         if (selectedItem != null)
                         {
                             itemTilemap.SetTile(tilePos, selectedItem.itemTile);
                         }
                     }
-                    continue; // アイテムを置いたらブロックは置かない
+                    continue; 
                 }
                 
                 // --- ブロック生成ロジック ---
