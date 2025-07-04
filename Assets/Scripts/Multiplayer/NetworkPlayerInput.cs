@@ -28,8 +28,8 @@ public class NetworkPlayerInput : NetworkBehaviour
 
     void Start()
     {
-        Debug.Log($"--- Debug Start for {gameObject.name} ---");
-        Debug.Log($"My playerIndex is [{playerIndex}]", gameObject);
+        // Debug.Log($"--- Debug Start for {gameObject.name} ---");
+        // Debug.Log($"My playerIndex is [{playerIndex}]", gameObject);
 
         // LevelManager と TypingManager を探す処理を、プレイヤー番号に応じて変更
         LevelManager levelManager = null;
@@ -38,37 +38,37 @@ public class NetworkPlayerInput : NetworkBehaviour
         if (playerIndex == 1)
         {
             gridObject = GameObject.Find("Grid_P1");
-            Debug.Log("playerIndex is 1, trying to find Grid_P1...", gameObject);
+            // Debug.Log("playerIndex is 1, trying to find Grid_P1...", gameObject);
         }
         else if (playerIndex == 2)
         {
             gridObject = GameObject.Find("Grid_P2");
-            Debug.Log("playerIndex is 2, trying to find Grid_P2...", gameObject);
+            // Debug.Log("playerIndex is 2, trying to find Grid_P2...", gameObject);
         }
 
         if (gridObject != null)
         {
             levelManager = gridObject.GetComponent<LevelManager>();
-            Debug.Log($"Found GameObject: {gridObject.name}", gameObject);
+            // Debug.Log($"Found GameObject: {gridObject.name}", gameObject);
         }
         else
         {
             Debug.LogError("Could not find Grid GameObject!", gameObject);
         }
 
-        Debug.Log($"Found LevelManager component on: {(levelManager != null ? levelManager.gameObject.name : "NULL")}", gameObject);
+        // Debug.Log($"Found LevelManager component on: {(levelManager != null ? levelManager.gameObject.name : "NULL")}", gameObject);
 
 
         if (levelManager != null)
         {
             // --- デバッグここから ---
-            Debug.Log($"Assigning my transform ('{this.transform.name}') to {levelManager.gameObject.name}'s playerTransform.", gameObject);
+            // Debug.Log($"Assigning my transform ('{this.transform.name}') to {levelManager.gameObject.name}'s playerTransform.", gameObject);
             // --- デバッグここまで ---
 
             levelManager.playerTransform = this.transform;
 
             // ★★★ 最重要チェック ★★★
-            Debug.Log($"IMMEDIATELY AFTER ASSIGNMENT, levelManager.playerTransform is: {(levelManager.playerTransform != null ? levelManager.playerTransform.name : "NULL")}", gameObject);
+            // Debug.Log($"IMMEDIATELY AFTER ASSIGNMENT, levelManager.playerTransform is: {(levelManager.playerTransform != null ? levelManager.playerTransform.name : "NULL")}", gameObject);
 
             // 他の参照設定
             _playerController.blockTilemap = levelManager.blockTilemap;

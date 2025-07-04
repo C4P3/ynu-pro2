@@ -100,8 +100,8 @@ public class LevelManager : MonoBehaviour
     public void InitialGenerate()
     {
         // ★★★ 以下の2行を追加 ★★★
-        Debug.Log($"InitialGenerate called for {gameObject.name}", gameObject);
-        Debug.Log($"Player Transform is: {(playerTransform != null ? playerTransform.name : "NULL")}", gameObject);
+        // Debug.Log($"InitialGenerate called for {gameObject.name}", gameObject);
+        // Debug.Log($"Player Transform is: {(playerTransform != null ? playerTransform.name : "NULL")}", gameObject);
 
         // Start()から移動してきたコード
         if (playerTransform != null)
