@@ -49,13 +49,17 @@ public class PlayerController : MonoBehaviour
     {
         // ★★★ このメソッドを追加、または追記 ★★★
         // 自分のゲームオブジェクトについているTypingManagerを取得する
-        typingManager = GetComponent<TypingManager>();
         _networkInput = GetComponent<NetworkPlayerInput>();
+        typingManager = GetComponent<TypingManager>(); // 自分のTypingManagerをここで取得
 
         // 自分のTypingManagerのイベントだけを購読する
         if (typingManager != null)
         {
             typingManager.OnTypingEnded += HandleTypingEnded;
+        }
+        else
+        {
+            Debug.LogError("PlayerController could not find TypingManager on the same GameObject!");
         }
     }
     void OnEnable()
@@ -67,7 +71,7 @@ public class PlayerController : MonoBehaviour
     }
     void OnDestroy()
     {
-        // オブジェクトが破棄される時に、イベントの購読を解除する（メモリリーク防止）
+        // ★★★ メモリリーク防止のために、ここで確実に購読解除 ★★★
         if (typingManager != null)
         {
             typingManager.OnTypingEnded -= HandleTypingEnded;
