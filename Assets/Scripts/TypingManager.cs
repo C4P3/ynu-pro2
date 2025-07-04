@@ -2,6 +2,7 @@ using UnityEngine;
 using TMPro;
 using Models;
 
+
 /// タイピングのUI表示と入力判定を管理するクラス
 
 public class TypingManager : MonoBehaviour
@@ -17,6 +18,14 @@ public class TypingManager : MonoBehaviour
     private CurrentTypingTextModel _typingModel = new CurrentTypingTextModel();
     private Vector3Int _initialMoveDirection;
 
+    //効果音用AudioClipの追加
+    [Header("Sound Effects")]
+    [SerializeField] private AudioClip typingSound;
+    [SerializeField] private AudioClip successSound;
+    [SerializeField] private AudioClip missSound;
+
+    private AudioSource audioSource;
+
     void Start()
     {
         // パネルを非表示にしておく
@@ -25,6 +34,10 @@ public class TypingManager : MonoBehaviour
             typingPanel.SetActive(false);
         }
         _typedText = typingPanel.GetComponentInChildren<TextMeshProUGUI>();
+
+        //AudioSourceの初期化
+        audioSource = gameObject.AddComponent<AudioSource>();
+        audioSource.playOnAwake = false;
 
         // OSを自動判定して設定
         #if UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX
@@ -97,6 +110,17 @@ public class TypingManager : MonoBehaviour
                     {
                         UpdateTypedText();
                     }
+
+                    // typingSoundの再生
+                    if(result == TypeResult.Correct)
+                    {
+                        PlaySound(typingSound);    
+                    }
+                    // 入力が間違っている場合はmissSoundを再生
+                    else if (result == TypeResult.Incorrect)
+                    {
+                        PlaySound(missSound);
+                    }
                     // 入力が正しく完了したら終了処理
                     if (result == TypeResult.Finished)
                     {
@@ -115,6 +139,7 @@ public class TypingManager : MonoBehaviour
         {
             typingPanel.SetActive(false);
         }
+        PlaySound(successSound);  //successSoundの再生
         OnTypingEnded?.Invoke(true);
     }
 
@@ -141,5 +166,15 @@ public class TypingManager : MonoBehaviour
         string romajiLine = highlightedText + remainingText;
 
         _typedText.text = $"{title}\n{romajiLine}";
+    }
+
+    // 効果音を再生する処理
+    private void PlaySound(AudioClip clip)
+    {
+        if (audioSource != null && clip != null)
+        {
+            audioSource.PlayOneShot(clip); 
+
+       }
     }
 }
