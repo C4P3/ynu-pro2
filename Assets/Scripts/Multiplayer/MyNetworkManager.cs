@@ -1,5 +1,6 @@
 // Multiplayer/MyNetworkManager.cs
 using Mirror;
+using UnityEngine;
 
 public class MyNetworkManager : NetworkManager
 {
@@ -12,7 +13,7 @@ public class MyNetworkManager : NetworkManager
 
         // 接続したプレイヤーのGameObjectからNetworkPlayerInputコンポーネントを取得
         NetworkPlayerInput player = conn.identity.GetComponent<NetworkPlayerInput>();
-        if(player != null)
+        if (player != null)
         {
             // numPlayersは現在接続しているプレイヤーの数（1から始まる）
             // この番号をプレイヤーのインデックスとして設定する

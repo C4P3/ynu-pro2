@@ -1,5 +1,6 @@
 using UnityEngine;
 using Mirror;
+using TMPro;
 
 /// <summary>
 /// マルチプレイ時にローカルプレイヤーの入力を検知し、サーバーにコマンドを送信するクラス
@@ -91,6 +92,7 @@ public class NetworkPlayerInput : NetworkBehaviour
         {
             _typingManager.typingPanel = GameObject.Find("TypingPanel_P2");
         }
+        if(_typingManager.typingPanel == null ){Debug.LogError($"Player {playerIndex} のTypingPanelが見つかりません！");}
         
         _playerController.Initialize();
 

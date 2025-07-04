@@ -11,7 +11,7 @@ public class TypingManager : MonoBehaviour
     // UIの参照
     [Header("UI References")]
     public GameObject typingPanel;
-    public TextMeshProUGUI typedText;
+    private TextMeshProUGUI _typedText;
     // タイピング用データ管理
     private TypingTextStore _typingTextStore = new TypingTextStore();
     private CurrentTypingTextModel _typingModel = new CurrentTypingTextModel();
@@ -24,6 +24,7 @@ public class TypingManager : MonoBehaviour
         {
             typingPanel.SetActive(false);
         }
+        _typedText = typingPanel.GetComponentInChildren<TextMeshProUGUI>();
 
         // OSを自動判定して設定
         #if UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX
@@ -139,6 +140,6 @@ public class TypingManager : MonoBehaviour
         string remainingText = currentRomaji.Substring(typedIndex);
         string romajiLine = highlightedText + remainingText;
 
-        typedText.text = $"{title}\n{romajiLine}";
+        _typedText.text = $"{title}\n{romajiLine}";
     }
 }

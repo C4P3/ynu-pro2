@@ -1,6 +1,7 @@
 // PlayerController.cs
 using UnityEngine;
 using UnityEngine.Tilemaps;
+using Mirror;
 
 /// <summary>
 /// プレイヤーの状態を定義する列挙型
@@ -36,6 +37,8 @@ public class PlayerController : MonoBehaviour
     private Vector3Int _typingTargetPos; // タイピング対象のブロック座標
     private Vector3Int _lastMoveDirection = Vector3Int.right; // デフォルト右向き
 
+    private NetworkPlayerInput _networkInput;
+
     #region Unity Lifecycle Methods
 
     void Awake()
@@ -43,6 +46,7 @@ public class PlayerController : MonoBehaviour
         // ★★★ このメソッドを追加、または追記 ★★★
         // 自分のゲームオブジェクトについているTypingManagerを取得する
         typingManager = GetComponent<TypingManager>();
+        _networkInput = GetComponent<NetworkPlayerInput>();
     }
     void OnEnable()
     {
@@ -183,20 +187,26 @@ public class PlayerController : MonoBehaviour
     void CheckAndMove(Vector3Int moveVec)
     {
         Vector3Int nextGridPos = _gridTargetPos + moveVec;
-        
+
         if (blockTilemap.HasTile(nextGridPos))
         {
             // ブロックがある場合
-            _typingTargetPos = nextGridPos; // 対象を記憶
-            _currentState = PlayerState.Typing; // 自身の状態を「タイピング中」に変更
-            typingManager.StartTyping(moveVec); // TypingManagerに開始を依頼
+            _typingTargetPos = nextGridPos;
+            _currentState = PlayerState.Typing;
+
+            // ★★★ 3. ローカルプレイヤーの場合のみタイピングを開始する ★★★
+            // _networkInputがnull（シングルプレイ時）か、isLocalPlayerがtrueの場合のみ実行
+            if (_networkInput == null || _networkInput.isLocalPlayer)
+            {
+                typingManager.StartTyping(moveVec);
+            }
         }
         else
         {
             // ブロックがない場合
             MoveTo(nextGridPos);
         }
-
+        
         if (moveVec != Vector3Int.zero)
         {
             _lastMoveDirection = moveVec;
@@ -212,10 +222,10 @@ public class PlayerController : MonoBehaviour
         _currentState = PlayerState.Moving; // 自身の状態を「移動中」に変更
 
         //移動音を再生
-         if (walkSound != null && audioSource != null)
-    {
-        audioSource.PlayOneShot(walkSound);
-    }
+        if (walkSound != null && audioSource != null)
+        {
+            audioSource.PlayOneShot(walkSound);
+        }
     }
 
     /// <summary>

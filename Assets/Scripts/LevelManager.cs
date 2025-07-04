@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.Tilemaps;
 using System.Collections.Generic;
 using System.Linq;
+using Mirror;
 
 /// <summary>
 /// ブロックの種類とその設定を管理するためのクラス
@@ -21,6 +22,9 @@ public class BlockType
 /// </summary>
 public class LevelManager : MonoBehaviour
 {
+    [Header("Generation Seed")]
+    public long mapSeed;
+
     [Header("Cluster Generation Settings")]
 
     [Header("References")]
@@ -50,11 +54,36 @@ public class LevelManager : MonoBehaviour
 
     void Awake()
     {
-        // ブロックの種類ごとに異なるノイズを生成するため、ランダムなオフセットを最初に作っておく
+        // マルチプレイかどうかを、GameDataSync.Instanceの有無で判断する
+        if (GameDataSync.Instance != null)
+        {
+            // 【マルチプレイ時の処理】
+            // GameDataSyncから、自分の名前に合ったシード値を取得する
+            if (gameObject.name == "Grid_P1")
+            {
+                this.mapSeed = GameDataSync.Instance.mapSeed1;
+            }
+            else if (gameObject.name == "Grid_P2")
+            {
+                this.mapSeed = GameDataSync.Instance.mapSeed2;
+            }
+        }
+        else
+        {
+            // 【シングルプレイ時の処理】
+            // GameDataSyncが存在しないので、自分自身でランダムなシードを生成する
+            this.mapSeed = System.DateTime.Now.Ticks;
+        }
+
+        // シードを元に乱数生成器を作成
+        System.Random prng = new System.Random((int)mapSeed);
+
+        // 作成した乱数生成器を使ってオフセットを決定する
         noiseOffsets = new Vector2[blockTypes.Length];
         for (int i = 0; i < blockTypes.Length; i++)
         {
-            noiseOffsets[i] = new Vector2(Random.Range(-10000f, 10000f), Random.Range(-10000f, 10000f));
+            // UnityのRandom.Rangeではなく、prng.Nextを使う
+            noiseOffsets[i] = new Vector2(prng.Next(-10000, 10000), prng.Next(-10000, 10000));
         }
     }
 

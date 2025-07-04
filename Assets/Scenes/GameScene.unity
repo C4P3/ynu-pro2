@@ -176,7 +176,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: New Text
+  m_text: 
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 00c2e0182d8314cf9a46acc25397e443, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -753,7 +753,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   typingPanel: {fileID: 32447333}
-  typedText: {fileID: 404595}
 --- !u!4 &463991951
 Transform:
   m_ObjectHideFlags: 0
@@ -1543,8 +1542,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 938936b8697745f429a1ee3b2a14c1e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  referenceTilemap: {fileID: 2142259994}
-  followTarget: {fileID: 2132873798}
 --- !u!1 &1392880536
 GameObject:
   m_ObjectHideFlags: 0
@@ -2072,6 +2069,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: af5aebb505a2a4ef99d2190ec5d65ef7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  mapSeed: 10
   blockTilemap: {fileID: 2142259994}
   itemTilemap: {fileID: 97169668}
   playerTransform: {fileID: 2132873798}
