@@ -4,6 +4,7 @@ using UnityEngine.Tilemaps;
 using System.Collections.Generic;
 using System.Linq;
 using Mirror;
+using UnityEditor.iOS.Xcode;
 
 /// <summary>
 /// ブロックの種類とその設定を管理するためのクラス
@@ -54,11 +55,41 @@ public class LevelManager : MonoBehaviour
 
     void Awake()
     {
-        // マルチプレイかどうかを、GameDataSync.Instanceの有無で判断する
+    }
+
+    public void GenerateMap()
+    {
+        Debug.Log($"--- Checking BlockTypes for {gameObject.name} ---", gameObject);
+        if (blockTypes == null || blockTypes.Length == 0)
+        {
+            Debug.LogError("BlockTypes array is NULL or EMPTY!", gameObject);
+            return; // 配列がなければ処理を中断
+        }
+
+        bool hasNullElement = false;
+        for (int i = 0; i < blockTypes.Length; i++)
+        {
+            if (blockTypes[i] == null)
+            {
+                Debug.LogError($"BlockTypes Element {i} is NULL!", gameObject);
+                hasNullElement = true;
+            }
+            else
+            {
+                Debug.Log($"BlockTypes Element {i}: {blockTypes[i].name}", gameObject);
+            }
+        }
+
+        if(hasNullElement)
+        {
+            Debug.LogError("Aborting map generation due to NULL element in BlockTypes.", gameObject);
+            return; // 空の要素があれば処理を中断
+        }
+        // ★★★ デバッグここまで ★★★
+    
+        // 以前Awakeにあったコードをここに移動
         if (GameDataSync.Instance != null)
         {
-            // 【マルチプレイ時の処理】
-            // GameDataSyncから、自分の名前に合ったシード値を取得する
             if (gameObject.name == "Grid_P1")
             {
                 this.mapSeed = GameDataSync.Instance.mapSeed1;
@@ -70,21 +101,22 @@ public class LevelManager : MonoBehaviour
         }
         else
         {
-            // 【シングルプレイ時の処理】
-            // GameDataSyncが存在しないので、自分自身でランダムなシードを生成する
             this.mapSeed = System.DateTime.Now.Ticks;
         }
 
-        // シードを元に乱数生成器を作成
         System.Random prng = new System.Random((int)mapSeed);
-
-        // 作成した乱数生成器を使ってオフセットを決定する
         noiseOffsets = new Vector2[blockTypes.Length];
         for (int i = 0; i < blockTypes.Length; i++)
         {
-            // UnityのRandom.Rangeではなく、prng.Nextを使う
             noiseOffsets[i] = new Vector2(prng.Next(-10000, 10000), prng.Next(-10000, 10000));
         }
+
+        // 以前InitialGenerateにあったワールド生成処理もここに統合する
+        if (playerTransform != null)
+        {
+            _playerStartPosition = blockTilemap.WorldToCell(playerTransform.position);
+        }
+        CheckAndGenerateChunksAroundPlayer();
     }
 
     void Start()

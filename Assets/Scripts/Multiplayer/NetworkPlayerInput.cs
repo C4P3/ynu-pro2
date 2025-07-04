@@ -74,9 +74,6 @@ public class NetworkPlayerInput : NetworkBehaviour
             _playerController.blockTilemap = levelManager.blockTilemap;
             _playerController.itemTilemap = levelManager.itemTilemap;
             _playerController.levelManager = levelManager;
-
-            // 生成を呼び出し
-            levelManager.InitialGenerate();
         }
         else
         {
@@ -149,7 +146,9 @@ public class NetworkPlayerInput : NetworkBehaviour
 
     void Update()
     {
-        // ローカルプレイヤーでなければ、入力処理は行わない
+        // ★★★ ゲームがプレイ中でなければ入力を受け付けない ★★★
+        if (GameDataSync.Instance.currentState != GameState.Playing) return;
+
         if (!isLocalPlayer) return;
         
         // Roaming状態のときだけ入力を受け付ける

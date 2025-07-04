@@ -19,5 +19,13 @@ public class MyNetworkManager : NetworkManager
             // この番号をプレイヤーのインデックスとして設定する
             player.playerIndex = numPlayers;
         }
+
+        // ★★★ プレイヤーが2人になったらゲーム開始のRPCを呼び出す ★★★
+        if (numPlayers == 2)
+        {
+            // ★★★ GameDataSyncの開始シーケンスを呼び出す ★★★
+            GameDataSync.Instance.StartGameSequence();
+        }
     }
+
 }

@@ -21,15 +21,29 @@ public class LocalPlayerInput : MonoBehaviour
         if (levelManager != null)
         {
             levelManager.playerTransform = this.transform; // ★★★ これがあなたのプレイヤーです、と教える ★★★
-            _playerController.blockTilemap = levelManager.blockTilemap;
-            _playerController.itemTilemap = levelManager.itemTilemap;
-            _playerController.levelManager = levelManager;
-            levelManager.InitialGenerate(); // ★★★ ワールドの初期生成を指示 ★★★
         }
         else
         {
             Debug.LogError("LevelManagerが見つかりません！ シングルプレイ用のシーンに配置されていますか？");
         }
+
+        // PlayerControllerに必要な参照を設定する
+        if (_playerController != null)
+        {
+            _playerController.levelManager = levelManager;
+            if (levelManager != null)
+            {
+                _playerController.blockTilemap = levelManager.blockTilemap;
+                _playerController.itemTilemap = levelManager.itemTilemap;
+            }
+        }
+
+        // ★★★ シングルプレイ用のマップ生成をここから呼び出す ★★★
+        if (levelManager != null)
+        {
+            levelManager.GenerateMap();
+        }
+
         var typingManager = Object.FindFirstObjectByType<TypingManager>();
         if (typingManager != null)
         {
@@ -47,7 +61,7 @@ public class LocalPlayerInput : MonoBehaviour
         }
     }
 
-    void Update()
+        void Update()
     {
         if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
         {

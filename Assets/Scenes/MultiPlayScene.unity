@@ -1106,6 +1106,7 @@ MonoBehaviour:
   syncInterval: 0
   mapSeed1: 1
   mapSeed2: 5
+  currentState: 0
 --- !u!114 &697213098
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2027,16 +2028,16 @@ MonoBehaviour:
   itemTilemap: {fileID: 97169668}
   playerTransform: {fileID: 0}
   blockTypes:
-  - name: 
+  - name: 1
     tile: {fileID: 11400000, guid: 1362087bd6b4e404d9e259a3b0a88701, type: 2}
     probabilityWeight: 0.1
-  - name: 
+  - name: 2
     tile: {fileID: 11400000, guid: afc0fff9f08d84279849db3bf799276a, type: 2}
     probabilityWeight: 0.1
-  - name: 
+  - name: 3
     tile: {fileID: 11400000, guid: 8289a85b11caa4a2d9bdd92ec9b5e914, type: 2}
     probabilityWeight: 0.1
-  - name: 
+  - name: 4
     tile: {fileID: 11400000, guid: b68c430b9a40747029451d1e0d01fe88, type: 2}
     probabilityWeight: 0.1
   noiseScale: 0.1
@@ -2487,16 +2488,16 @@ MonoBehaviour:
   itemTilemap: {fileID: 202311671}
   playerTransform: {fileID: 0}
   blockTypes:
-  - name: 
+  - name: 1
     tile: {fileID: 11400000, guid: 1362087bd6b4e404d9e259a3b0a88701, type: 2}
     probabilityWeight: 0.1
-  - name: 
+  - name: 2
     tile: {fileID: 11400000, guid: afc0fff9f08d84279849db3bf799276a, type: 2}
     probabilityWeight: 0.1
-  - name: 
+  - name: 3
     tile: {fileID: 11400000, guid: 8289a85b11caa4a2d9bdd92ec9b5e914, type: 2}
     probabilityWeight: 0.1
-  - name: 
+  - name: 4
     tile: {fileID: 11400000, guid: b68c430b9a40747029451d1e0d01fe88, type: 2}
     probabilityWeight: 0.1
   noiseScale: 0.1
