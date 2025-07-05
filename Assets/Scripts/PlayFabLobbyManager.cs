@@ -115,35 +115,33 @@ public class PlayFabLobbyManager : MonoBehaviour
                 OnError // ★★★ エラーハンドラは設定済み
             );
             
-            yield return new WaitForSeconds(6f);
+            yield return new WaitForSeconds(3f);
         }
     }
 
     // チケット状態取得成功時のコールバック
     private void OnGetTicketStatusSuccess(GetMatchmakingTicketResult result)
     {
-        // ★★★ ログ追加2: 受け取ったステータスを詳しく表示 ★★★
-        Debug.Log($"[{(_isHost ? "HOST" : "CLIENT")}] Polling ticket status: {result.Status}");
-
         switch (result.Status)
         {
             case "Matched":
-                // マッチ成立！ポーリングを停止し、Mirrorを起動
-                StopCoroutine(_pollTicketCoroutine);
+                if (_pollTicketCoroutine != null)
+                {
+                    StopCoroutine(_pollTicketCoroutine);
+                }
                 
                 statusText.text = "マッチ成立！ゲームを開始します...";
                 Debug.Log($"Match found! MatchId: {result.MatchId}");
 
                 if (_isHost)
                 {
+                    // ホストは即座にサーバーを開始
                     MyNetworkManager.singleton.StartHost();
                 }
                 else
                 {
-                    // TODO: 本来はここでホストの接続情報を取得する
-                    // ローカルテストなので、localhostに接続
-                    MyNetworkManager.singleton.networkAddress = "localhost";
-                    MyNetworkManager.singleton.StartClient();
+                    // ★★★ クライアントは直接接続せず、遅延コルーチンを開始 ★★★
+                    StartCoroutine(ConnectAsClientWithDelay());
                 }
                 break;
             
@@ -155,6 +153,18 @@ public class PlayFabLobbyManager : MonoBehaviour
 
             // "WaitingForPlayers", "WaitingForMatch" の場合は、何もしないで次のポーリングを待つ
         }
+    }
+
+    // ★★★ クライアントが遅れて接続を開始するためのコルーチンを新しく追加 ★★★
+    private IEnumerator ConnectAsClientWithDelay()
+    {
+        // ホスト側の準備が整うのを2秒ほど待つ（この時間は適宜調整）
+        statusText.text = "ホストに接続しています...";
+        yield return new WaitForSeconds(2f);
+
+        // ローカルテストなので、localhostに接続
+        MyNetworkManager.singleton.networkAddress = "localhost";
+        MyNetworkManager.singleton.StartClient();
     }
 
     // 共通のエラー処理
