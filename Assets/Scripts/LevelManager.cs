@@ -4,7 +4,7 @@ using UnityEngine.Tilemaps;
 using System.Collections.Generic;
 using System.Linq;
 using Mirror;
-using UnityEditor.iOS.Xcode;
+using UnityEditor;
 
 /// <summary>
 /// ブロックの種類とその設定を管理するためのクラス
