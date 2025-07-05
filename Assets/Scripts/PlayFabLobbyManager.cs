@@ -5,6 +5,7 @@ using UnityEngine;
 using TMPro;
 using System;
 using System.Collections.Generic;
+using System.Collections;
 
 public class PlayFabLobbyManager : MonoBehaviour
 {
@@ -14,84 +15,153 @@ public class PlayFabLobbyManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI roomIdDisplayText;
     [SerializeField] private TextMeshProUGUI statusText;
 
-    private string _currentLobbyConnectionString; // LobbyIdからConnectionStringに変更
+    private const string ROOM_ID_KEY = "CurrentRoomId";
+    private string _myTicketId;
+    private Coroutine _pollTicketCoroutine; // ポーリング処理を管理するためのコルーチン変数
+    private bool _isHost = false; // 自分がホストかどうかを記録するフラグ
 
     void Awake()
     {
         if (Instance == null) { Instance = this; DontDestroyOnLoad(gameObject); } else { Destroy(gameObject); }
     }
 
-     // 「ルームを作成」ボタンから呼び出す
-    public void CreateLobby()
+    // 「ルームを作成」ボタンから呼び出す
+    public void CreateRoom()
     {
-        statusText.text = "ロビーを作成中...";
-        
-        var ownerEntity = new PlayFab.MultiplayerModels.EntityKey { Id = PlayFabAuthManager.MyEntity.Id, Type = PlayFabAuthManager.MyEntity.Type };
+        _isHost = true;
+        statusText.text = "ルームを作成中...";
+        string shortId = UnityEngine.Random.Range(100000, 999999).ToString();
+        roomIdDisplayText.text = $"ルームID: {shortId}";
 
-        var request = new CreateLobbyRequest
+        // 自分のプレイヤーデータにルームIDを保存し、成功したらチケット作成に進む
+        UpdateUserDataAndCreateTicket(shortId);
+    }
+    
+    // 「ルームに参加」ボタンから呼び出す
+    public void JoinRoom()
+    {
+        _isHost = false;
+        string shortIdToJoin = roomIdInput.text;
+        if (string.IsNullOrEmpty(shortIdToJoin)) return;
+
+        statusText.text = $"ルームID '{shortIdToJoin}' で参加します...";
+        
+        // 自分のプレイヤーデータに参加したいルームIDを保存し、成功したらチケット作成に進む
+        UpdateUserDataAndCreateTicket(shortIdToJoin);
+    }
+
+    // UserDataを更新し、成功したらチケット作成に進む共通メソッド
+    private void UpdateUserDataAndCreateTicket(string roomId)
+    {
+        var request = new UpdateUserDataRequest
         {
-            MaxPlayers = 2,
-            AccessPolicy = AccessPolicy.Public,
-            Owner = ownerEntity,
-            // ★★★ 修正点1: 最初のメンバーとして自分自身を追加 ★★★
-            Members = new List<Member>
+            Data = new Dictionary<string, string> { { ROOM_ID_KEY, roomId } }
+        };
+        // ★★★ コールバックに roomId を渡すように変更 ★★★
+        PlayFabClientAPI.UpdateUserData(request, 
+            (result) => { OnUserDataUpdated_CreateTicket(roomId); }, 
+            OnError);
+    }
+
+    // UserData保存成功後、マッチングチケットを作成する
+    private void OnUserDataUpdated_CreateTicket(string roomId)
+    {
+        statusText.text = "対戦相手を探しています...";
+
+        var matchmakingPlayer = new MatchmakingPlayer
+        {
+            Entity = new PlayFab.MultiplayerModels.EntityKey
             {
-                new Member { MemberEntity = ownerEntity }
+                Id = PlayFabAuthManager.MyEntity.Id,
+                Type = PlayFabAuthManager.MyEntity.Type
+            },
+            // ★★★ ここが最重要：マッチングに使う属性を明示的に指定する ★★★
+            Attributes = new MatchmakingPlayerAttributes
+            {
+                DataObject = new { CurrentRoomId = roomId }
             }
         };
-        
-        PlayFabMultiplayerAPI.CreateLobby(request, OnCreateLobbySuccess, OnError);
-    }
 
-    // ロビー作成成功時のコールバック
-    private void OnCreateLobbySuccess(CreateLobbyResult result)
-    {
-        _currentLobbyConnectionString = result.ConnectionString;
-        statusText.text = "対戦相手を待っています...";
-        // ★★★ 修正点2: 表示するテキストを分かりやすくする ★★★
-        roomIdDisplayText.text = "ルームID (コピーして相手に送ってください):\n" + _currentLobbyConnectionString; 
-        
-        MyNetworkManager.singleton.StartHost();
-    }
-
-    // 「ルームに参加」ボタンから呼び出す
-    public void JoinLobby()
-    {
-        // ★★★ 修正点3: 入力された文字列をそのまま使う ★★★
-        string connectionStringToJoin = roomIdInput.text;
-        if (string.IsNullOrEmpty(connectionStringToJoin)) 
+        var ticketRequest = new CreateMatchmakingTicketRequest
         {
-            statusText.text = "ルームIDを入力してください";
-            return;
-        }
-        
-        statusText.text = "ロビーに参加中...";
-
-        var memberEntity = new PlayFab.MultiplayerModels.EntityKey { Id = PlayFabAuthManager.MyEntity.Id, Type = PlayFabAuthManager.MyEntity.Type };
-
-        var request = new JoinLobbyRequest
-        {
-            ConnectionString = connectionStringToJoin,
-            MemberEntity = memberEntity
+            Creator = matchmakingPlayer,
+            GiveUpAfterSeconds = 120,
+            QueueName = "PrivateRoomQueue"
         };
-        
-        PlayFabMultiplayerAPI.JoinLobby(request, OnJoinLobbySuccess, OnError);
+
+        PlayFabMultiplayerAPI.CreateMatchmakingTicket(ticketRequest, OnTicketCreated, OnError);
     }
 
-
-    // ロビー参加成功時のコールバック
-    private void OnJoinLobbySuccess(JoinLobbyResult result)
+    private void OnTicketCreated(CreateMatchmakingTicketResult result)
     {
-        statusText.text = "接続中...";
+        _myTicketId = result.TicketId;
+        Debug.Log($"Matchmaking ticket created: {_myTicketId}");
         
-        // 開発中のローカルテストでは、アドレスはlocalhostのまま
-        MyNetworkManager.singleton.networkAddress = "localhost";
-        MyNetworkManager.singleton.StartClient();
+        // ★★★ チケットのステータス監視コルーチンを開始 ★★★
+        _pollTicketCoroutine = StartCoroutine(PollTicketStatusCoroutine());
     }
 
+    // チケットの状態を定期的に確認するコルーチン
+    private IEnumerator PollTicketStatusCoroutine()
+    {
+        while (true)
+        {
+            // ★★★ ログ追加1: ポーリングが実行されているか確認 ★★★
+            Debug.Log($"[{(_isHost ? "HOST" : "CLIENT")}] Polling ticket... TicketId: {_myTicketId}");
+
+            PlayFabMultiplayerAPI.GetMatchmakingTicket(
+                new GetMatchmakingTicketRequest { TicketId = _myTicketId, QueueName = "PrivateRoomQueue" },
+                OnGetTicketStatusSuccess,
+                OnError // ★★★ エラーハンドラは設定済み
+            );
+            
+            yield return new WaitForSeconds(6f);
+        }
+    }
+
+    // チケット状態取得成功時のコールバック
+    private void OnGetTicketStatusSuccess(GetMatchmakingTicketResult result)
+    {
+        // ★★★ ログ追加2: 受け取ったステータスを詳しく表示 ★★★
+        Debug.Log($"[{(_isHost ? "HOST" : "CLIENT")}] Polling ticket status: {result.Status}");
+
+        switch (result.Status)
+        {
+            case "Matched":
+                // マッチ成立！ポーリングを停止し、Mirrorを起動
+                StopCoroutine(_pollTicketCoroutine);
+                
+                statusText.text = "マッチ成立！ゲームを開始します...";
+                Debug.Log($"Match found! MatchId: {result.MatchId}");
+
+                if (_isHost)
+                {
+                    MyNetworkManager.singleton.StartHost();
+                }
+                else
+                {
+                    // TODO: 本来はここでホストの接続情報を取得する
+                    // ローカルテストなので、localhostに接続
+                    MyNetworkManager.singleton.networkAddress = "localhost";
+                    MyNetworkManager.singleton.StartClient();
+                }
+                break;
+            
+            case "Canceled":
+                // チケットがキャンセルされた（タイムアウトなど）
+                StopCoroutine(_pollTicketCoroutine);
+                statusText.text = "マッチングがキャンセルされました。";
+                break;
+
+            // "WaitingForPlayers", "WaitingForMatch" の場合は、何もしないで次のポーリングを待つ
+        }
+    }
+
+    // 共通のエラー処理
     private void OnError(PlayFabError error)
     {
         statusText.text = "エラーが発生しました";
-        Debug.LogError(error.GenerateErrorReport());
+        // ★★★ ログ追加3: エラーがどちらで発生したか明確にする ★★★
+        Debug.LogError($"!!! PLAYFAB ERROR on {(_isHost ? "HOST" : "CLIENT")}!!!: " + error.GenerateErrorReport());
     }
 }
