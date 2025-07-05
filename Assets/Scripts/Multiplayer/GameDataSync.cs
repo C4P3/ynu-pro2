@@ -28,11 +28,21 @@ public class GameDataSync : NetworkBehaviour
     [SyncVar(hook = nameof(OnGameStateChanged))]
     public GameState currentState = GameState.WaitingForPlayers;
 
+    void Awake()
+    {
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject); // シーンをまたいで永続化させる
+        }
+        else
+        {
+            Destroy(gameObject); // 既に存在する場合は、新しい方を破棄
+        }
+    }
+
     public override void OnStartServer()
     {
-        // サーバー側でシングルトンを設定
-        Instance = this;
-
         // サーバー起動時にシード値を設定
         mapSeed1 = System.DateTime.Now.Ticks;
         mapSeed2 = System.DateTime.Now.Ticks + 1;
@@ -42,8 +52,6 @@ public class GameDataSync : NetworkBehaviour
 
     public override void OnStartClient()
     {
-        // クライアント側でシングルトンを設定
-        Instance = this;
     }
 
     [Server]
