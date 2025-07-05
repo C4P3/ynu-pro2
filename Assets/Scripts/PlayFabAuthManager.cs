@@ -1,13 +1,32 @@
 using PlayFab;
 using PlayFab.ClientModels;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class PlayFabAuthManager : MonoBehaviour
 {
     [SerializeField] CanvasGroup loginUI;
     [SerializeField] CanvasGroup homeUI;
+    [SerializeField] CanvasGroup roomUI;
     [SerializeField] CanvasGroup recordUI;
     [SerializeField] CanvasGroup configUI;
+
+    public static PlayFabAuthManager Instance { get; private set; }
+    public static EntityKey MyEntity { get; private set; }
+
+    void Awake()
+    {
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject); // このマネージャーもシーン間で永続化
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+    }
+
     // 初回起動時にCustom ID（端末ID）で匿名ログインする
     void Start()
     {
@@ -28,6 +47,9 @@ public class PlayFabAuthManager : MonoBehaviour
 
     void OnLoginSuccess(LoginResult result)
     {
+         // ★★★ ログイン成功時にEntityKeyを保存 ★★★
+        MyEntity = result.EntityToken.Entity;
+
         // if (result.NewlyCreated)
         // {
         // Debug.Log("初回ログイン（新規アカウント作成）！");
@@ -42,6 +64,7 @@ public class PlayFabAuthManager : MonoBehaviour
         // SetUI(loginUI, 0, false, false);
         // SetUI(homeUI, 1, true, true);
         // }
+        SetUI(roomUI, 0, false, false);
         SetUI(recordUI, 0, false, false);
         SetUI(configUI, 0, false, false);
     }
