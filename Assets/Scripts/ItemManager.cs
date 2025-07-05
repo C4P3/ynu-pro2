@@ -29,10 +29,17 @@ public class ItemManager : MonoBehaviour
     // タイルからItemDataを高速に逆引きするための辞書
     private Dictionary<TileBase, ItemData> _itemDatabase;
 
+    // 効果音を再生するためのAudioSource
+    private AudioSource _audioSource;
+
     void Awake()
     {
         // シングルトンパターンの実装
         if (Instance == null) { Instance = this; } else { Destroy(gameObject); }
+
+        // AudioSourceの初期化
+        _audioSource = gameObject.AddComponent<AudioSource>();
+        _audioSource.playOnAwake = false; // 自動再生を無効化
         // ゲーム開始時にデータベースを構築する
         BuildDatabase();
     }
@@ -56,13 +63,16 @@ public class ItemManager : MonoBehaviour
     /// LevelManagerが呼び出すための公開メソッド。
     /// 重み付きランダムで配置すべきアイテムを1つ選んで返す。
     /// </summary>
-    public ItemData GetRandomItemToSpawn()
+    /// <param name="prng">使用する疑似乱数生成器</param> // ★★★ 引数を追加 ★★★
+    public ItemData GetRandomItemToSpawn(System.Random prng)
     {
         if (_itemSpawnSettings.Count == 0) return null;
         float totalWeight = _itemSpawnSettings.Sum(item => item.spawnWeight);
         if (totalWeight <= 0) return null;
 
-        float randomValue = Random.Range(0, totalWeight);
+        // ★★★ UnityのRandomではなく、渡されたprngを使う ★★★
+        float randomValue = (float)prng.NextDouble() * totalWeight;
+
         foreach (var setting in _itemSpawnSettings)
         {
             if (randomValue < setting.spawnWeight)
@@ -86,6 +96,12 @@ public class ItemManager : MonoBehaviour
         if (!_itemDatabase.TryGetValue(itemTile, out ItemData data)) return;
 
         Debug.Log($"Acquired: {data.itemName}");
+
+        // アイテムの効果音を再生
+        if (data.useSound != null && _audioSource != null)
+        {
+            _audioSource.PlayOneShot(data.useSound);
+        }
 
         // EffectManagerに、どのアイテムをどの場所で取得したかを伝え、エフェクト再生を依頼する
         if (EffectManager.Instance != null)

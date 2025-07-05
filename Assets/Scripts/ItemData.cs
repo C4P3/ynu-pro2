@@ -33,4 +33,7 @@ public class ItemData : ScriptableObject
     public GameObject followEffectPrefab; // プレイヤー追従エフェクト
     [Tooltip("追従エフェクトの表示時間（秒）")]
     public float followEffectDuration = 3f; // 表示時間。デフォルトを3秒に設定
+
+    [Header("効果音")]
+    public AudioClip useSound;  //アイテム使用時の効果音
 }

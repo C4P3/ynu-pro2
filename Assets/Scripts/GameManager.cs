@@ -48,14 +48,24 @@ public class GameManager : MonoBehaviour
 
     void Update()
     {
-        // 酸素減少無効でなければ酸素を減らす
-        if (!_isOxygenInvincible)
+        // ★★★ ゲームがプレイ中でなければ酸素を減らさない ★★★
+        bool isPlaying = false;
+        if(GameDataSync.Instance != null) // マルチプレイか確認
+        {
+            isPlaying = GameDataSync.Instance.currentState == GameState.Playing;
+        }
+        else // シングルプレイの場合
+        {
+            isPlaying = true; // シングルでは常にプレイ中とみなす
+        }
+        
+        if (isPlaying && !_isOxygenInvincible)
         {
             // 経過時間に応じて酸素を時間で減らす
             float previousOxygen = _currentOxygen;
             _currentOxygen -= oxygenDecreaseRate * Time.deltaTime;
             _currentOxygen = Mathf.Max(_currentOxygen, 0); // 0未満にならないように
-            
+
             // 値が変化した場合のみUI更新とイベント発行を行う
             if (!Mathf.Approximately(previousOxygen, _currentOxygen))
             {
