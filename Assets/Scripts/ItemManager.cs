@@ -182,6 +182,18 @@ public class ItemManager : MonoBehaviour
                     GameManager.Instance.RecoverOxygen(-Mathf.Abs(poisonData.poisonAmount));
                 }
                 break;
+
+            case ItemEffectType.Thunder:
+                var thunderData = data as ThunderItemData;
+                if (thunderData != null && playerTransform != null)
+                {
+                    PlayerController playerController = playerTransform.GetComponent<PlayerController>();
+                    if (playerController != null)
+                    {
+                        playerController.Stun(thunderData.stunDuration);
+                    }
+                }
+                break;
         }
     }
 }

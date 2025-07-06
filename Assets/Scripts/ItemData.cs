@@ -9,7 +9,8 @@ public enum ItemEffectType
     Star,
     Rocket,
     Unchi,
-    Poison
+    Poison,
+    Thunder
 
     // 将来のマルチプレイ用
     // OpponentDebuff _LockBlocks,

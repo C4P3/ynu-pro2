@@ -43,6 +43,11 @@ public class PlayerController : MonoBehaviour
 
     private NetworkPlayerInput _networkInput;
 
+    private bool _isStunned = false;
+    private float _stunTimer = 0f;
+
+    public bool IsStunned => _isStunned;
+
     #region Unity Lifecycle Methods
 
     void Awake()
@@ -114,6 +119,17 @@ public class PlayerController : MonoBehaviour
             case PlayerState.Typing:
                 // タイピング中はプレイヤー自身は何もしない
                 break;
+        }
+
+        // スタン中は移動コマンドを受け付けない
+        if (_isStunned)
+        {
+            _stunTimer -= Time.deltaTime;
+            if (_stunTimer <= 0f)
+            {
+                _isStunned = false;
+            }
+            return; // ここで移動処理などをスキップ
         }
     }
     #endregion
@@ -326,4 +342,11 @@ public class PlayerController : MonoBehaviour
         return _lastMoveDirection;
     }
     #endregion
+
+    // スタンを付与するメソッド
+    public void Stun(float duration)
+    {
+        _isStunned = true;
+        _stunTimer = duration;
+    }
 }
