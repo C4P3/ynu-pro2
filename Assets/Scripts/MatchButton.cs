@@ -11,7 +11,9 @@ public class MatchButton : IButton
     {
         base.OnPointerClick();   
         StartCoroutine(LoadSceneWithDelay( 0.3f));
+        StartSceneBGMManager.Instance.StopBGM();
     }
+    
 
     private IEnumerator LoadSceneWithDelay(float delay)
     {
