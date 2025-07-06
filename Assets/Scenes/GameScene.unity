@@ -416,7 +416,7 @@ TilemapRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_ChunkSize: {x: 32, y: 32, z: 32}
-  m_ChunkCullingBounds: {x: 0, y: 0, z: 0}
+  m_ChunkCullingBounds: {x: 0.00050002337, y: 0.012000024, z: 0}
   m_MaxChunkCount: 16
   m_MaxFrameAge: 16
   m_SortOrder: 0
@@ -431,17 +431,51 @@ Tilemap:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 97169665}
   m_Enabled: 1
-  m_Tiles: {}
+  m_Tiles:
+  - first: {x: 4, y: -5, z: 0}
+    second:
+      serializedVersion: 2
+      m_TileIndex: 0
+      m_TileSpriteIndex: 0
+      m_TileMatrixIndex: 0
+      m_TileColorIndex: 0
+      m_TileObjectToInstantiateIndex: 65535
+      dummyAlignment: 0
+      m_AllTileFlags: 1073741825
   m_AnimatedTiles: {}
-  m_TileAssetArray: []
-  m_TileSpriteArray: []
-  m_TileMatrixArray: []
-  m_TileColorArray: []
+  m_TileAssetArray:
+  - m_RefCount: 1
+    m_Data: {fileID: 11400000, guid: 0391580d28d72674994c520da464c81d, type: 2}
+  m_TileSpriteArray:
+  - m_RefCount: 1
+    m_Data: {fileID: -748060583898084831, guid: 558e940b781bf5545b3fe04c143b04c7, type: 3}
+  m_TileMatrixArray:
+  - m_RefCount: 1
+    m_Data:
+      e00: 1
+      e01: 0
+      e02: 0
+      e03: 0
+      e10: 0
+      e11: 1
+      e12: 0
+      e13: 0
+      e20: 0
+      e21: 0
+      e22: 1
+      e23: 0
+      e30: 0
+      e31: 0
+      e32: 0
+      e33: 1
+  m_TileColorArray:
+  - m_RefCount: 1
+    m_Data: {r: 1, g: 1, b: 1, a: 1}
   m_TileObjectToInstantiateArray: []
   m_AnimationFrameRate: 1
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Origin: {x: 0, y: 0, z: 0}
-  m_Size: {x: 0, y: 0, z: 1}
+  m_Origin: {x: 0, y: -5, z: 0}
+  m_Size: {x: 5, y: 5, z: 1}
   m_TileAnchor: {x: 0.5, y: 0.5, z: 0}
   m_TileOrientation: 0
   m_TileOrientationMatrix:
@@ -1141,6 +1175,10 @@ MonoBehaviour:
   - itemData: {fileID: 11400000, guid: 140479964ad045e45848bf33017d8578, type: 2}
     spawnWeight: 0.1
   - itemData: {fileID: 11400000, guid: 1cd64fa6129df144db8cc726c097e20f, type: 2}
+    spawnWeight: 0.1
+  - itemData: {fileID: 11400000, guid: 2b52397f5ebbeb84da4af078c3b1a0f9, type: 2}
+    spawnWeight: 0.1
+  - itemData: {fileID: 11400000, guid: 4bc4ea31983df9742827b791f36e30d6, type: 2}
     spawnWeight: 0.1
 --- !u!4 &947737121
 Transform:
@@ -2124,6 +2162,7 @@ MonoBehaviour:
   itemAreaChance: 0.02
   chunkSize: 16
   generationRadiusInChunks: 2
+  unchiItemData: {fileID: 11400000, guid: 2b52397f5ebbeb84da4af078c3b1a0f9, type: 2}
 --- !u!4 &2122600639
 Transform:
   m_ObjectHideFlags: 0

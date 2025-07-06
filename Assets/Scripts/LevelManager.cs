@@ -54,9 +54,7 @@ public class LevelManager : MonoBehaviour
     private Vector3Int _playerStartPosition;
     private System.Random _prng;
 
-    void Awake()
-    {
-    }
+    public UnchiItemData unchiItemData;
 
     public void GenerateMap()
     {
@@ -86,9 +84,7 @@ public class LevelManager : MonoBehaviour
             Debug.LogError("Aborting map generation due to NULL element in BlockTypes.", gameObject);
             return; // 空の要素があれば処理を中断
         }
-        // ★★★ デバッグここまで ★★★
     
-        // 以前Awakeにあったコードをここに移動
         if (GameDataSync.Instance != null)
         {
             if (gameObject.name == "Grid_P1")
@@ -107,7 +103,7 @@ public class LevelManager : MonoBehaviour
 
         _prng = new System.Random((int)mapSeed);
         
-        // ★★★ prngではなく_prngを使うように変更 ★★★
+        // 乱数生成器の初期化
         noiseOffsets = new Vector2[blockTypes.Length];
         for (int i = 0; i < blockTypes.Length; i++)
         {
@@ -122,23 +118,12 @@ public class LevelManager : MonoBehaviour
         CheckAndGenerateChunksAroundPlayer();
     }
 
-    void Start()
-    {
-        // ★★★ このメソッド内の処理を、下のInitialGenerate()に移動します ★★★
-        // このメソッドは空にするか、Awakeから移動してきたノイズ設定だけを残します。
-    }
-
-    // ★★★ 新しい公開メソッドを追加 ★★★
     /// <summary>
     /// プレイヤーの参照が設定された後に、初期チャンクを生成する
     /// </summary>
     public void InitialGenerate()
     {
-        // ★★★ 以下の2行を追加 ★★★
-        // Debug.Log($"InitialGenerate called for {gameObject.name}", gameObject);
-        // Debug.Log($"Player Transform is: {(playerTransform != null ? playerTransform.name : "NULL")}", gameObject);
-
-        // Start()から移動してきたコード
+        // プレイヤーのTransformが設定されていない場合は何もしない
         if (playerTransform != null)
         {
             _playerStartPosition = blockTilemap.WorldToCell(playerTransform.position);
@@ -182,7 +167,7 @@ public class LevelManager : MonoBehaviour
             {
                 Vector3Int tilePos = new Vector3Int(x, y, 0);
 
-                // ★追加: この場所がプレイヤーの初期位置の周囲1マス以内なら、何もせず次のループへ
+                // この場所がプレイヤーの初期位置の周囲1マス以内なら、何もせず次のループへ
                 if (Mathf.Abs(tilePos.x - _playerStartPosition.x) <= 1 &&
                     Mathf.Abs(tilePos.y - _playerStartPosition.y) <= 1)
                 {
@@ -192,13 +177,12 @@ public class LevelManager : MonoBehaviour
                 // 既存のタイルがあればスキップ
                 if (blockTilemap.HasTile(tilePos) || itemTilemap.HasTile(tilePos)) continue;
 
-                // --- アイテム配置ロジック ---
-                // ★★★ UnityのRandom.valueではなく、_prng.NextDouble()を使う ★★★
+                // --- アイテム生成ロジック ---
                 if (_prng.NextDouble() < itemAreaChance)
                 {
                     if (ItemManager.Instance != null)
                     {
-                        // ★★★ ItemManagerに、保持している_prngを渡す ★★★
+                        // ランダムにアイテムを選ぶ
                         ItemData selectedItem = ItemManager.Instance.GetRandomItemToSpawn(_prng);
                         if (selectedItem != null)
                         {
@@ -213,6 +197,11 @@ public class LevelManager : MonoBehaviour
                 float maxNoiseValue = -1f;
                 for (int i = 0; i < blockTypes.Length; i++)
                 {
+                    if (unchiItemData != null && blockTypes[i].tile == unchiItemData.unchiTile)
+                    {
+                        continue; // ウンチお邪魔タイルは初期生成しない
+                    }   
+
                     float noiseX = (x + noiseOffsets[i].x) * noiseScale;
                     float noiseY = (y + noiseOffsets[i].y) * noiseScale;
                     float currentNoise = Mathf.PerlinNoise(noiseX, noiseY) + blockTypes[i].probabilityWeight;
@@ -237,6 +226,10 @@ public class LevelManager : MonoBehaviour
     {
         TileBase targetTile = blockTilemap.GetTile(startPos);
         if (targetTile == null) return;
+
+        // 破壊開始地点がウンチタイルなら破壊しない
+        if (unchiItemData != null && targetTile == unchiItemData.unchiTile) return;
+
         HashSet<Vector3Int> blocksToDestroy = new HashSet<Vector3Int>();
         Queue<Vector3Int> queue = new Queue<Vector3Int>();
         queue.Enqueue(startPos);
@@ -253,6 +246,8 @@ public class LevelManager : MonoBehaviour
 
         foreach (Vector3Int pos in blocksToDestroy)
         {
+            // 破壊対象のブロックがウンチならスキップ
+            if (unchiItemData != null && blockTilemap.GetTile(pos) == unchiItemData.unchiTile) continue;
             blockTilemap.SetTile(pos, null);
         }
     }
@@ -266,10 +261,28 @@ public class LevelManager : MonoBehaviour
         {
             for (int y = -radius; y <= radius; y++)
             {
-                if(x*x + y*y > radius*radius) continue; // 円形の範囲
+                if (x * x + y * y > radius * radius) continue; // 円形の範囲
                 Vector3Int pos = center + new Vector3Int(x, y, 0);
-                blockTilemap.SetTile(pos, null);
-                itemTilemap.SetTile(pos, null);
+
+                // 爆破対象のブロックがウンチタイルならスキップ
+                if (unchiItemData != null && blockTilemap.GetTile(pos) == unchiItemData.unchiTile)
+                {
+                    // 何もしない
+                }
+                else
+                {
+                    blockTilemap.SetTile(pos, null);
+                }
+
+                // 爆破対象のアイテムがウンチタイルならスキップ
+                if (unchiItemData != null && itemTilemap.GetTile(pos) == unchiItemData.unchiTile)
+                {
+                    // 何もしない
+                }
+                else
+                {
+                    itemTilemap.SetTile(pos, null);
+                }
             }
         }
     }
