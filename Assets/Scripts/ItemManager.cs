@@ -70,7 +70,7 @@ public class ItemManager : MonoBehaviour
         float totalWeight = _itemSpawnSettings.Sum(item => item.spawnWeight);
         if (totalWeight <= 0) return null;
 
-        // ★★★ UnityのRandomではなく、渡されたprngを使う ★★★
+        // 0からtotalWeightまでのランダムな値を生成
         float randomValue = (float)prng.NextDouble() * totalWeight;
 
         foreach (var setting in _itemSpawnSettings)
@@ -96,6 +96,9 @@ public class ItemManager : MonoBehaviour
         if (!_itemDatabase.TryGetValue(itemTile, out ItemData data)) return;
 
         Debug.Log($"Acquired: {data.itemName}");
+
+        // アイテムを取得したら、まずその場所のアイテムをタイルマップから削除する
+        levelManager.itemTilemap.SetTile(itemPosition, null);
 
         // アイテムの効果音を再生
         if (data.useSound != null && _audioSource != null)
@@ -158,6 +161,37 @@ public class ItemManager : MonoBehaviour
                         direction = playerController.GetLastMoveDirection();
                     }
                     rocketData.Activate(playerTransform, direction, levelManager.blockTilemap);
+                }
+                break;
+
+            case ItemEffectType.Unchi:
+                var unchiData = data as UnchiItemData;
+                if (unchiData != null && levelManager != null)
+                {
+                    // itemTilemapのグリッド座標で中心を取得し、変数に格納
+                    Vector3Int playerGridCenter = levelManager.itemTilemap.WorldToCell(playerTransform.position);
+                    // UnchiItemData.Activate の引数名に合わせて playerGridCenter を渡す
+                    unchiData.Activate(playerGridCenter, levelManager.blockTilemap, levelManager.itemTilemap);
+                }
+                break;
+
+            case ItemEffectType.Poison:
+                var poisonData = data as PoisonItemData;
+                if (poisonData != null && GameManager.Instance != null)
+                {
+                    GameManager.Instance.RecoverOxygen(-Mathf.Abs(poisonData.poisonAmount));
+                }
+                break;
+
+            case ItemEffectType.Thunder:
+                var thunderData = data as ThunderItemData;
+                if (thunderData != null && playerTransform != null)
+                {
+                    PlayerController playerController = playerTransform.GetComponent<PlayerController>();
+                    if (playerController != null)
+                    {
+                        playerController.Stun(thunderData.stunDuration);
+                    }
                 }
                 break;
         }
