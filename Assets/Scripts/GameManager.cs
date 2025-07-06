@@ -48,7 +48,7 @@ public class GameManager : MonoBehaviour
 
     void Update()
     {
-        // ★★★ ゲームがプレイ中でなければ酸素を減らさない ★★★
+        // ゲームがプレイ中でなければ酸素を減らさない
         bool isPlaying = false;
         if(GameDataSync.Instance != null) // マルチプレイか確認
         {

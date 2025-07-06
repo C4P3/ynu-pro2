@@ -174,6 +174,14 @@ public class ItemManager : MonoBehaviour
                     unchiData.Activate(playerGridCenter, levelManager.blockTilemap, levelManager.itemTilemap);
                 }
                 break;
+
+            case ItemEffectType.Poison:
+                var poisonData = data as PoisonItemData;
+                if (poisonData != null && GameManager.Instance != null)
+                {
+                    GameManager.Instance.RecoverOxygen(-Mathf.Abs(poisonData.poisonAmount));
+                }
+                break;
         }
     }
 }
