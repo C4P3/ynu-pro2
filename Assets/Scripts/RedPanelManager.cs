@@ -66,7 +66,7 @@ public class RedPanelManager : MonoBehaviour
         {
             targetInterval = _dangerBlinkInterval; // 少し危険
             targetBGM = GameSceneBGMManager.Instance.kikenBGM; // 少し危険な状態のBGM
-            targetPitch = 1.0f; // 少し危険な状態のピッチは通常
+            targetPitch = 1.2f; // 少し危険な状態のピッチは通常
         } 
             
         else

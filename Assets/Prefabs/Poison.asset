@@ -18,5 +18,5 @@ MonoBehaviour:
   acquisitionEffectPrefab: {fileID: 0}
   followEffectPrefab: {fileID: 0}
   followEffectDuration: 3
-  useSound: {fileID: 0}
+  useSound: {fileID: 8300000, guid: cb6c23c7c2131c246b5d938baefd956e, type: 3}
   poisonAmount: 20
