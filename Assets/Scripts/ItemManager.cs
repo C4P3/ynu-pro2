@@ -70,7 +70,7 @@ public class ItemManager : MonoBehaviour
         float totalWeight = _itemSpawnSettings.Sum(item => item.spawnWeight);
         if (totalWeight <= 0) return null;
 
-        // ★★★ UnityのRandomではなく、渡されたprngを使う ★★★
+        // 0からtotalWeightまでのランダムな値を生成
         float randomValue = (float)prng.NextDouble() * totalWeight;
 
         foreach (var setting in _itemSpawnSettings)
@@ -96,6 +96,9 @@ public class ItemManager : MonoBehaviour
         if (!_itemDatabase.TryGetValue(itemTile, out ItemData data)) return;
 
         Debug.Log($"Acquired: {data.itemName}");
+
+        // アイテムを取得したら、まずその場所のアイテムをタイルマップから削除する
+        levelManager.itemTilemap.SetTile(itemPosition, null);
 
         // アイテムの効果音を再生
         if (data.useSound != null && _audioSource != null)
@@ -165,9 +168,10 @@ public class ItemManager : MonoBehaviour
                 var unchiData = data as UnchiItemData;
                 if (unchiData != null && levelManager != null)
                 {
-                    // itemTilemapのグリッド座標で中心を取得
-                    Vector3Int center = levelManager.itemTilemap.WorldToCell(playerTransform.position);
-                    unchiData.Activate(center, levelManager.blockTilemap, levelManager.itemTilemap);
+                    // itemTilemapのグリッド座標で中心を取得し、変数に格納
+                    Vector3Int playerGridCenter = levelManager.itemTilemap.WorldToCell(playerTransform.position);
+                    // UnchiItemData.Activate の引数名に合わせて playerGridCenter を渡す
+                    unchiData.Activate(playerGridCenter, levelManager.blockTilemap, levelManager.itemTilemap);
                 }
                 break;
         }
