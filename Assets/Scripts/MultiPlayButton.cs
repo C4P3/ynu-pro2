@@ -15,6 +15,7 @@ public class MultiPlayButton : IButton
         base.OnPointerClick();
         SetUI(roomUI, 1, true, true);
         SetUI(homeUI, 0, false, false);
+        StartSceneBGMManager.Instance.PlayBGM(StartSceneBGMManager.Instance.taisenBGM);
     }
 
     public void SetUI(CanvasGroup canvasGroup, int alfha, bool interactable, bool blocksRaycasts){
