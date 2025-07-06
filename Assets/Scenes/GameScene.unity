@@ -1227,7 +1227,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   audioSource: {fileID: 1002151170}
   gameBGM: {fileID: 8300000, guid: 22f8e5375b9eb63408bf8ea2e5aa413d, type: 3}
-  kikenBGM: {fileID: 8300000, guid: 4a3c03a473b5d55498ef1f8c441b5e8c, type: 3}
+  kikenBGM: {fileID: 8300000, guid: 22f8e5375b9eb63408bf8ea2e5aa413d, type: 3}
 --- !u!82 &1002151170
 AudioSource:
   m_ObjectHideFlags: 0
