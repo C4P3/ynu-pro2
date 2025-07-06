@@ -3,6 +3,8 @@ using UnityEngine;
 using UnityEngine.Tilemaps;
 using System.Collections.Generic;
 using System.Linq;
+using Mirror;
+using UnityEditor;
 
 /// <summary>
 /// ブロックの種類とその設定を管理するためのクラス
@@ -21,6 +23,9 @@ public class BlockType
 /// </summary>
 public class LevelManager : MonoBehaviour
 {
+    [Header("Generation Seed")]
+    public long mapSeed;
+
     [Header("Cluster Generation Settings")]
 
     [Header("References")]
@@ -47,15 +52,74 @@ public class LevelManager : MonoBehaviour
     private Vector2[] noiseOffsets;
 
     private Vector3Int _playerStartPosition;
+    private System.Random _prng;
 
     void Awake()
     {
-        // ブロックの種類ごとに異なるノイズを生成するため、ランダムなオフセットを最初に作っておく
+    }
+
+    public void GenerateMap()
+    {
+        Debug.Log($"--- Checking BlockTypes for {gameObject.name} ---", gameObject);
+        if (blockTypes == null || blockTypes.Length == 0)
+        {
+            Debug.LogError("BlockTypes array is NULL or EMPTY!", gameObject);
+            return; // 配列がなければ処理を中断
+        }
+
+        bool hasNullElement = false;
+        for (int i = 0; i < blockTypes.Length; i++)
+        {
+            if (blockTypes[i] == null)
+            {
+                Debug.LogError($"BlockTypes Element {i} is NULL!", gameObject);
+                hasNullElement = true;
+            }
+            else
+            {
+                Debug.Log($"BlockTypes Element {i}: {blockTypes[i].name}", gameObject);
+            }
+        }
+
+        if(hasNullElement)
+        {
+            Debug.LogError("Aborting map generation due to NULL element in BlockTypes.", gameObject);
+            return; // 空の要素があれば処理を中断
+        }
+        // ★★★ デバッグここまで ★★★
+    
+        // 以前Awakeにあったコードをここに移動
+        if (GameDataSync.Instance != null)
+        {
+            if (gameObject.name == "Grid_P1")
+            {
+                this.mapSeed = GameDataSync.Instance.mapSeed1;
+            }
+            else if (gameObject.name == "Grid_P2")
+            {
+                this.mapSeed = GameDataSync.Instance.mapSeed2;
+            }
+        }
+        else
+        {
+            this.mapSeed = System.DateTime.Now.Ticks;
+        }
+
+        _prng = new System.Random((int)mapSeed);
+        
+        // ★★★ prngではなく_prngを使うように変更 ★★★
         noiseOffsets = new Vector2[blockTypes.Length];
         for (int i = 0; i < blockTypes.Length; i++)
         {
-            noiseOffsets[i] = new Vector2(Random.Range(-10000f, 10000f), Random.Range(-10000f, 10000f));
+            noiseOffsets[i] = new Vector2(_prng.Next(-10000, 10000), _prng.Next(-10000, 10000));
         }
+
+        // 以前InitialGenerateにあったワールド生成処理もここに統合する
+        if (playerTransform != null)
+        {
+            _playerStartPosition = blockTilemap.WorldToCell(playerTransform.position);
+        }
+        CheckAndGenerateChunksAroundPlayer();
     }
 
     void Start()
@@ -71,8 +135,8 @@ public class LevelManager : MonoBehaviour
     public void InitialGenerate()
     {
         // ★★★ 以下の2行を追加 ★★★
-        Debug.Log($"InitialGenerate called for {gameObject.name}", gameObject);
-        Debug.Log($"Player Transform is: {(playerTransform != null ? playerTransform.name : "NULL")}", gameObject);
+        // Debug.Log($"InitialGenerate called for {gameObject.name}", gameObject);
+        // Debug.Log($"Player Transform is: {(playerTransform != null ? playerTransform.name : "NULL")}", gameObject);
 
         // Start()から移動してきたコード
         if (playerTransform != null)
@@ -129,17 +193,19 @@ public class LevelManager : MonoBehaviour
                 if (blockTilemap.HasTile(tilePos) || itemTilemap.HasTile(tilePos)) continue;
 
                 // --- アイテム配置ロジック ---
-                if (Random.value < itemAreaChance)
+                // ★★★ UnityのRandom.valueではなく、_prng.NextDouble()を使う ★★★
+                if (_prng.NextDouble() < itemAreaChance)
                 {
                     if (ItemManager.Instance != null)
                     {
-                        ItemData selectedItem = ItemManager.Instance.GetRandomItemToSpawn();
+                        // ★★★ ItemManagerに、保持している_prngを渡す ★★★
+                        ItemData selectedItem = ItemManager.Instance.GetRandomItemToSpawn(_prng);
                         if (selectedItem != null)
                         {
                             itemTilemap.SetTile(tilePos, selectedItem.itemTile);
                         }
                     }
-                    continue; // アイテムを置いたらブロックは置かない
+                    continue; 
                 }
                 
                 // --- ブロック生成ロジック ---

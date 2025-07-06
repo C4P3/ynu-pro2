@@ -1,6 +1,7 @@
 // PlayerController.cs
 using UnityEngine;
 using UnityEngine.Tilemaps;
+using Mirror;
 using System.Collections;
 
 /// <summary>
@@ -40,17 +41,41 @@ public class PlayerController : MonoBehaviour
     private Vector3Int _typingTargetPos; // タイピング対象のブロック座標
     private Vector3Int _lastMoveDirection = Vector3Int.up; // デフォルト上向き
 
+    private NetworkPlayerInput _networkInput;
+
     #region Unity Lifecycle Methods
+
+    void Awake()
+    {
+        // ★★★ このメソッドを追加、または追記 ★★★
+        // 自分のゲームオブジェクトについているTypingManagerを取得する
+        _networkInput = GetComponent<NetworkPlayerInput>();
+        typingManager = GetComponent<TypingManager>(); // 自分のTypingManagerをここで取得
+
+        // 自分のTypingManagerのイベントだけを購読する
+        if (typingManager != null)
+        {
+            typingManager.OnTypingEnded += HandleTypingEnded;
+        }
+        else
+        {
+            Debug.LogError("PlayerController could not find TypingManager on the same GameObject!");
+        }
+    }
     void OnEnable()
     {
-        // TypingManagerのイベントに、自分のメソッドを登録
-        TypingManager.OnTypingEnded += HandleTypingEnded;
     }
 
     void OnDisable()
     {
-        // オブジェクトが無効になるときに、登録を解除（メモリリーク防止）
-        TypingManager.OnTypingEnded -= HandleTypingEnded;
+    }
+    void OnDestroy()
+    {
+        // ★★★ メモリリーク防止のために、ここで確実に購読解除 ★★★
+        if (typingManager != null)
+        {
+            typingManager.OnTypingEnded -= HandleTypingEnded;
+        }
     }
 
     void Start()
@@ -164,11 +189,21 @@ public class PlayerController : MonoBehaviour
         }
         if (wasSuccessful)
         {
-            if (levelManager != null)
+            // ★★★ ここを修正 ★★★
+            if (_networkInput != null)
             {
-                levelManager.DestroyConnectedBlocks(_typingTargetPos);
+                // 【マルチプレイ時】NetworkPlayerInputに破壊を依頼
+                _networkInput.CmdDestroyBlock(_typingTargetPos);
             }
-            
+            else
+            {
+                // 【シングルプレイ時】直接LevelManagerを呼ぶ
+                if (levelManager != null)
+                {
+                    levelManager.DestroyConnectedBlocks(_typingTargetPos);
+                }
+            }
+
             // タイピングに成功したら、対象ブロックへ移動を開始
             MoveTo(_typingTargetPos);
         }
@@ -203,12 +238,14 @@ public class PlayerController : MonoBehaviour
     void CheckAndMove(Vector3Int moveVec)
     {
         Vector3Int nextGridPos = _gridTargetPos + moveVec;
-        
+
         if (blockTilemap.HasTile(nextGridPos))
         {
             // ブロックがある場合
-            _typingTargetPos = nextGridPos; // 対象を記憶
-            _currentState = PlayerState.Typing; // 自身の状態を「タイピング中」に変更
+            _typingTargetPos = nextGridPos;
+            _currentState = PlayerState.Typing;
+
+            // ★★★ 3. ローカルプレイヤーの場合のみタイピングを開始する ★★★
 
             // タイピング開始に合わせて、Attackアニメーションを開始する
             if (animationManager != null)
@@ -216,14 +253,18 @@ public class PlayerController : MonoBehaviour
                 animationManager.SetTyping(true);
             }
 
-            typingManager.StartTyping(moveVec); // TypingManagerに開始を依頼
+            // _networkInputがnull（シングルプレイ時）か、isLocalPlayerがtrueの場合のみ実行
+            if (_networkInput == null || _networkInput.isLocalPlayer)
+            {
+                typingManager.StartTyping(moveVec);
+            }
         }
         else
         {
             // ブロックがない場合
             MoveTo(nextGridPos);
         }
-
+        
         if (moveVec != Vector3Int.zero)
         {
             _lastMoveDirection = moveVec;

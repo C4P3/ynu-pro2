@@ -8,11 +8,11 @@ using Models;
 public class TypingManager : MonoBehaviour
 {
     // タイピング終了時のイベント
-    public static event System.Action<bool> OnTypingEnded; 
+    public event System.Action<bool> OnTypingEnded; 
     // UIの参照
     [Header("UI References")]
     public GameObject typingPanel;
-    public TextMeshProUGUI typedText;
+    private TextMeshProUGUI _typedText;
     // タイピング用データ管理
     private TypingTextStore _typingTextStore = new TypingTextStore();
     private CurrentTypingTextModel _typingModel = new CurrentTypingTextModel();
@@ -33,6 +33,7 @@ public class TypingManager : MonoBehaviour
         {
             typingPanel.SetActive(false);
         }
+        _typedText = typingPanel.GetComponentInChildren<TextMeshProUGUI>();
 
         //AudioSourceの初期化
         audioSource = gameObject.AddComponent<AudioSource>();
@@ -164,7 +165,7 @@ public class TypingManager : MonoBehaviour
         string remainingText = currentRomaji.Substring(typedIndex);
         string romajiLine = highlightedText + remainingText;
 
-        typedText.text = $"{title}\n{romajiLine}";
+        _typedText.text = $"{title}\n{romajiLine}";
     }
 
     // 効果音を再生する処理
