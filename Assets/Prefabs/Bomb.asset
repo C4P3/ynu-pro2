@@ -16,4 +16,7 @@ MonoBehaviour:
   effectType: 1
   itemTile: {fileID: 11400000, guid: 73ee71444ac3c473ebba0a9d713bd6cf, type: 2}
   acquisitionEffectPrefab: {fileID: 4331274140685187152, guid: 74224abbcb88d5645a61319c9dc5af57, type: 3}
+  followEffectPrefab: {fileID: 0}
+  followEffectDuration: 3
+  useSound: {fileID: 8300000, guid: 3f2c15c8cb055194282247dadb830450, type: 3}
   radius: 3

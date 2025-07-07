@@ -1,13 +1,31 @@
 using PlayFab;
 using PlayFab.ClientModels;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class PlayFabAuthManager : MonoBehaviour
 {
+    [SerializeField] CanvasGroup loadingUI;
     [SerializeField] CanvasGroup loginUI;
-    [SerializeField] CanvasGroup homeUI;
-    [SerializeField] CanvasGroup recordUI;
-    [SerializeField] CanvasGroup configUI;
+    [SerializeField] CanvasGroup tittleUI;
+    [SerializeField] string customIdPepper = "";
+
+    public static PlayFabAuthManager Instance { get; private set; }
+    public static EntityKey MyEntity { get; private set; }
+
+    void Awake()
+    {
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject); // このマネージャーもシーン間で永続化
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+    }
+
     // 初回起動時にCustom ID（端末ID）で匿名ログインする
     void Start()
     {
@@ -17,9 +35,16 @@ public class PlayFabAuthManager : MonoBehaviour
     // 匿名ログイン（Custom ID使用）
     void LoginWithCustomID()
     {
+        string customId = SystemInfo.deviceUniqueIdentifier;
+        // エディタ実行時や開発ビルドの場合、IDをユニークにするためのサフィックスを追加
+        if (Application.isEditor || Debug.isDebugBuild)
+        {
+            customId += customIdPepper;
+        }
+
         var request = new LoginWithCustomIDRequest
         {
-            CustomId = SystemInfo.deviceUniqueIdentifier, // 端末固有ID
+            CustomId = customId, // 端末固有ID
             CreateAccount = true // 初回は自動でアカウント作成
         };
 
@@ -28,22 +53,26 @@ public class PlayFabAuthManager : MonoBehaviour
 
     void OnLoginSuccess(LoginResult result)
     {
+        // ★★★ ログイン成功時にEntityKeyを保存 ★★★
+        MyEntity = result.EntityToken.Entity;
+
+        SetUI(loadingUI, 0, false, false);
+
         // if (result.NewlyCreated)
         // {
-        // Debug.Log("初回ログイン（新規アカウント作成）！");
-        // 初回ログイン専用処理（例：ニックネーム設定画面へ遷移）
-        SetUI(loginUI, 1, true, true);
-        SetUI(homeUI, 0, false, false);
+        //     Debug.Log("初回ログイン（新規アカウント作成）！");
+        //     // 初回ログイン専用処理（例：ニックネーム設定画面へ遷移）
+        //     SetUI(loginUI, 1, true, true);
         // }
         // else
         // {
-        // Debug.Log("既存アカウントでログイン成功！");
-        // // 通常のホーム画面へ遷移など
-        // SetUI(loginUI, 0, false, false);
-        // SetUI(homeUI, 1, true, true);
+        //     Debug.Log("既存アカウントでログイン成功！");
+        //     // 通常のホーム画面へ遷移など
+        //     SetUI(tittleUI, 1, true, true);
         // }
-        SetUI(recordUI, 0, false, false);
-        SetUI(configUI, 0, false, false);
+        
+        //デバッグ用：通常の処理がしたいときは上の処理を使う
+        SetUI(loginUI, 1, true, true);
     }
 
     void OnLoginFailure(PlayFabError error)
@@ -66,7 +95,7 @@ public class PlayFabAuthManager : MonoBehaviour
     {
         Debug.Log("ニックネーム設定成功: " + result.DisplayName);
         SetUI(loginUI, 0, false, false);
-        SetUI(homeUI, 1, true, true);
+        SetUI(tittleUI, 1, true, true);
     }
 
     void OnDisplayNameSetFailure(PlayFabError error)

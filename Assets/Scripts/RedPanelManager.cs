@@ -52,20 +52,45 @@ public class RedPanelManager : MonoBehaviour
 
         float oxygenRatio = currentOxygen / maxOxygen;
         float targetInterval = 0f;
+        AudioClip targetBGM = null;   //現在のBGMを追跡する
+        float targetPitch = 1.0f;
 
         // 1. 現在の体力割合から、目標とすべき点滅間隔を決定する
         if (oxygenRatio <= _criticalThreshold)
         {
             targetInterval = _criticalBlinkInterval; // 非常に危険
+            targetPitch = 1.5f; // 非常に危険な状態のピッチを上げる
+            targetBGM = GameSceneBGMManager.Instance.kikenBGM; // 非常に危険な状態のBGM
         }
         else if (oxygenRatio <= _dangerThreshold)
         {
             targetInterval = _dangerBlinkInterval; // 少し危険
-        }
+            targetBGM = GameSceneBGMManager.Instance.kikenBGM; // 少し危険な状態のBGM
+            targetPitch = 1.2f; // 少し危険な状態のピッチは通常
+        } 
+            
         else
         {
-            targetInterval = 0f; // 安全
+            // 酸素が十分にある場合は点滅しない
+            targetInterval = 0f; // 安全な状態
+            targetPitch = 1.0f; // 安全な状態のピッチは通常
+            targetBGM = GameSceneBGMManager.Instance.gameBGM; // 安全な状態のBGM
+           
         }
+
+        // BGM変更処理
+        if (GameSceneBGMManager.Instance != null)
+        {
+        // BGMが切り替わる必要があれば再生
+          if (GameSceneBGMManager.Instance.audioSource.clip != targetBGM)
+          {
+            GameSceneBGMManager.Instance.PlayBGM(targetBGM);
+           }
+
+        // ピッチを変更
+        GameSceneBGMManager.Instance.SetBGMState(targetPitch);
+       }
+
 
         // 2. 目標の間隔と現在の間隔が違う場合のみ、処理を更新する
         if (targetInterval != _currentBlinkInterval)

@@ -1,10 +1,12 @@
 using UnityEngine;
 using Mirror;
+using TMPro;
 
 /// <summary>
 /// マルチプレイ時にローカルプレイヤーの入力を検知し、サーバーにコマンドを送信するクラス
 /// </summary>
 [RequireComponent(typeof(PlayerController))]
+[RequireComponent(typeof(TypingManager))]
 public class NetworkPlayerInput : NetworkBehaviour
 {
     [Header("Player Info")]
@@ -13,100 +15,105 @@ public class NetworkPlayerInput : NetworkBehaviour
     public int playerIndex = 0;
 
     private PlayerController _playerController;
+    private TypingManager _typingManager;
+
 
     void Awake()
     {
-        // 自身がアタッチされているGameObjectのPlayerControllerを取得
         _playerController = GetComponent<PlayerController>();
+        _typingManager = GetComponent<TypingManager>(); // 参照を取得
+
+        // ★★★ まずはTypingManagerを無効にしておく ★★★
+        _typingManager.enabled = false;
     }
 
     void Start()
     {
-        Debug.Log($"--- Debug Start for {gameObject.name} ---");
-        Debug.Log($"My playerIndex is [{playerIndex}]", gameObject);
+        // Debug.Log($"--- Debug Start for {gameObject.name} ---");
+        // Debug.Log($"My playerIndex is [{playerIndex}]", gameObject);
 
         // LevelManager と TypingManager を探す処理を、プレイヤー番号に応じて変更
         LevelManager levelManager = null;
-        GameObject gridObject = null; 
+        GameObject gridObject = null;
 
         if (playerIndex == 1)
         {
             gridObject = GameObject.Find("Grid_P1");
-            Debug.Log("playerIndex is 1, trying to find Grid_P1...", gameObject);
+            // Debug.Log("playerIndex is 1, trying to find Grid_P1...", gameObject);
         }
         else if (playerIndex == 2)
         {
             gridObject = GameObject.Find("Grid_P2");
-            Debug.Log("playerIndex is 2, trying to find Grid_P2...", gameObject);
+            // Debug.Log("playerIndex is 2, trying to find Grid_P2...", gameObject);
         }
 
         if (gridObject != null)
         {
             levelManager = gridObject.GetComponent<LevelManager>();
-            Debug.Log($"Found GameObject: {gridObject.name}", gameObject);
+            // Debug.Log($"Found GameObject: {gridObject.name}", gameObject);
         }
         else
         {
             Debug.LogError("Could not find Grid GameObject!", gameObject);
         }
 
-        Debug.Log($"Found LevelManager component on: {(levelManager != null ? levelManager.gameObject.name : "NULL")}", gameObject);
-        
+        // Debug.Log($"Found LevelManager component on: {(levelManager != null ? levelManager.gameObject.name : "NULL")}", gameObject);
+
 
         if (levelManager != null)
         {
             // --- デバッグここから ---
-            Debug.Log($"Assigning my transform ('{this.transform.name}') to {levelManager.gameObject.name}'s playerTransform.", gameObject);
+            // Debug.Log($"Assigning my transform ('{this.transform.name}') to {levelManager.gameObject.name}'s playerTransform.", gameObject);
             // --- デバッグここまで ---
 
             levelManager.playerTransform = this.transform;
 
             // ★★★ 最重要チェック ★★★
-            Debug.Log($"IMMEDIATELY AFTER ASSIGNMENT, levelManager.playerTransform is: {(levelManager.playerTransform != null ? levelManager.playerTransform.name : "NULL")}", gameObject);
-            
+            // Debug.Log($"IMMEDIATELY AFTER ASSIGNMENT, levelManager.playerTransform is: {(levelManager.playerTransform != null ? levelManager.playerTransform.name : "NULL")}", gameObject);
+
             // 他の参照設定
             _playerController.blockTilemap = levelManager.blockTilemap;
             _playerController.itemTilemap = levelManager.itemTilemap;
             _playerController.levelManager = levelManager;
-
-            // 生成を呼び出し
-            levelManager.InitialGenerate();
         }
         else
         {
             Debug.LogError($"Player {playerIndex} のLevelManagerが見つかりません！");
         }
-        
-        // TypingManagerはシーンに1つしかないので、そのままでOK
-        var typingManager = Object.FindFirstObjectByType<TypingManager>();
-        if (typingManager != null)
+
+        // ★★★ 対応するTypingPanelをTypingManagerに設定する ★★★
+        if (playerIndex == 1)
         {
-            _playerController.typingManager = typingManager;
+            _typingManager.typingPanel = GameObject.Find("TypingPanel_P1");
         }
-        else
+        else if (playerIndex == 2)
         {
-             Debug.LogError("TypingManagerが見つかりません！");
+            _typingManager.typingPanel = GameObject.Find("TypingPanel_P2");
         }
+        if (_typingManager.typingPanel == null) { Debug.LogError($"Player {playerIndex} のTypingPanelが見つかりません！"); }
 
         _playerController.Initialize();
-        
-        // ★★★ isServerでの判定を、playerIndexを使った判定に変更 ★★★
+
         switch (playerIndex)
         {
             case 1: // 1人目のプレイヤー
                 SetLayerRecursively(gameObject, LayerMask.NameToLayer("Player1"));
-                // VCam1を探してFollowターゲットに設定
                 var vcam1 = GameObject.Find("VCam1")?.GetComponent<Unity.Cinemachine.CinemachineCamera>();
-                if (vcam1 != null) vcam1.Follow = transform;
+                if (vcam1 != null)
+                {
+                    vcam1.Follow = transform;
+                    vcam1.gameObject.layer = LayerMask.NameToLayer("Player1"); // ★★★ VCam1のレイヤーを設定 ★★★
+                }
                 break;
+
             case 2: // 2人目のプレイヤー
                 SetLayerRecursively(gameObject, LayerMask.NameToLayer("Player2"));
-                // VCam2を探してFollowターゲットに設定
                 var vcam2 = GameObject.Find("VCam2")?.GetComponent<Unity.Cinemachine.CinemachineCamera>();
-                if (vcam2 != null) vcam2.Follow = transform;
-                break;
-            default:
-                Debug.LogWarning($"無効なPlayerIndexです: {playerIndex}");
+                if (vcam2 != null)
+                {
+                    vcam2.Follow = transform;
+                    vcam2.gameObject.layer = LayerMask.NameToLayer("Player2"); // ★★★ VCam2のレイヤーを設定 ★★★
+                }
                 break;
         }
     }
@@ -134,13 +141,17 @@ public class NetworkPlayerInput : NetworkBehaviour
 
     public override void OnStartLocalPlayer()
     {
+        // ★★★ ローカルプレイヤーのTypingManagerだけを有効にする ★★★
+        _typingManager.enabled = true;
     }
 
     void Update()
     {
-        // ローカルプレイヤーでなければ、入力処理は行わない
+        // ★★★ ゲームがプレイ中でなければ入力を受け付けない ★★★
+        if (GameDataSync.Instance.currentState != GameState.Playing) return;
+
         if (!isLocalPlayer) return;
-        
+
         // Roaming状態のときだけ入力を受け付ける
         // （PlayerControllerの内部状態を直接参照するのは設計上あまり良くないが、
         //  不要なコマンド送信を防ぐための最適化として許容範囲）
@@ -166,7 +177,7 @@ public class NetworkPlayerInput : NetworkBehaviour
     }
 
     // --- サーバーへのコマンド送信 ---
-    
+
     /// <summary>
     /// [Command]属性: ローカルプレイヤーからサーバーへメッセージを送信する
     /// 移動入力をサーバーに伝える
@@ -177,7 +188,14 @@ public class NetworkPlayerInput : NetworkBehaviour
         // サーバー側で受け取ったコマンドを、全てのクライアントに伝える
         RpcReceiveMoveInput(moveVec);
     }
-    
+    // ★★★ ブロック破壊用のCommandを追加 ★★★
+    [Command]
+    public void CmdDestroyBlock(Vector3Int gridPos)
+    {
+        // サーバーが受け取ったら、全クライアントに破壊を命令するRPCを呼び出す
+        RpcDestroyBlock(gridPos);
+    }
+
     // --- 全クライアントへのRPC ---
 
     /// <summary>
@@ -189,5 +207,16 @@ public class NetworkPlayerInput : NetworkBehaviour
     {
         // 全てのクライアント（自分自身も含む）で、PlayerControllerのメソッドを呼び出す
         _playerController.OnMoveInput(moveVec);
+    }
+    // ★★★ ブロック破壊用のClientRpcを追加 ★★★
+    [ClientRpc]
+    private void RpcDestroyBlock(Vector3Int gridPos)
+    {
+        // このRPCは、このコンポーネントがアタッチされているプレイヤーオブジェクトに対して実行される
+        // そのため、各クライアントで、対応するプレイヤーのLevelManagerが正しく呼ばれる
+        if (_playerController != null && _playerController.levelManager != null)
+        {
+            _playerController.levelManager.DestroyConnectedBlocks(gridPos);
+        }
     }
 }

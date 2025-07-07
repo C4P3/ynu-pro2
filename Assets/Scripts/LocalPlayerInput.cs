@@ -20,34 +20,37 @@ public class LocalPlayerInput : MonoBehaviour
         var levelManager = Object.FindFirstObjectByType<LevelManager>();
         if (levelManager != null)
         {
-            levelManager.playerTransform = this.transform; // ★★★ これがあなたのプレイヤーです、と教える ★★★
+            levelManager.playerTransform = this.transform;
+            // PlayerControllerに必要な参照を設定
+            _playerController.levelManager = levelManager;
             _playerController.blockTilemap = levelManager.blockTilemap;
             _playerController.itemTilemap = levelManager.itemTilemap;
-            _playerController.levelManager = levelManager;
-            levelManager.InitialGenerate(); // ★★★ ワールドの初期生成を指示 ★★★
+            
+            // マップ生成を呼び出し
+            levelManager.GenerateMap();
         }
         else
         {
-            Debug.LogError("LevelManagerが見つかりません！ シングルプレイ用のシーンに配置されていますか？");
+            Debug.LogError("LevelManagerが見つかりません！");
         }
-        var typingManager = Object.FindFirstObjectByType<TypingManager>();
+
+        // ★★★ PlayerControllerのtypingManagerを設定する処理は不要なので削除 ★★★
+        /*
+        var typingManager = FindObjectOfType<TypingManager>();
         if (typingManager != null)
         {
             _playerController.typingManager = typingManager;
         }
+        */
         
-        // 参照設定が終わった後に、プレイヤーの初期化処理を呼び出す
-        _playerController.Initialize();
-        // ★★★ここまで修正★★★
-
-        // GameManagerへの登録も忘れずに行う
+        // GameManagerへの登録
         if (GameManager.Instance != null)
         {
             GameManager.Instance.RegisterLocalPlayer(_playerController);
         }
     }
 
-    void Update()
+        void Update()
     {
         if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
         {

@@ -18,4 +18,5 @@ MonoBehaviour:
   acquisitionEffectPrefab: {fileID: 0}
   followEffectPrefab: {fileID: 170940224733326813, guid: 4aa93f882d5d86244ae2b8d556e767be, type: 3}
   followEffectDuration: 1.5
+  useSound: {fileID: 8300000, guid: 5243b2b90124f014eb6d00207e750cb9, type: 3}
   recoveryAmount: 25

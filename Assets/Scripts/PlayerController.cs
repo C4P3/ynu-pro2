@@ -1,6 +1,6 @@
-// PlayerController.cs
 using UnityEngine;
 using UnityEngine.Tilemaps;
+using Mirror;
 using System.Collections;
 
 /// <summary>
@@ -26,6 +26,7 @@ public class PlayerController : MonoBehaviour
     public Tilemap itemTilemap;
     public TypingManager typingManager;
     public LevelManager levelManager;
+    public AnimationManager animationManager;
 
     [Header("Audio")]
     [SerializeField] private AudioClip[] walkSounds;
@@ -37,19 +38,47 @@ public class PlayerController : MonoBehaviour
     private PlayerState _currentState = PlayerState.Roaming;
     private Vector3Int _gridTargetPos;
     private Vector3Int _typingTargetPos; // タイピング対象のブロック座標
-    private Vector3Int _lastMoveDirection = Vector3Int.right; // デフォルト右向き
+    private Vector3Int _lastMoveDirection = Vector3Int.up; // デフォルト上向き
+
+    private NetworkPlayerInput _networkInput;
+
+    private bool _isStunned = false;
+    private float _stunTimer = 0f;
+
+    public bool IsStunned => _isStunned;
 
     #region Unity Lifecycle Methods
+
+    void Awake()
+    {
+        // 自分のゲームオブジェクトについているTypingManagerを取得する
+        _networkInput = GetComponent<NetworkPlayerInput>();
+        typingManager = GetComponent<TypingManager>();
+
+        // 自分のTypingManagerのイベントだけを購読する
+        if (typingManager != null)
+        {
+            typingManager.OnTypingEnded += HandleTypingEnded;
+        }
+        else
+        {
+            Debug.LogError("PlayerController could not find TypingManager on the same GameObject!");
+        }
+    }
     void OnEnable()
     {
-        // TypingManagerのイベントに、自分のメソッドを登録
-        TypingManager.OnTypingEnded += HandleTypingEnded;
     }
 
     void OnDisable()
     {
-        // オブジェクトが無効になるときに、登録を解除（メモリリーク防止）
-        TypingManager.OnTypingEnded -= HandleTypingEnded;
+    }
+    void OnDestroy()
+    {
+        // TypingManagerのイベント購読を解除する
+        if (typingManager != null)
+        {
+            typingManager.OnTypingEnded -= HandleTypingEnded;
+        }
     }
 
     void Start()
@@ -58,20 +87,37 @@ public class PlayerController : MonoBehaviour
         audioSource.playOnAwake = false;
     }
 
-    // ★★★ ここから新しいメソッドを追加 ★★★
     /// <summary>
     /// Tilemapなどの参照が設定された後に呼び出す初期化処理
     /// </summary>
     public void Initialize()
     {
-        // Start()から移動してきたコード
+        // プレイヤーの初期位置をブロックタイルマップの中心に設定
         _gridTargetPos = blockTilemap.WorldToCell(transform.position);
         transform.position = blockTilemap.GetCellCenterWorld(_gridTargetPos);
         CheckForItemAt(_gridTargetPos);
+        // アニメーションを初期状態(Idle)に設定
+        if (animationManager != null)
+        {
+            animationManager.SetWalking(false);
+            animationManager.UpdateSpriteDirection(_lastMoveDirection);
+        }
     }
 
     void Update()
     {
+        // スタン中はすべての入力を無効化
+        if (_isStunned)
+        {
+            _stunTimer -= Time.deltaTime;
+            if (_stunTimer <= 0f)
+            {
+                _isStunned = false;
+            }
+            // ここでUpdate内の入力処理を全てスキップ
+            return; 
+        }
+
         // 状態に応じて処理を分岐
         switch (_currentState)
         {
@@ -93,25 +139,8 @@ public class PlayerController : MonoBehaviour
     /// Roaming（待機・自由移動）状態の処理
     /// </summary>
     private void HandleRoamingState()
-    {
-        // ★★★ 変更点 ★★★
-        // このメソッド内のキー入力処理は、後で新しく作る入力用スクリプトに移動させるため、
-        // 残しておいても良いですが、最終的には削除、またはコメントアウトします。
-        // 今回の設計では、このメソッドはUpdateから呼ばれ続けますが、中身は空っぽでも問題ありません。
-        
-        // if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
-        // {
-        //     Vector3Int moveVec = Vector3Int.zero;
-        //     if (Input.GetKeyDown(KeyCode.W)) moveVec = Vector3Int.up;
-        //     if (Input.GetKeyDown(KeyCode.S)) moveVec = Vector3Int.down;
-        //     if (Input.GetKeyDown(KeyCode.A)) moveVec = Vector3Int.left;
-        //     if (Input.GetKeyDown(KeyCode.D)) moveVec = Vector3Int.right;
-        //
-        //     if (moveVec != Vector3Int.zero)
-        //     {
-        //         OnMoveInput(moveVec); // 新しいメソッドを呼ぶように変更
-        //     }
-        // }
+    {   
+        // 入力待ち
     }
 
     /// <summary>
@@ -136,6 +165,12 @@ public class PlayerController : MonoBehaviour
             }
             // 移動が完了したので、Roaming状態に戻る
             _currentState = PlayerState.Roaming;
+
+            //　移動が完了したので、アニメーションをIdleに戻す
+            if (animationManager != null)
+            {
+                animationManager.SetWalking(false);
+            }
         }
     }
 
@@ -144,13 +179,27 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     private void HandleTypingEnded(bool wasSuccessful)
     {
+        // タイピングが成功/失敗問わず終了したので、アニメーションを停止する
+        if (animationManager != null)
+        {
+            animationManager.SetTyping(false);
+        }
         if (wasSuccessful)
         {
-            if (levelManager != null)
+            if (_networkInput != null)
             {
-                levelManager.DestroyConnectedBlocks(_typingTargetPos);
+                // 【マルチプレイ時】NetworkPlayerInputに破壊を依頼
+                _networkInput.CmdDestroyBlock(_typingTargetPos);
             }
-            
+            else
+            {
+                // 【シングルプレイ時】直接LevelManagerを呼ぶ
+                if (levelManager != null)
+                {
+                    levelManager.DestroyConnectedBlocks(_typingTargetPos);
+                }
+            }
+
             // タイピングに成功したら、対象ブロックへ移動を開始
             MoveTo(_typingTargetPos);
         }
@@ -185,23 +234,50 @@ public class PlayerController : MonoBehaviour
     void CheckAndMove(Vector3Int moveVec)
     {
         Vector3Int nextGridPos = _gridTargetPos + moveVec;
-        
+
         if (blockTilemap.HasTile(nextGridPos))
         {
+            if (levelManager != null && levelManager.unchiItemData != null && blockTilemap.GetTile(nextGridPos) == levelManager.unchiItemData.unchiTile)
+            {
+                // ウンチタイルがある場合は、タイピングを開始しない
+                if (animationManager != null)
+                {
+                    animationManager.SetTyping(false);
+                    animationManager.SetWalking(false);
+                }
+                return;
+            }
+
             // ブロックがある場合
-            _typingTargetPos = nextGridPos; // 対象を記憶
-            _currentState = PlayerState.Typing; // 自身の状態を「タイピング中」に変更
-            typingManager.StartTyping(moveVec); // TypingManagerに開始を依頼
+            _typingTargetPos = nextGridPos;
+            _currentState = PlayerState.Typing;
+
+            // タイピング開始に合わせて、Attackアニメーションを開始する
+            if (animationManager != null)
+            {
+                animationManager.SetTyping(true);
+            }
+
+            // _networkInputがnull（シングルプレイ時）か、isLocalPlayerがtrueの場合のみ実行
+            if (_networkInput == null || _networkInput.isLocalPlayer)
+            {
+                typingManager.StartTyping(moveVec);
+            }
         }
         else
         {
             // ブロックがない場合
             MoveTo(nextGridPos);
         }
-
+        
         if (moveVec != Vector3Int.zero)
         {
             _lastMoveDirection = moveVec;
+            // プレイヤーの向きが変わったら、スプライトの向きも更新
+            if (animationManager != null)
+            {
+                animationManager.UpdateSpriteDirection(_lastMoveDirection);
+            }
         }
     }
 
@@ -228,8 +304,15 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     public void MoveTo(Vector3Int targetPos)
     {
+        // Roaming状態でない場合は何もしない
         _gridTargetPos = targetPos;
-        _currentState = PlayerState.Moving; // 自身の状態を「移動中」に変更
+        _currentState = PlayerState.Moving;
+
+        // 移動開始に合わせて、歩行アニメーションを開始
+        if (animationManager != null)
+        {
+            animationManager.SetWalking(true);
+        }
 
         //移動音を再生
          if (walkSoundCoroutine != null)
@@ -248,9 +331,9 @@ public class PlayerController : MonoBehaviour
         TileBase itemTile = itemTilemap.GetTile(position);
         if (itemTile != null && ItemManager.Instance != null)
         {
-            // ★★★ 第3引数に自身のlevelManagerを渡す ★★★
+            // アイテムがある場合は、アイテムを取得する
+            if (levelManager != null && levelManager.unchiItemData != null && itemTile == levelManager.unchiItemData.unchiTile) return;
             ItemManager.Instance.AcquireItem(itemTile, position, levelManager, this.transform);
-            itemTilemap.SetTile(position, null);
         }
     }
 
@@ -259,4 +342,11 @@ public class PlayerController : MonoBehaviour
         return _lastMoveDirection;
     }
     #endregion
+
+    // スタンを付与するメソッド
+    public void Stun(float duration)
+    {
+        _isStunned = true;
+        _stunTimer = duration;
+    }
 }
