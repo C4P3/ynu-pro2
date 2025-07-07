@@ -50,11 +50,11 @@ public class PlayFabMatchmakingManager : MonoBehaviour
     {
         statusText.text = "ホストを作成中...";
         // RelayNetworkManagerのホスト開始メソッドを呼び出す
-        relayManager.StartRelayHost(1);
+        relayManager.StartRelayHost(2,null);
         // Join Codeが表示されるのを待つコルーチンを開始
         StartCoroutine(ShowJoinCodeCoroutine());
     }
-    
+
     // Join Codeが生成されるのを待ってUIに表示する
     private IEnumerator ShowJoinCodeCoroutine()
     {
@@ -65,6 +65,7 @@ public class PlayFabMatchmakingManager : MonoBehaviour
         }
         roomIdDisplayText.text = relayManager.relayJoinCode;
         statusText.text = "コードを相手に伝えてください";
+        Debug.Log(relayManager.relayJoinCode);
     }
 
     // 「参加する」ボタンから呼び出す
