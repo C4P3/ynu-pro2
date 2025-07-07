@@ -196,35 +196,53 @@ public class PlayFabMatchmakingManager : MonoBehaviour
     }
 
 
-    // ★★★ クライアントの接続処理を、UtpTransportの作法に合わせて書き換え ★★★
-    private IEnumerator ConnectAsClientWithUtpRelay()
+    private IEnumerator ConnectAsClientWithRelay()
     {
-        statusText.text = "ホストのJoin Codeを待っています...";
+        statusText.text = "ホストの接続情報を待っています...";
+        
         var hostEntity = _matchedTicketResult.Members.Find(m => m.Entity.Id != PlayFabAuthManager.MyEntity.Id);
         if (hostEntity == null) { /* ... エラー処理 ... */ yield break; }
 
         string joinCode = null;
         int attempts = 0;
         
-        // ホストがJoinCodeを書き込むまでポーリングして待つ
         while (string.IsNullOrEmpty(joinCode) && attempts < 10)
         {
             var request = new GetUserDataRequest { PlayFabId = hostEntity.Entity.Id };
-            // ★★★ ここを修正 ★★★
-            PlayFabClientAPI.GetUserData(request,
-                (result) =>
-                {
-                    // まず UserDataRecord 型でデータを受け取る
+
+            // ★★★ ここからデバッグログを追加 ★★★
+            Debug.Log($"Client: Attempting to get UserData for Host ({hostEntity.Entity.Id})...");
+
+            PlayFabClientAPI.GetUserData(request, 
+                (result) => {
+                    Debug.Log("Client: GetUserData call SUCCEEDED.");
+                    if (result.Data == null || result.Data.Count == 0)
+                    {
+                        Debug.LogWarning("Client: ...but the returned Data is null or empty.");
+                    }
+                    else
+                    {
+                        Debug.Log("Client: Received the following data keys:");
+                        foreach (var key in result.Data.Keys)
+                        {
+                            Debug.Log($"- Key: {key}, Value: {result.Data[key].Value}");
+                        }
+                    }
+                    
                     if (result.Data != null && result.Data.TryGetValue(JOIN_CODE_KEY, out UserDataRecord dataRecord))
                     {
-                        // その中の .Value プロパティが、目的の文字列
                         joinCode = dataRecord.Value;
+                        Debug.Log($"Client: Successfully found JoinCode: {joinCode}");
                     }
-                },
-                OnError);
+                }, 
+                (error) => {
+                    Debug.LogError("Client: GetUserData call FAILED.");
+                    OnError(error);
+                });
+            // ★★★ ここまでデバッグログを追加 ★★★
 
             attempts++;
-            yield return new WaitForSeconds(2f); // 2秒待機
+            yield return new WaitForSeconds(2f);
         }
 
         if (string.IsNullOrEmpty(joinCode)) { /* ... エラー処理 ... */ yield break; }
