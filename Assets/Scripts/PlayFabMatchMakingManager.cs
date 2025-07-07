@@ -20,7 +20,7 @@ public class PlayFabMatchmakingManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI roomIdDisplayText;
     [SerializeField] private TextMeshProUGUI statusText;
 
-    [SerializeField] private RelayNetworkManager relayManager;
+    [SerializeField] private MyRelayNetworkManager relayManager;
 
     private string _onlineSceneName;
 

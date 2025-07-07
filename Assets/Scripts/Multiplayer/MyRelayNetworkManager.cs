@@ -20,7 +20,7 @@ public class MyRelayNetworkManager : RelayNetworkManager
             // この番号をプレイヤーのインデックスとして設定する
             player.playerIndex = numPlayers;
         }
-
+        Debug.Log(numPlayers);
         // ★★★ プレイヤーが2人になったらゲーム開始のRPCを呼び出す ★★★
         if (numPlayers == 2)
         {

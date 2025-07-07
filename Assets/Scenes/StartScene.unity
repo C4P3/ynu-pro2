@@ -326,7 +326,7 @@ MonoBehaviour:
   offlineSceneLoadDelay: 0
   transport: {fileID: 74822754}
   networkAddress: localhost
-  maxConnections: 100
+  maxConnections: 2
   disconnectInactiveConnections: 0
   disconnectInactiveTimeout: 60
   authenticator: {fileID: 0}
@@ -5588,7 +5588,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1995339588}
-  - component: {fileID: 1995339587}
   - component: {fileID: 1995339589}
   - component: {fileID: 1995339590}
   m_Layer: 0
@@ -5598,18 +5597,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1995339587
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1995339586}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4ddb9ff7561b09148ab61914fa2765b4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!4 &1995339588
 Transform:
   m_ObjectHideFlags: 0
