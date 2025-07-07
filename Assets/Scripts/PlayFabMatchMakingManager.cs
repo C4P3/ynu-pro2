@@ -147,6 +147,25 @@ public class PlayFabMatchmakingManager : MonoBehaviour
         statusText.text = "マッチ成立！";
         _matchedTicketResult = result;
 
+        // ★★★ ここからデバッグログを追加 ★★★
+        Debug.Log("--- Match Details ---");
+        Debug.Log($"Match ID: {result.MatchId}");
+        if (result.Members != null && result.Members.Count > 0)
+        {
+            Debug.Log($"Found {result.Members.Count} members in match:");
+            foreach (var member in result.Members)
+            {
+                Debug.Log($"- Member Entity: Type={member.Entity.Type}, ID={member.Entity.Id}");
+            }
+        }
+        else
+        {
+            Debug.LogWarning("Match was found, but the Members list is null or empty!");
+        }
+        Debug.Log($"My own Entity ID is: {PlayFabAuthManager.MyEntity.Id}");
+        Debug.Log("--- End Match Details ---");
+        // ★★★ ここまでデバッグログを追加 ★★★
+
         if (_isHost)
         {
             // ★★★ UtpTransportのメソッドを使ってホストを開始 ★★★
