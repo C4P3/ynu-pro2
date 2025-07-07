@@ -1,7 +1,9 @@
 using PlayFab;
 using PlayFab.ClientModels;
-using Unity.VisualScripting;
 using UnityEngine;
+using System.Threading.Tasks;
+using Unity.Services.Core;
+using Unity.Services.Authentication;
 
 public class PlayFabAuthManager : MonoBehaviour
 {
@@ -18,21 +20,28 @@ public class PlayFabAuthManager : MonoBehaviour
 
     void Awake()
     {
-        if (Instance == null)
-        {
-            Instance = this;
-            DontDestroyOnLoad(gameObject); // このマネージャーもシーン間で永続化
-        }
-        else
-        {
-            Destroy(gameObject);
-        }
+        if (Instance == null) { Instance = this; DontDestroyOnLoad(gameObject); }
+        else { Destroy(gameObject); }
     }
 
     // 初回起動時にCustom ID（端末ID）で匿名ログインする
-    void Start()
+    async void Start()
     {
+        await InitializeUnityServices();
         LoginWithCustomID();
+    }
+
+    private async Task InitializeUnityServices()
+    {
+        if (UnityServices.State == ServicesInitializationState.Uninitialized)
+        {
+            await UnityServices.InitializeAsync();
+            if (!AuthenticationService.Instance.IsSignedIn)
+            {
+                await AuthenticationService.Instance.SignInAnonymouslyAsync();
+                Debug.Log($"Unity Services Signed In: PlayerID={AuthenticationService.Instance.PlayerId}");
+            }
+        }
     }
 
     // 匿名ログイン（Custom ID使用）
