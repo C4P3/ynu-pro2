@@ -1,17 +1,16 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Video;
-using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 
 [System.Serializable]
 public class TutorialStep
 {
-    public string message;             // 説明文
-    public KeyCode key1;               // 修飾キー（例：Shift）
-    public KeyCode key2;               // 操作キー（例：A）
-    public VideoClip videoClip;        // 再生する動画
+    public string message;
+    public KeyCode key1;
+    public KeyCode key2;
+    public VideoClip videoClip;
 }
 
 public class TutorialManager : MonoBehaviour
@@ -31,6 +30,10 @@ public class TutorialManager : MonoBehaviour
             Debug.LogError("チュートリアルステップが設定されていません。");
             return;
         }
+
+        videoPlayer.loopPointReached += OnVideoFinished;
+        videoPlayer.isLooping = false;
+
         ShowCurrentStep();
     }
 
@@ -45,8 +48,11 @@ public class TutorialManager : MonoBehaviour
             popup.SetActive(false);
 
             videoPlayer.clip = step.videoClip;
+            videoPlayer.Stop();
+            videoPlayer.frame = 0;   // ←これで最初のフレームを表示
             videoPlayer.Play();
-            StartCoroutine(WaitAndProceed());
+
+            Debug.Log("動画再生開始: " + step.videoClip.name);
         }
     }
 
@@ -56,12 +62,18 @@ public class TutorialManager : MonoBehaviour
         popupText.text = step.message;
         popup.SetActive(true);
         isWaitingForInput = true;
+        Debug.Log("ステップ " + (currentStep + 1) + ": " + step.message);
     }
 
-    IEnumerator WaitAndProceed()
+    void OnVideoFinished(VideoPlayer vp)
     {
-        while (videoPlayer.isPlaying)
-            yield return null;
+        Debug.Log("動画終了");
+
+        // フレームを最初に戻し、見た目も戻す
+        videoPlayer.Stop();
+        videoPlayer.frame = 0;
+        videoPlayer.Play();   // 再生して…
+        videoPlayer.Pause();  // …即停止して先頭フレームを表示
 
         currentStep++;
         if (currentStep < steps.Count)
