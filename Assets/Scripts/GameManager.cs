@@ -18,6 +18,12 @@ public class GameManager : MonoBehaviour
     public float oxygenDecreaseRate = 1f;       // 1秒あたりに減る酸素量
     public Slider oxygenSlider;                 // 酸素ゲージUI
 
+    [Header("Oxygen Bar Colors")]
+    public Color fullOxygenColor = Color.green;     // 満タン時の色 (黄緑)
+    public Color lowOxygenColor = Color.yellow;     // 30%以下になった時の色
+    public Color criticalOxygenColor = Color.red;   // 10%以下になった時の色
+    private Image fillImage;                        // ゲージの色を変更するためのImageコンポーネント
+
     public PlayerController LocalPlayer { get; private set; }
 
     private float _currentOxygen;               // 現在の酸素量
@@ -41,6 +47,11 @@ public class GameManager : MonoBehaviour
     {
         // ゲーム開始時に酸素を最大値に設定
         _currentOxygen = maxOxygen;
+        // 酸素ゲージの初期化
+        if (oxygenSlider != null && oxygenSlider.fillRect != null)
+        {
+            fillImage = oxygenSlider.fillRect.GetComponent<Image>();
+        }
         UpdateOxygenUI();
          // UIマネージャーなどに初期状態を通知する
         OnOxygenChanged?.Invoke(_currentOxygen, maxOxygen);
@@ -98,6 +109,24 @@ public class GameManager : MonoBehaviour
         if (oxygenSlider != null)
         {
             oxygenSlider.value = _currentOxygen / maxOxygen;
+        }
+        // 酸素残量に応じて色を変化
+        if (fillImage != null)
+        {
+            float oxygenPercentage = _currentOxygen / maxOxygen;
+
+            if (oxygenPercentage <= 0.10f) // 10%以下
+            {
+                fillImage.color = criticalOxygenColor;
+            }
+            else if (oxygenPercentage <= 0.30f) // 30%以下
+            {
+                fillImage.color = lowOxygenColor;
+            }
+            else // 30%より上
+            {
+                fillImage.color = fullOxygenColor;
+            }
         }
     }
 
