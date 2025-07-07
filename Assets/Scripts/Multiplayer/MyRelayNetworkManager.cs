@@ -25,6 +25,7 @@ public class MyRelayNetworkManager : RelayNetworkManager
         if (numPlayers == 2)
         {
             // ★★★ GameDataSyncの開始シーケンスを呼び出す ★★★
+            ServerChangeScene(onlineScene);
             GameDataSync.Instance.StartGameSequence();
         }
     }

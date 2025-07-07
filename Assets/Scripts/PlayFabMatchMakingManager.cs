@@ -22,12 +22,14 @@ public class PlayFabMatchmakingManager : MonoBehaviour
 
     [SerializeField] private RelayNetworkManager relayManager;
 
+    private string _onlineSceneName;
+
     // 定数
     // private const string ROOM_ID_KEY = "CurrentRoomId";
     // private const string JOIN_CODE_KEY = "RelayJoinCode";
 
     // 状態変数
-    private UtpTransport _utpTransport;
+    // private UtpTransport _utpTransport;
     // private string _myTicketId;
     // private GetMatchmakingTicketResult _matchedTicketResult;
     // private Coroutine _pollTicketCoroutine;
@@ -42,35 +44,47 @@ public class PlayFabMatchmakingManager : MonoBehaviour
     void Start()
     {
         // 最初にTransportコンポーネントを取得しておく
-        _utpTransport = NetworkManager.singleton.GetComponent<UtpTransport>();
+        // _utpTransport = NetworkManager.singleton.GetComponent<UtpTransport>();
+        _onlineSceneName = relayManager.onlineScene;
     }
 
     // 「ホストになる」ボタンから呼び出す
     public void CreateRoom()
     {
         statusText.text = "ホストを作成中...";
-        // RelayNetworkManagerのホスト開始メソッドを呼び出す
-        relayManager.StartRelayHost(2,null);
-        // Join Codeが表示されるのを待つコルーチンを開始
+
+        // ★★★ 1. シーンの自動遷移を一時的に無効化 ★★★
+        relayManager.onlineScene = "";
+        
+        relayManager.StartRelayHost(1); // relayManagerの最大プレイヤー数はホスト以外の人数
         StartCoroutine(ShowJoinCodeCoroutine());
     }
 
     // Join Codeが生成されるのを待ってUIに表示する
     private IEnumerator ShowJoinCodeCoroutine()
     {
+        statusText.text = "Join Codeを生成中...";
         // relayJoinCodeが空でなくなるまで毎フレーム待つ
         while (string.IsNullOrEmpty(relayManager.relayJoinCode))
         {
             yield return null;
         }
+
+        // Join Codeの表示
         roomIdDisplayText.text = relayManager.relayJoinCode;
         statusText.text = "コードを相手に伝えてください";
-        Debug.Log(relayManager.relayJoinCode);
+        Debug.Log("Join Code is: " + relayManager.relayJoinCode);
+
+        // ★★★ 3. クライアント接続に備え、オンラインシーン名を元に戻す ★★★
+        relayManager.onlineScene = _onlineSceneName;
     }
 
     // 「参加する」ボタンから呼び出す
     public void JoinRoom()
     {
+        // ★★★ 2. クライアント側でもオンラインシーン名が正しいことを保証 ★★★
+        relayManager.onlineScene = _onlineSceneName;
+
         string joinCode = roomIdInput.text;
         if (string.IsNullOrEmpty(joinCode))
         {
@@ -79,7 +93,6 @@ public class PlayFabMatchmakingManager : MonoBehaviour
         }
 
         statusText.text = $"コード '{joinCode}' で参加中...";
-        // RelayNetworkManagerに参加用コードを設定し、参加メソッドを呼び出す
         relayManager.relayJoinCode = joinCode;
         relayManager.JoinRelayServer();
     }
