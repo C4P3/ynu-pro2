@@ -348,7 +348,7 @@ MonoBehaviour:
   Port: 7777
   LoggerLevel: 3
   TimeoutMS: 1000
-  useRelay: 0
+  useRelay: 1
 --- !u!1 &87288313
 GameObject:
   m_ObjectHideFlags: 0
