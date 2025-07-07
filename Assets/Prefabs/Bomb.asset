@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   itemName: Bomb3
   effectType: 1
-  itemTile: {fileID: 11400000, guid: 73ee71444ac3c473ebba0a9d713bd6cf, type: 2}
+  itemTile: {fileID: 11400000, guid: 9fc2bcb1cbb832841b0c06a635d97dab, type: 2}
   acquisitionEffectPrefab: {fileID: 4331274140685187152, guid: 74224abbcb88d5645a61319c9dc5af57, type: 3}
   followEffectPrefab: {fileID: 0}
   followEffectDuration: 3
