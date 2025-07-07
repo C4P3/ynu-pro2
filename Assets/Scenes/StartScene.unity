@@ -5608,9 +5608,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4ddb9ff7561b09148ab61914fa2765b4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  roomIdInput: {fileID: 480133761}
-  roomIdDisplayText: {fileID: 24820402}
-  statusText: {fileID: 1330472497}
 --- !u!4 &1995339588
 Transform:
   m_ObjectHideFlags: 0
