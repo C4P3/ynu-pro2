@@ -1850,14 +1850,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 0, b: 0, a: 0.003921569}
+  m_Color: {r: 1, g: 1, b: 1, a: 0.003921569}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 1203844502091282695, guid: 2093e947eebde8a489f81ca67e2f9cb3, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -2041,7 +2041,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _lowHealthEffectPanel: {fileID: 1594737431}
-  _blinkAlpha: 0.3
+  _blinkAlpha: 0.87
   _dangerThreshold: 0.3
   _dangerBlinkInterval: 0.5
   _criticalThreshold: 0.15
