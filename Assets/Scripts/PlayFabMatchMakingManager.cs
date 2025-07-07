@@ -141,41 +141,13 @@ public class PlayFabMatchmakingManager : MonoBehaviour
     private void OnGetTicketStatusSuccess(GetMatchmakingTicketResult result)
     {
         if (result.Status != "Matched") return;
-
         if (_pollTicketCoroutine != null) StopCoroutine(_pollTicketCoroutine);
         
         statusText.text = "マッチ成立！";
         _matchedTicketResult = result;
 
-        // ★★★ ここからデバッグログを追加 ★★★
-        Debug.Log("--- Match Details ---");
-        Debug.Log($"Match ID: {result.MatchId}");
-        if (result.Members != null && result.Members.Count > 0)
-        {
-            Debug.Log($"Found {result.Members.Count} members in match:");
-            foreach (var member in result.Members)
-            {
-                Debug.Log($"- Member Entity: Type={member.Entity.Type}, ID={member.Entity.Id}");
-            }
-        }
-        else
-        {
-            Debug.LogWarning("Match was found, but the Members list is null or empty!");
-        }
-        Debug.Log($"My own Entity ID is: {PlayFabAuthManager.MyEntity.Id}");
-        Debug.Log("--- End Match Details ---");
-        // ★★★ ここまでデバッグログを追加 ★★★
-
-        if (_isHost)
-        {
-            // ★★★ UtpTransportのメソッドを使ってホストを開始 ★★★
-            StartHostWithUtpRelay();
-        }
-        else
-        {
-            // ★★★ UtpTransportのメソッドを使ってクライアントを開始 ★★★
-            StartCoroutine(ConnectAsClientWithRelay());
-        }
+        if (_isHost) { StartHostWithUtpRelay(); }
+        else { StartCoroutine(ConnectAsClientWithUtpRelay()); }
     }
 
 
@@ -183,19 +155,15 @@ public class PlayFabMatchmakingManager : MonoBehaviour
     private void StartHostWithUtpRelay()
     {
         statusText.text = "リレーサーバーを確保中...";
-        // 1はホスト以外のプレイヤー数。リージョンはnullで自動選択
         _utpTransport.AllocateRelayServer(1, null, 
             (joinCode) => {
-                // 成功コールバック
-                Debug.Log($"Host: Relay Join Code is {joinCode}");
+                //【ログポイント1】ホストがJoin Codeを取得
+                Debug.Log($"[Host] 1. Relay Join Code Acquired: {joinCode}");
                 statusText.text = "Join Codeを共有中...";
                 NetworkManager.singleton.StartHost();
                 UpdatePlayerDataWithJoinCode(joinCode);
             },
-            () => {
-                // 失敗コールバック
-                OnError(new PlayFabError { ErrorMessage = "Failed to allocate Relay server." });
-            }
+            () => { OnError(new PlayFabError { ErrorMessage = "Failed to allocate Relay server." }); }
         );
     }
 
@@ -205,154 +173,78 @@ public class PlayFabMatchmakingManager : MonoBehaviour
         var request = new UpdateUserDataRequest
         {
             Data = new Dictionary<string, string> { { JOIN_CODE_KEY, joinCode } },
-            // ★★★ このデータを他のプレイヤーも読めるように「公開」に設定 ★★★
-            Permission = UserDataPermission.Public 
+            Permission = UserDataPermission.Public
         };
-        
+        //【ログポイント2】ホストがJoin Codeを書き込み試行
+        Debug.Log($"[Host] 2. Attempting to write Join Code to PlayerData...");
         PlayFabClientAPI.UpdateUserData(request, 
-            (res) => Debug.Log("Host: PlayerData updated with Join Code."), 
-            OnError);
+            (res) => { Debug.Log("[Host] 2a. PlayerData updated with Join Code SUCCESSFULLY."); }, 
+            (err) => { Debug.LogError("[Host] 2b. FAILED to write Join Code to PlayerData."); OnError(err); });
     }
 
 
-    // ★★★ クライアントの接続処理を、UtpTransportの作法に合わせて書き換え ★★★
     private IEnumerator ConnectAsClientWithUtpRelay()
     {
-        statusText.text = "ホストのJoin Codeを待っています...";
+        statusText.text = "ホストの接続情報を待っています...";
         var hostEntity = _matchedTicketResult.Members.Find(m => m.Entity.Id != PlayFabAuthManager.MyEntity.Id);
-        if (hostEntity == null) { /* ... エラー処理 ... */ yield break; }
+        if (hostEntity == null) { OnError(new PlayFabError{ ErrorMessage = "Could not find Host in match." }); yield break; }
 
         string joinCode = null;
         int attempts = 0;
         
-        // ホストがJoinCodeを書き込むまでポーリングして待つ
         while (string.IsNullOrEmpty(joinCode) && attempts < 10)
         {
+            //【ログポイント3】クライアントがJoin Codeを読み取り試行
+            Debug.Log($"[Client] 3. Polling for Join Code... (Attempt {attempts + 1})");
             var request = new GetUserDataRequest { PlayFabId = hostEntity.Entity.Id };
-            // ★★★ ここを修正 ★★★
-            PlayFabClientAPI.GetUserData(request,
-                (result) =>
-                {
-                    // まず UserDataRecord 型でデータを受け取る
+            PlayFabClientAPI.GetUserData(request, 
+                (result) => {
                     if (result.Data != null && result.Data.TryGetValue(JOIN_CODE_KEY, out UserDataRecord dataRecord))
                     {
-                        // その中の .Value プロパティが、目的の文字列
                         joinCode = dataRecord.Value;
+                        Debug.Log($"[Client] 3a. Found Join Code: {joinCode}");
+                    } else {
+                        Debug.Log("[Client] 3b. GetUserData success, but Join Code not found yet.");
                     }
-                },
+                }, 
                 OnError);
 
             attempts++;
-            yield return new WaitForSeconds(2f); // 2秒待機
+            yield return new WaitForSeconds(2f);
         }
 
-        if (string.IsNullOrEmpty(joinCode)) { /* ... エラー処理 ... */ yield break; }
+        if (string.IsNullOrEmpty(joinCode)) { OnError(new PlayFabError { ErrorMessage = "Host did not provide a Join Code in time."}); yield break; }
         
         statusText.text = $"Join Code [{joinCode}] を使って接続準備中...";
 
         bool configurationFinished = false;
         bool configurationSucceeded = false;
 
+        //【ログポイント4】クライアントがJoin Codeを使って接続設定
+        Debug.Log($"[Client] 4. Attempting to configure Relay with Join Code...");
         _utpTransport.ConfigureClientWithJoinCode(joinCode,
             () => {
-                // 成功コールバック
-                Debug.Log("Client: Relay configured successfully.");
+                Debug.Log("[Client] 4a. Relay configured SUCCESSFULLY.");
                 configurationSucceeded = true;
                 configurationFinished = true;
             },
             () => {
-                // 失敗コールバック
-                OnError(new PlayFabError { ErrorMessage = "Failed to configure Relay with Join Code." });
+                Debug.LogError("[Client] 4b. FAILED to configure Relay with Join Code.");
                 configurationFinished = true;
             }
         );
 
-        // ConfigureClientWithJoinCodeの完了を待つ
-        while (!configurationFinished) { yield return null; }
+        while(!configurationFinished) { yield return null; }
 
         if (configurationSucceeded)
         {
-            // 接続設定が成功した場合のみ、クライアントを開始
             NetworkManager.singleton.StartClient();
         }
-    }
-    private IEnumerator ConnectAsClientWithRelay()
-    {
-        statusText.text = "ホストの接続情報を待っています...";
-        
-        var hostEntity = _matchedTicketResult.Members.Find(m => m.Entity.Id != PlayFabAuthManager.MyEntity.Id);
-        if (hostEntity == null) { /* ... エラー処理 ... */ yield break; }
-
-        string joinCode = null;
-        int attempts = 0;
-        
-        while (string.IsNullOrEmpty(joinCode) && attempts < 10)
-        {
-            var request = new GetUserDataRequest { PlayFabId = hostEntity.Entity.Id };
-
-            // ★★★ ここからデバッグログを追加 ★★★
-            Debug.Log($"Client: Attempting to get UserData for Host ({hostEntity.Entity.Id})...");
-
-            PlayFabClientAPI.GetUserData(request, 
-                (result) => {
-                    Debug.Log("Client: GetUserData call SUCCEEDED.");
-                    if (result.Data == null || result.Data.Count == 0)
-                    {
-                        Debug.LogWarning("Client: ...but the returned Data is null or empty.");
-                    }
-                    else
-                    {
-                        Debug.Log("Client: Received the following data keys:");
-                        foreach (var key in result.Data.Keys)
-                        {
-                            Debug.Log($"- Key: {key}, Value: {result.Data[key].Value}");
-                        }
-                    }
-                    
-                    if (result.Data != null && result.Data.TryGetValue(JOIN_CODE_KEY, out UserDataRecord dataRecord))
-                    {
-                        joinCode = dataRecord.Value;
-                        Debug.Log($"Client: Successfully found JoinCode: {joinCode}");
-                    }
-                }, 
-                (error) => {
-                    Debug.LogError("Client: GetUserData call FAILED.");
-                    OnError(error);
-                });
-            // ★★★ ここまでデバッグログを追加 ★★★
-
-            attempts++;
-            yield return new WaitForSeconds(2f);
-        }
-
-        if (string.IsNullOrEmpty(joinCode)) { /* ... エラー処理 ... */ yield break; }
-
-        statusText.text = $"Join Code [{joinCode}] を使って接続準備中...";
-
-        bool isConfigured = false;
-        _utpTransport.ConfigureClientWithJoinCode(joinCode,
-            () =>
-            {
-                // 成功コールバック：設定が完了したらMirrorクライアントを開始
-                Debug.Log("Client: Relay configured successfully. Starting client...");
-                NetworkManager.singleton.StartClient();
-                isConfigured = true;
-            },
-            () =>
-            {
-                // 失敗コールバック
-                OnError(new PlayFabError { ErrorMessage = "Failed to configure Relay with Join Code." });
-                isConfigured = true; // ループを抜けるためにtrueにする
-            }
-        );
-
-        // isConfiguredフラグがtrueになるのを待つ（ただし、成功・失敗どちらでもtrueになる）
-        while (!isConfigured) { yield return null; }
     }
 
     private void OnError(PlayFabError error)
     {
         statusText.text = "エラーが発生しました";
-        if (error != null) Debug.LogError(error.GenerateErrorReport());
+        if (error != null) Debug.LogError($"!!! PLAYFAB ERROR on {(_isHost ? "HOST" : "CLIENT")}!!!: " + error.GenerateErrorReport());
     }
 }
