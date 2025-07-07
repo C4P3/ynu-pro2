@@ -22,7 +22,7 @@ public class PlayFabMatchmakingManager : MonoBehaviour
 
     [SerializeField] private MyRelayNetworkManager relayManager;
 
-    private string _onlineSceneName;
+    // private string _onlineSceneName;
 
     // 定数
     // private const string ROOM_ID_KEY = "CurrentRoomId";
@@ -45,7 +45,7 @@ public class PlayFabMatchmakingManager : MonoBehaviour
     {
         // 最初にTransportコンポーネントを取得しておく
         // _utpTransport = NetworkManager.singleton.GetComponent<UtpTransport>();
-        _onlineSceneName = relayManager.onlineScene;
+        // _onlineSceneName = relayManager.onlineScene;
     }
 
     // 「ホストになる」ボタンから呼び出す
@@ -54,7 +54,7 @@ public class PlayFabMatchmakingManager : MonoBehaviour
         statusText.text = "ホストを作成中...";
 
         // ★★★ 1. シーンの自動遷移を一時的に無効化 ★★★
-        relayManager.onlineScene = "";
+        // relayManager.onlineScene = "";
         
         relayManager.StartRelayHost(1); // relayManagerの最大プレイヤー数はホスト以外の人数
         StartCoroutine(ShowJoinCodeCoroutine());
@@ -76,14 +76,14 @@ public class PlayFabMatchmakingManager : MonoBehaviour
         Debug.Log("Join Code is: " + relayManager.relayJoinCode);
 
         // ★★★ 3. クライアント接続に備え、オンラインシーン名を元に戻す ★★★
-        relayManager.onlineScene = _onlineSceneName;
+        // relayManager.onlineScene = _onlineSceneName;
     }
 
     // 「参加する」ボタンから呼び出す
     public void JoinRoom()
     {
         // ★★★ 2. クライアント側でもオンラインシーン名が正しいことを保証 ★★★
-        relayManager.onlineScene = _onlineSceneName;
+        // relayManager.onlineScene = _onlineSceneName;
 
         string joinCode = roomIdInput.text;
         if (string.IsNullOrEmpty(joinCode))
