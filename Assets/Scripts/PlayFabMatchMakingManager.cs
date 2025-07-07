@@ -23,15 +23,15 @@ public class PlayFabMatchmakingManager : MonoBehaviour
     [SerializeField] private RelayNetworkManager relayManager;
 
     // 定数
-    private const string ROOM_ID_KEY = "CurrentRoomId";
-    private const string JOIN_CODE_KEY = "RelayJoinCode";
+    // private const string ROOM_ID_KEY = "CurrentRoomId";
+    // private const string JOIN_CODE_KEY = "RelayJoinCode";
 
     // 状態変数
     private UtpTransport _utpTransport;
-    private string _myTicketId;
-    private GetMatchmakingTicketResult _matchedTicketResult;
-    private Coroutine _pollTicketCoroutine;
-    private bool _isHost = false;
+    // private string _myTicketId;
+    // private GetMatchmakingTicketResult _matchedTicketResult;
+    // private Coroutine _pollTicketCoroutine;
+    // private bool _isHost = false;
 
     void Awake()
     {

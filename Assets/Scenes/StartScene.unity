@@ -5590,6 +5590,7 @@ GameObject:
   - component: {fileID: 1995339588}
   - component: {fileID: 1995339587}
   - component: {fileID: 1995339589}
+  - component: {fileID: 1995339590}
   m_Layer: 0
   m_Name: PlayFabLobbyManager
   m_TagString: Untagged
@@ -5640,6 +5641,18 @@ MonoBehaviour:
   roomIdDisplayText: {fileID: 24820402}
   statusText: {fileID: 1330472497}
   relayManager: {fileID: 74822755}
+--- !u!114 &1995339590
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1995339586}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ec837f27af8f3bc47bd3c4f72c9f7df1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &2127851567
 GameObject:
   m_ObjectHideFlags: 0
