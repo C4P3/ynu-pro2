@@ -1,16 +1,33 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
+using TMPro;
 
-public class HowToPlayButton : MonoBehaviour
+public class HowtoPlayButton : IButton
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    public override void OnPointerClick()
     {
-        
+        base.OnPointerClick();
+    }
+    public override void OnPointerEnter()
+    {
+        base.OnPointerEnter();
     }
 
-    // Update is called once per frame
-    void Update()
+    public override void OnPointerExit()
     {
-        
+        base.OnPointerExit();
+    }
+
+    public override void OnPointerDown()
+    {
+        base.OnPointerDown();
+    }
+
+    public override void OnPointerUp()
+    {
+        base.OnPointerUp();
     }
 }

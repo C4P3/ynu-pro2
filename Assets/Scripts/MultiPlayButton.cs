@@ -13,15 +13,8 @@ public class MultiPlayButton : IButton
     public override void OnPointerClick()
     {
         base.OnPointerClick();
-        SetUI(roomUI, 1, true, true);
-        SetUI(homeUI, 0, false, false);
-        StartSceneBGMManager.Instance.PlayBGM(StartSceneBGMManager.Instance.taisenBGM);
-    }
-
-    public void SetUI(CanvasGroup canvasGroup, int alfha, bool interactable, bool blocksRaycasts){
-        canvasGroup.alpha = alfha;
-        canvasGroup.interactable = interactable;
-        canvasGroup.blocksRaycasts = blocksRaycasts;
+        ChangeUI(roomUI, 1, true, true);
+        ChangeUI(homeUI, 0, false, false);
     }
 
     public override void OnPointerEnter()
