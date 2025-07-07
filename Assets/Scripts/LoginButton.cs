@@ -28,19 +28,21 @@ public class LoginButton : IButton
         base.OnPointerClick();
         authManager.SetDisplayName(inputField.text);
     }
-    // public override void OnPointerEnter(){
+    public override void OnPointerEnter()
+    {
+        base.OnPointerEnter();
+    }
+    public override void OnPointerExit()
+    {
+        base.OnPointerExit();
+    }
+    public override void OnPointerDown()
+    {
+        base.OnPointerDown();
+    }
 
-    // }
-    // public override void OnPointerExit(){
-
-    // }
-    // public override void OnPointerDown()
-    // {
-    //     buttonImage.color = buttonImage.color * 0.7f;
-    // }
-
-    // public override void OnPointerUp()
-    // {
-    //     buttonImage.color = buttonImage.color / 0.7f;
-    // }
+    public override void OnPointerUp()
+    {
+        base.OnPointerUp();
+    }
 }
