@@ -5639,7 +5639,7 @@ MonoBehaviour:
   roomIdInput: {fileID: 480133761}
   roomIdDisplayText: {fileID: 24820402}
   statusText: {fileID: 1330472497}
-  relayManager: {fileID: 0}
+  relayManager: {fileID: 74822755}
 --- !u!1 &2127851567
 GameObject:
   m_ObjectHideFlags: 0
