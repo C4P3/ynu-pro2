@@ -1,4 +1,3 @@
-// PlayerController.cs
 using UnityEngine;
 using UnityEngine.Tilemaps;
 using Mirror;
@@ -107,6 +106,18 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
+        // スタン中はすべての入力を無効化
+        if (_isStunned)
+        {
+            _stunTimer -= Time.deltaTime;
+            if (_stunTimer <= 0f)
+            {
+                _isStunned = false;
+            }
+            // ここでUpdate内の入力処理を全てスキップ
+            return; 
+        }
+
         // 状態に応じて処理を分岐
         switch (_currentState)
         {
@@ -119,17 +130,6 @@ public class PlayerController : MonoBehaviour
             case PlayerState.Typing:
                 // タイピング中はプレイヤー自身は何もしない
                 break;
-        }
-
-        // スタン中は移動コマンドを受け付けない
-        if (_isStunned)
-        {
-            _stunTimer -= Time.deltaTime;
-            if (_stunTimer <= 0f)
-            {
-                _isStunned = false;
-            }
-            return; // ここで移動処理などをスキップ
         }
     }
     #endregion

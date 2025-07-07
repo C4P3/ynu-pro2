@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   itemName: ThunderItem
   effectType: 6
-  itemTile: {fileID: 0}
+  itemTile: {fileID: 11400000, guid: 93cd4940a45549c41988204f43c99791, type: 2}
   acquisitionEffectPrefab: {fileID: 0}
   followEffectPrefab: {fileID: 0}
   followEffectDuration: 3
