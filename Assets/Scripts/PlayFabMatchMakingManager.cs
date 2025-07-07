@@ -186,6 +186,10 @@ public class PlayFabMatchmakingManager : MonoBehaviour
     private IEnumerator ConnectAsClientWithUtpRelay()
     {
         statusText.text = "ホストの接続情報を待っています...";
+        _matchedTicketResult.Members.ForEach((Member) =>
+        {
+            Debug.Log(Member.Entity.Id);
+        });
         var hostEntity = _matchedTicketResult.Members.Find(m => m.Entity.Id != PlayFabAuthManager.MyEntity.Id);
         if (hostEntity == null) { OnError(new PlayFabError{ ErrorMessage = "Could not find Host in match." }); yield break; }
 
