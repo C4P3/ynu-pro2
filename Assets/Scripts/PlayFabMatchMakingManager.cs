@@ -43,27 +43,101 @@ public class PlayFabMatchmakingManager : MonoBehaviour
         _utpTransport = NetworkManager.singleton.GetComponent<UtpTransport>();
     }
 
-    public void CreateRoom()
+    // 「ホストになる」ボタンから呼び出す
+    public async void CreateRelay()
     {
-        _isHost = true;
-        statusText.text = "ルームを作成中...";
-        string shortId = Random.Range(100000, 999999).ToString();
-        roomIdDisplayText.text = $"ルームID: {shortId}";
-        
-        // ★★★ 新しいチケット作成処理を呼び出す ★★★
-        CancelTicketIfExistsAndCreateNew(shortId);
+        try
+        {
+            statusText.text = "ホストを作成中...";
+            // 1はホスト以外のプレイヤー数（つまり最大2人）
+            Allocation allocation = await RelayService.Instance.CreateAllocationAsync(1);
+            
+            string joinCode = await RelayService.Instance.GetJoinCodeAsync(allocation.AllocationId);
+            
+            roomIdDisplayText.text = joinCode;
+            statusText.text = "コードを相手に伝えてください";
+            Debug.Log("Host created Relay with Join Code: " + joinCode);
+
+            // Transportにリレーサーバーの情報を設定
+            _utpTransport.useRelay = true;
+            _utpTransport.AllocateRelayServer(1, null, 
+                (joinCode) => {
+                    //【ログポイント1】ホストがJoin Codeを取得
+                    Debug.Log($"[Host] 1. Relay Join Code Acquired: {joinCode}");
+                    statusText.text = "Join Codeを共有中...";
+                    NetworkManager.singleton.StartHost();
+                    UpdatePlayerDataWithJoinCode(joinCode);
+                },
+                () => { OnError(new PlayFabError { ErrorMessage = "Failed to allocate Relay server." }); }
+            );
+            
+            // Mirrorのホストを開始
+            NetworkManager.singleton.StartHost();
+        }
+        catch (RelayServiceException e)
+        {
+            statusText.text = "ホストの作成に失敗しました";
+            Debug.LogError("Host Relay failed: " + e.Message);
+        }
     }
 
-    public void JoinRoom()
+    // 「参加する」ボタンから呼び出す
+    public async void JoinRelay()
     {
-        _isHost = false;
-        string shortIdToJoin = roomIdInput.text;
-        if (string.IsNullOrEmpty(shortIdToJoin)) return;
-        statusText.text = $"ルームID '{shortIdToJoin}' で参加します...";
-        
-        // ★★★ 新しいチケット作成処理を呼び出す ★★★
-        CancelTicketIfExistsAndCreateNew(shortIdToJoin);
+        string joinCode = roomIdInput.text;
+        if (string.IsNullOrEmpty(joinCode))
+        {
+            statusText.text = "Join Codeを入力してください";
+            return;
+        }
+
+        try
+        {
+            statusText.text = $"コード '{joinCode}' で参加中...";
+            // Join Codeを使ってリレーサーバーに参加
+            JoinAllocation allocation = await RelayService.Instance.JoinAllocationAsync(joinCode);
+            
+            // Transportにリレーサーバーの情報を設定
+            _utpTransport.useRelay = true;
+            _utpTransport.ConfigureClientWithJoinCode(joinCode,
+                () => {
+                    Debug.Log("[Client] 4a. Relay configured SUCCESSFULLY.");
+                },
+                () => {
+                    Debug.LogError("[Client] 4b. FAILED to configure Relay with Join Code.");
+                }
+            );
+
+            // Mirrorのクライアントを開始
+            NetworkManager.singleton.StartClient();
+        }
+        catch (RelayServiceException e)
+        {
+            statusText.text = "参加に失敗しました";
+            Debug.LogError("Client Relay failed: " + e.Message);
+        }
     }
+    // public void CreateRoom()
+    // {
+    //     _isHost = true;
+    //     statusText.text = "ルームを作成中...";
+    //     string shortId = Random.Range(100000, 999999).ToString();
+    //     roomIdDisplayText.text = $"ルームID: {shortId}";
+
+    //     // ★★★ 新しいチケット作成処理を呼び出す ★★★
+    //     CancelTicketIfExistsAndCreateNew(shortId);
+    // }
+
+    // public void JoinRoom()
+    // {
+    //     _isHost = false;
+    //     string shortIdToJoin = roomIdInput.text;
+    //     if (string.IsNullOrEmpty(shortIdToJoin)) return;
+    //     statusText.text = $"ルームID '{shortIdToJoin}' で参加します...";
+
+    //     // ★★★ 新しいチケット作成処理を呼び出す ★★★
+    //     CancelTicketIfExistsAndCreateNew(shortIdToJoin);
+    // }
 
     // ★★★ 古いチケットがあればキャンセルし、なければ新しいチケットを作成するメソッド ★★★
     private void CancelTicketIfExistsAndCreateNew(string roomId)
@@ -77,13 +151,15 @@ public class PlayFabMatchmakingManager : MonoBehaviour
                 QueueName = "PrivateRoomQueue",
                 TicketId = _myTicketId
             };
-            PlayFabMultiplayerAPI.CancelMatchmakingTicket(request, 
-                (result) => {
+            PlayFabMultiplayerAPI.CancelMatchmakingTicket(request,
+                (result) =>
+                {
                     // キャンセル成功後、新しいチケットを作成
                     Debug.Log("Old ticket cancelled successfully.");
                     UpdateUserDataAndCreateTicket(roomId);
                 },
-                (error) => {
+                (error) =>
+                {
                     // キャンセルに失敗した場合でも、とりあえず新しいチケット作成を試みる
                     Debug.LogWarning("Old ticket cancellation failed. It might have already expired. Trying to create a new ticket anyway.");
                     UpdateUserDataAndCreateTicket(roomId);
@@ -117,6 +193,13 @@ public class PlayFabMatchmakingManager : MonoBehaviour
             GiveUpAfterSeconds = 120,
             QueueName = "PrivateRoomQueue"
         };
+        // ▼▼▼ デバッグログを追加 ▼▼▼
+        Debug.Log($"--- チケット作成リクエスト ---");
+        Debug.Log($"送信するキュー名: '{ticketRequest.QueueName}'");
+        Debug.Log($"送信するルームID: '{roomId}'");
+        Debug.Log($"送信者のEntity ID: '{matchmakingPlayer.Entity.Id}'");
+        // ▲▲▲ ここまで ▲▲▲
+
         PlayFabMultiplayerAPI.CreateMatchmakingTicket(ticketRequest, OnTicketCreated, OnError);
     }
 
@@ -144,6 +227,10 @@ public class PlayFabMatchmakingManager : MonoBehaviour
         if (_pollTicketCoroutine != null) StopCoroutine(_pollTicketCoroutine);
         
         statusText.text = "マッチ成立！";
+        result.Members.ForEach((member) =>
+        {
+            Debug.Log(member.Entity.Id);
+        });
         _matchedTicketResult = result;
 
         if (_isHost) { StartHostWithUtpRelay(); }
