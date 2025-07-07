@@ -7,14 +7,11 @@ using TMPro;
 
 public class MultiPlayButton : IButton
 {
-    [SerializeField] CanvasGroup homeUI;
-    [SerializeField] CanvasGroup roomUI;
-
     public override void OnPointerClick()
     {
         base.OnPointerClick();
-        ChangeUI(roomUI, 1, true, true);
-        ChangeUI(homeUI, 0, false, false);
+        ChangeUI(beforeUI, 0, false, false);
+        ChangeUI(afterUI, 1, true, true);
     }
 
     public override void OnPointerEnter()

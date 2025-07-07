@@ -5,7 +5,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using TMPro;
 
-public class ConfigButton : IButton
+public class StartButton : IButton
 {
     public override void OnPointerClick()
     {
@@ -15,19 +15,18 @@ public class ConfigButton : IButton
     }
     public override void OnPointerEnter()
     {
-        base.OnPointerEnter();
+
     }
     public override void OnPointerExit()
     {
-        base.OnPointerExit();
+
     }
     public override void OnPointerDown()
     {
-        base.OnPointerDown();
-    }
 
+    }
     public override void OnPointerUp()
     {
-        base.OnPointerUp();
+
     }
 }
