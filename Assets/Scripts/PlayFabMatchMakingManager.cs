@@ -49,7 +49,9 @@ public class PlayFabMatchmakingManager : MonoBehaviour
         statusText.text = "ルームを作成中...";
         string shortId = Random.Range(100000, 999999).ToString();
         roomIdDisplayText.text = $"ルームID: {shortId}";
-        UpdateUserDataAndCreateTicket(shortId);
+        
+        // ★★★ 新しいチケット作成処理を呼び出す ★★★
+        CancelTicketIfExistsAndCreateNew(shortId);
     }
 
     public void JoinRoom()
@@ -58,7 +60,41 @@ public class PlayFabMatchmakingManager : MonoBehaviour
         string shortIdToJoin = roomIdInput.text;
         if (string.IsNullOrEmpty(shortIdToJoin)) return;
         statusText.text = $"ルームID '{shortIdToJoin}' で参加します...";
-        UpdateUserDataAndCreateTicket(shortIdToJoin);
+        
+        // ★★★ 新しいチケット作成処理を呼び出す ★★★
+        CancelTicketIfExistsAndCreateNew(shortIdToJoin);
+    }
+
+    // ★★★ 古いチケットがあればキャンセルし、なければ新しいチケットを作成するメソッド ★★★
+    private void CancelTicketIfExistsAndCreateNew(string roomId)
+    {
+        // もし古いチケットIDが残っていれば
+        if (!string.IsNullOrEmpty(_myTicketId))
+        {
+            statusText.text = "古いチケットをキャンセル中...";
+            var request = new CancelMatchmakingTicketRequest
+            {
+                QueueName = "PrivateRoomQueue",
+                TicketId = _myTicketId
+            };
+            PlayFabMultiplayerAPI.CancelMatchmakingTicket(request, 
+                (result) => {
+                    // キャンセル成功後、新しいチケットを作成
+                    Debug.Log("Old ticket cancelled successfully.");
+                    UpdateUserDataAndCreateTicket(roomId);
+                },
+                (error) => {
+                    // キャンセルに失敗した場合でも、とりあえず新しいチケット作成を試みる
+                    Debug.LogWarning("Old ticket cancellation failed. It might have already expired. Trying to create a new ticket anyway.");
+                    UpdateUserDataAndCreateTicket(roomId);
+                }
+            );
+        }
+        else
+        {
+            // 古いチケットがない場合は、直接新しいチケットを作成
+            UpdateUserDataAndCreateTicket(roomId);
+        }
     }
 
     private void UpdateUserDataAndCreateTicket(string roomId)
