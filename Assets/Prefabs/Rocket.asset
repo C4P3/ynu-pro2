@@ -19,4 +19,4 @@ MonoBehaviour:
   followEffectPrefab: {fileID: 0}
   followEffectDuration: 3
   useSound: {fileID: 8300000, guid: 54239fe793fff2b42835ad128de86443, type: 3}
-  effectPrefab: {fileID: 0}
+  beamEffectPrefab: {fileID: 3105287370101045350, guid: cc8660238a669164e8b0e13528e26391, type: 3}

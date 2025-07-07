@@ -5,7 +5,10 @@ using UnityEngine.Tilemaps;
 public class RocketItemData : ItemData
 {
     [Header("ロケットアイテムの設定")]
-    public GameObject effectPrefab; // 取得時エフェクト（任意）
+    // 変更点: ビームエフェクト用のプレハブを別途定義します。
+    // acquisitionEffectPrefabは取得時にその場で再生されるエフェクト、
+    // beamEffectPrefabは進行方向に発射されるエフェクトとして使い分けます。
+    public GameObject beamEffectPrefab; 
 
     /// <summary>
     /// ロケットアイテムの効果を発動する
@@ -27,10 +30,10 @@ public class RocketItemData : ItemData
                 blockTilemap.SetTile(targetPos, null);
             }
         }
-        // エフェクト再生（任意）
-        if (effectPrefab != null)
-        {
-            GameObject.Instantiate(effectPrefab, player.position, Quaternion.identity);
-        }
+        // // エフェクト再生（任意）
+        // if (effectPrefab != null)
+        // {
+        //     GameObject.Instantiate(effectPrefab, player.position, Quaternion.identity);
+        // }
     }
 }
