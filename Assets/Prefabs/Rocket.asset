@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   itemName: RocketItem
   effectType: 3
-  itemTile: {fileID: 11400000, guid: 75a57a663d20a6e4f9b7677712d82546, type: 2}
+  itemTile: {fileID: 11400000, guid: 1374cb01a8f6b034d95286d3e2a45853, type: 2}
   acquisitionEffectPrefab: {fileID: 0}
   followEffectPrefab: {fileID: 0}
   followEffectDuration: 3
