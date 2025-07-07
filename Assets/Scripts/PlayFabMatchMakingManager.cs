@@ -183,8 +183,16 @@ public class PlayFabMatchmakingManager : MonoBehaviour
     // ★★★ PlayerDataにJoinCodeを書き込む処理 ★★★
     private void UpdatePlayerDataWithJoinCode(string joinCode)
     {
-        var request = new UpdateUserDataRequest { Data = new Dictionary<string, string> { { JOIN_CODE_KEY, joinCode } } };
-        PlayFabClientAPI.UpdateUserData(request, (res) => Debug.Log("Host: PlayerData updated with Join Code."), OnError);
+        var request = new UpdateUserDataRequest
+        {
+            Data = new Dictionary<string, string> { { JOIN_CODE_KEY, joinCode } },
+            // ★★★ このデータを他のプレイヤーも読めるように「公開」に設定 ★★★
+            Permission = UserDataPermission.Public 
+        };
+        
+        PlayFabClientAPI.UpdateUserData(request, 
+            (res) => Debug.Log("Host: PlayerData updated with Join Code."), 
+            OnError);
     }
 
 
