@@ -12,7 +12,7 @@ public class JoinRoomButton : IButton
     public override void OnPointerClick()
     {
         base.OnPointerClick();
-        PlayFabLobbyManager.Instance.JoinRoom();
+        PlayFabMatchmakingManager.Instance.JoinRoom();
 
     }
 
