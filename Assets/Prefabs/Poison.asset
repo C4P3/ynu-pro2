@@ -16,7 +16,7 @@ MonoBehaviour:
   effectType: 5
   itemTile: {fileID: 11400000, guid: e1de616e630f4784eb6ca045a6cc37cb, type: 2}
   acquisitionEffectPrefab: {fileID: 0}
-  followEffectPrefab: {fileID: 0}
-  followEffectDuration: 3
+  followEffectPrefab: {fileID: 2022857801286226451, guid: 717329a8bd195b44eb6a276920a0acfe, type: 3}
+  followEffectDuration: 1.5
   useSound: {fileID: 8300000, guid: cb6c23c7c2131c246b5d938baefd956e, type: 3}
   poisonAmount: 20
