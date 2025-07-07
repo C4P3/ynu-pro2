@@ -44,7 +44,7 @@ public class PlayFabMatchmakingManager : MonoBehaviour
     }
 
     // 「ホストになる」ボタンから呼び出す
-    public async void CreateRelay()
+    public async void CreateRoom()
     {
         try
         {
@@ -82,7 +82,7 @@ public class PlayFabMatchmakingManager : MonoBehaviour
     }
 
     // 「参加する」ボタンから呼び出す
-    public async void JoinRelay()
+    public async void JoinRoom()
     {
         string joinCode = roomIdInput.text;
         if (string.IsNullOrEmpty(joinCode))
