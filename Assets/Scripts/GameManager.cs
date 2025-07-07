@@ -24,11 +24,16 @@ public class GameManager : MonoBehaviour
     public Color criticalOxygenColor = Color.red;   // 10%以下になった時の色
     private Image fillImage;                        // ゲージの色を変更するためのImageコンポーネント
 
+    [Header("Survival Time")]
+    public TextMeshProUGUI survivalTimeText;        // 生存時間を表示するTextMeshProUGUIコンポーネント
     public PlayerController LocalPlayer { get; private set; }
 
     private float _currentOxygen;               // 現在の酸素量
     private bool _isOxygenInvincible = false;   // 酸素減少無効グラフ
     public bool IsOxygenInvincible => _isOxygenInvincible;
+
+    private float _survivalTime = 0f;           // 生存時間
+    private bool _gameEnded = false;            // ゲーム終了フラグ
 
     void Awake()
     {
@@ -53,15 +58,23 @@ public class GameManager : MonoBehaviour
             fillImage = oxygenSlider.fillRect.GetComponent<Image>();
         }
         UpdateOxygenUI();
-         // UIマネージャーなどに初期状態を通知する
+        // UIマネージャーなどに初期状態を通知する
         OnOxygenChanged?.Invoke(_currentOxygen, maxOxygen);
+
+        // 生存時間の初期化と表示更新
+        _survivalTime = 0f;
+        _gameEnded = false;
+        UpdateSurvivalTimeUI();
     }
 
     void Update()
     {
+        // ゲームが終了している場合は何もしない
+        if (_gameEnded) return;
+
         // ゲームがプレイ中でなければ酸素を減らさない
         bool isPlaying = false;
-        if(GameDataSync.Instance != null) // マルチプレイか確認
+        if (GameDataSync.Instance != null) // マルチプレイか確認
         {
             isPlaying = GameDataSync.Instance.currentState == GameState.Playing;
         }
@@ -69,26 +82,35 @@ public class GameManager : MonoBehaviour
         {
             isPlaying = true; // シングルでは常にプレイ中とみなす
         }
-        
-        if (isPlaying && !_isOxygenInvincible)
-        {
-            // 経過時間に応じて酸素を時間で減らす
-            float previousOxygen = _currentOxygen;
-            _currentOxygen -= oxygenDecreaseRate * Time.deltaTime;
-            _currentOxygen = Mathf.Max(_currentOxygen, 0); // 0未満にならないように
 
-            // 値が変化した場合のみUI更新とイベント発行を行う
-            if (!Mathf.Approximately(previousOxygen, _currentOxygen))
+        if (isPlaying)
+        {
+            // 生存時間を計測
+            _survivalTime += Time.deltaTime;
+            UpdateSurvivalTimeUI();
+
+            if (!_isOxygenInvincible) // 酸素減少無効化が有効でない場合のみ酸素を減らす
             {
-                UpdateOxygenUI();
-                OnOxygenChanged?.Invoke(_currentOxygen, maxOxygen);
-            }
-            // 酸素が0になったらゲームオーバー
-            if (_currentOxygen <= 0)
-            {
-                Debug.Log("ゲームオーバー");
-                // ここにゲームオーバー処理（リザルト画面表示など）
-                Time.timeScale = 0; // 時間を止める
+                // 経過時間に応じて酸素を時間で減らす
+                float previousOxygen = _currentOxygen;
+                _currentOxygen -= oxygenDecreaseRate * Time.deltaTime;
+                _currentOxygen = Mathf.Max(_currentOxygen, 0);
+
+                // 値が変化した場合のみUI更新とイベント発行を行う
+                if (!Mathf.Approximately(previousOxygen, _currentOxygen))
+                {
+                    UpdateOxygenUI();
+                    OnOxygenChanged?.Invoke(_currentOxygen, maxOxygen);
+                }
+                // 酸素が0になったらゲームオーバー
+                if (_currentOxygen <= 0)
+                {
+                    Debug.Log("ゲームオーバー");
+                    // ここにゲームオーバー処理（リザルト画面表示など）
+                    Time.timeScale = 0; // 時間を止める
+                    _gameEnded = true;
+                    Debug.Log($"最終生存時間: {FormatTime(_survivalTime)}");
+                }
             }
         }
     }
@@ -146,5 +168,29 @@ public class GameManager : MonoBehaviour
     {
         LocalPlayer = player;
         Debug.Log($"Local Player '{player.name}' has been registered.");
+    }
+    
+    // 生存時間UIを更新する
+    private void UpdateSurvivalTimeUI()
+    {
+        if (survivalTimeText != null)
+        {
+            survivalTimeText.text = FormatTime(_survivalTime);
+        }
+    }
+
+    // 秒数を「分:秒.ミリ秒」形式にフォーマットする
+    private string FormatTime(float timeInSeconds)
+    {
+        int minutes = Mathf.FloorToInt(timeInSeconds / 60);
+        int seconds = Mathf.FloorToInt(timeInSeconds % 60);
+        int milliseconds = Mathf.FloorToInt((timeInSeconds * 100) % 100); // 10ミリ秒単位で表示
+        return string.Format("{0:00}:{1:00}.{2:00}", minutes, seconds, milliseconds);
+    }
+
+    // 最終的な生存時間を取得する
+    public float GetSurvivalTime()
+    {
+        return _survivalTime;
     }
 }
