@@ -7,21 +7,11 @@ using TMPro;
 
 public class MultiPlayButton : IButton
 {
-    [SerializeField] CanvasGroup homeUI;
-    [SerializeField] CanvasGroup roomUI;
-
     public override void OnPointerClick()
     {
         base.OnPointerClick();
-        SetUI(roomUI, 1, true, true);
-        SetUI(homeUI, 0, false, false);
-        StartSceneBGMManager.Instance.PlayBGM(StartSceneBGMManager.Instance.taisenBGM);
-    }
-
-    public void SetUI(CanvasGroup canvasGroup, int alfha, bool interactable, bool blocksRaycasts){
-        canvasGroup.alpha = alfha;
-        canvasGroup.interactable = interactable;
-        canvasGroup.blocksRaycasts = blocksRaycasts;
+        ChangeUI(beforeUI, 0, false, false);
+        ChangeUI(afterUI, 1, true, true);
     }
 
     public override void OnPointerEnter()

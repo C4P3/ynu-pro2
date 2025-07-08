@@ -6,6 +6,8 @@ public class IButton : MonoBehaviour
     [SerializeField] protected Image buttonImage;
     [SerializeField] protected AudioClip clickSound;
     [SerializeField] protected AudioSource audioSource;
+    [SerializeField] protected CanvasGroup beforeUI;
+    [SerializeField] protected CanvasGroup afterUI;
     protected Color hoverColor = new Color(1, 1, 0, 1);
     protected Color normalColor = new Color(1, 1, 1, 1); // 透明
     protected Material matInstance;

@@ -96,6 +96,43 @@ public class EffectManager : MonoBehaviour
     }
 
     /// <summary>
+    /// 指定された方向に合わせてエフェクトを再生します。
+    /// </summary>
+    /// <param name="effectPrefab">再生するエフェクトのプレハブ</param>
+    /// <param name="position">再生するワールド座標</param>
+    /// <param name="direction">エフェクトの向きを示すVector3Int (例: Vector3Int.right)</param>
+    public void PlayDirectionalEffect(GameObject effectPrefab, Vector3 position, Vector3Int direction)
+    {
+        if (effectPrefab == null)
+        {
+            Debug.LogWarning("PlayDirectionalEffect was called with a null prefab.");
+            return;
+        }
+
+        // 方向ベクトルから回転角度を計算 (Y軸が上、X軸が右の2D座標系を想定)
+        // Vector3.right (1, 0, 0) を基準に、どのくらい回転させるかを計算します。
+        Quaternion rotation = Quaternion.FromToRotation(Vector3.right, (Vector3)direction);
+
+        // エフェクトを生成し、計算した回転を適用します。
+        GameObject effectInstance = Instantiate(effectPrefab, position, rotation);
+
+        // GetComponent を GetComponentInChildren に変更します。
+        // これにより、プレハブのルートだけでなく、その子オブジェクトも検索して
+        // 最初に見つかったParticleSystemを取得します。
+        ParticleSystem ps = effectInstance.GetComponentInChildren<ParticleSystem>(); 
+        if (ps != null)
+        {
+            float lifeTime = Mathf.Max(ps.main.duration, ps.main.startLifetime.constantMax);
+            Destroy(effectInstance, lifeTime);
+        }
+        else
+        {
+            Destroy(effectInstance, 5f);
+            Debug.LogWarning($"The effect '{effectInstance.name}' does not have a ParticleSystem component. It will be destroyed in 5 seconds.");
+        }
+    }
+
+    /// <summary>
     /// エフェクトを追従させ、指定時間後に破棄するコルーチン
     /// </summary>
     private IEnumerator FollowAndDestroyCoroutine(GameObject effectPrefab, float duration, Transform followTarget)

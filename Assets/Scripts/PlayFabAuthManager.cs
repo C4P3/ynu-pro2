@@ -7,12 +7,9 @@ using Unity.Services.Authentication;
 
 public class PlayFabAuthManager : MonoBehaviour
 {
+    [SerializeField] CanvasGroup loadingUI;
     [SerializeField] CanvasGroup loginUI;
-    [SerializeField] CanvasGroup homeUI;
-    [SerializeField] CanvasGroup roomUI;
-    [SerializeField] CanvasGroup recordUI;
-    [SerializeField] CanvasGroup configUI;
-
+    [SerializeField] CanvasGroup tittleUI;
     [SerializeField] string customIdPepper = "";
 
     public static PlayFabAuthManager Instance { get; private set; }
@@ -65,26 +62,26 @@ public class PlayFabAuthManager : MonoBehaviour
 
     void OnLoginSuccess(LoginResult result)
     {
-         // ★★★ ログイン成功時にEntityKeyを保存 ★★★
+        // ★★★ ログイン成功時にEntityKeyを保存 ★★★
         MyEntity = result.EntityToken.Entity;
 
-        if (result.NewlyCreated)
-        {
-            Debug.Log("初回ログイン（新規アカウント作成）！");
-            // 初回ログイン専用処理（例：ニックネーム設定画面へ遷移）
-            SetUI(loginUI, 1, true, true);
-            SetUI(homeUI, 0, false, false);
-        }
-        else
-        {
-            Debug.Log("既存アカウントでログイン成功！");
-            // 通常のホーム画面へ遷移など
-            SetUI(loginUI, 0, false, false);
-            SetUI(homeUI, 1, true, true);
-        }
-        SetUI(roomUI, 0, false, false);
-        SetUI(recordUI, 0, false, false);
-        SetUI(configUI, 0, false, false);
+        SetUI(loadingUI, 0, false, false);
+
+        // if (result.NewlyCreated)
+        // {
+        //     Debug.Log("初回ログイン（新規アカウント作成）！");
+        //     // 初回ログイン専用処理（例：ニックネーム設定画面へ遷移）
+        //     SetUI(loginUI, 1, true, true);
+        // }
+        // else
+        // {
+        //     Debug.Log("既存アカウントでログイン成功！");
+        //     // 通常のホーム画面へ遷移など
+        //     SetUI(tittleUI, 1, true, true);
+        // }
+        
+        //デバッグ用：通常の処理がしたいときは上の処理を使う
+        SetUI(loginUI, 1, true, true);
     }
 
     void OnLoginFailure(PlayFabError error)
@@ -107,7 +104,7 @@ public class PlayFabAuthManager : MonoBehaviour
     {
         Debug.Log("ニックネーム設定成功: " + result.DisplayName);
         SetUI(loginUI, 0, false, false);
-        SetUI(homeUI, 1, true, true);
+        SetUI(tittleUI, 1, true, true);
     }
 
     void OnDisplayNameSetFailure(PlayFabError error)

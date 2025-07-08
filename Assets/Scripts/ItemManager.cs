@@ -160,6 +160,15 @@ public class ItemManager : MonoBehaviour
                     {
                         direction = playerController.GetLastMoveDirection();
                     }
+
+                    // EffectManagerに、向きを指定したエフェクトの再生を依頼
+                    if (EffectManager.Instance != null && rocketData.beamEffectPrefab != null)
+                    {
+                        // プレイヤーの現在地をエフェクトの再生位置とする
+                        Vector3 effectPosition = playerTransform.position;
+                        EffectManager.Instance.PlayDirectionalEffect(rocketData.beamEffectPrefab, effectPosition, direction);
+                    }
+                    
                     rocketData.Activate(playerTransform, direction, levelManager.blockTilemap);
                 }
                 break;

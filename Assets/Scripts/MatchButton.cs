@@ -18,6 +18,7 @@ public class MatchButton : IButton
     private IEnumerator LoadSceneWithDelay(float delay)
     {
     yield return new WaitForSeconds(delay);
+    ChangeUI(beforeUI, 0, false, false);
     SceneManager.LoadScene("GameScene");
     }
 

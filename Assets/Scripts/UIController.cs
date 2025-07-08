@@ -2,18 +2,26 @@ using UnityEngine;
 
 public class UIController : MonoBehaviour
 {
+    [SerializeField] CanvasGroup loadingUI;
     [SerializeField] CanvasGroup loginUI;
+    [SerializeField] CanvasGroup tittleUI;
     [SerializeField] CanvasGroup homeUI;
     [SerializeField] CanvasGroup recordUI;
     [SerializeField] CanvasGroup configUI;
+    [SerializeField] CanvasGroup roomUI;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         //初期のUIの表示非表示
-        SetUI(loginUI, 1, true, true);
+        SetUI(loadingUI, 1, true, true);
+        SetUI(loginUI, 0, false, false);
+        SetUI(tittleUI, 0, false, false);
         SetUI(homeUI, 0, false, false);
         SetUI(recordUI, 0, false, false);
         SetUI(configUI, 0, false, false);
+        SetUI(roomUI, 0, false, false);
+
+
     }
 
     // Update is called once per frame
