@@ -105,22 +105,22 @@ public class TypingManager : MonoBehaviour
                 if ((c >= 'a' && c <= 'z') || c == '-')
                 {
                     var result = _typingModel.TypeCharacter(c);
-                    // 正しい入力ならUIを更新
-                    if (result != TypeResult.Incorrect)
+
+                    if (result == TypeResult.Incorrect)
                     {
-                        UpdateTypedText();
+                        PlaySound(missSound); // missSoundの再生
+                        if (GameManager.Instance != null)
+                        {
+                            GameManager.Instance.AddMissType(); // ミスタイプ数を加算
+                        }
+                    }
+                    else if (result == TypeResult.Correct)
+                    {
+                        PlaySound(typingSound); // typingSoundの再生
                     }
 
-                    // typingSoundの再生
-                    if(result == TypeResult.Correct)
-                    {
-                        PlaySound(typingSound);    
-                    }
-                    // 入力が間違っている場合はmissSoundを再生
-                    else if (result == TypeResult.Incorrect)
-                    {
-                        PlaySound(missSound);
-                    }
+                    UpdateTypedText(); // UIの更新
+
                     // 入力が正しく完了したら終了処理
                     if (result == TypeResult.Finished)
                     {

@@ -79,12 +79,12 @@ public class LevelManager : MonoBehaviour
             }
         }
 
-        if(hasNullElement)
+        if (hasNullElement)
         {
             Debug.LogError("Aborting map generation due to NULL element in BlockTypes.", gameObject);
             return; // 空の要素があれば処理を中断
         }
-    
+
         if (GameDataSync.Instance != null)
         {
             if (gameObject.name == "Grid_P1")
@@ -102,7 +102,7 @@ public class LevelManager : MonoBehaviour
         }
 
         _prng = new System.Random((int)mapSeed);
-        
+
         // 乱数生成器の初期化
         noiseOffsets = new Vector2[blockTypes.Length];
         for (int i = 0; i < blockTypes.Length; i++)
@@ -128,7 +128,7 @@ public class LevelManager : MonoBehaviour
         {
             _playerStartPosition = blockTilemap.WorldToCell(playerTransform.position);
         }
-        
+
         CheckAndGenerateChunksAroundPlayer();
     }
 
@@ -189,9 +189,9 @@ public class LevelManager : MonoBehaviour
                             itemTilemap.SetTile(tilePos, selectedItem.itemTile);
                         }
                     }
-                    continue; 
+                    continue;
                 }
-                
+
                 // --- ブロック生成ロジック ---
                 BlockType chosenBlock = null;
                 float maxNoiseValue = -1f;
@@ -200,7 +200,7 @@ public class LevelManager : MonoBehaviour
                     if (unchiItemData != null && blockTypes[i].tile == unchiItemData.unchiTile)
                     {
                         continue; // ウンチお邪魔タイルは初期生成しない
-                    }   
+                    }
 
                     float noiseX = (x + noiseOffsets[i].x) * noiseScale;
                     float noiseY = (y + noiseOffsets[i].y) * noiseScale;
@@ -249,9 +249,14 @@ public class LevelManager : MonoBehaviour
             // 破壊対象のブロックがウンチならスキップ
             if (unchiItemData != null && blockTilemap.GetTile(pos) == unchiItemData.unchiTile) continue;
             blockTilemap.SetTile(pos, null);
+            // ブロック破壊数を加算
+            if (GameManager.Instance != null)
+            {
+                GameManager.Instance.AddDestroyedBlock();
+            }
         }
     }
-    
+
     /// <summary>
     /// 指定された中心と半径のブロックとアイテムを破壊する（爆弾用）
     /// </summary>
@@ -298,7 +303,7 @@ public class LevelManager : MonoBehaviour
         queue.Enqueue(neighborPos);
         blocksToDestroy.Add(neighborPos);
     }
-    
+
     /// <summary>
     /// ワールド座標をチャンク座標に変換する
     /// </summary>
