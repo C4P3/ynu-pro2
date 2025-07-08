@@ -1,82 +1,90 @@
+using System.Linq;
+using System.Collections.Generic;
+using UnityEngine;
+
 namespace Models
 {
-    // TypingTextをstructで定義
     public struct TypingText
     {
         public string title;    // 表示用の日本語
         public string hiragana; // タイピング判定用のひらがな
+        public int textLength;  // ひらがなの文字数
+
+        public TypingText(string title, string hiragana)
+        {
+            this.title = title;
+            this.hiragana = hiragana;
+            this.textLength = hiragana != null ? hiragana.Length : 0;
+        }
     }
 
     public class TypingTextStore
     {
-        private readonly System.Collections.Generic.List<TypingText> _typingTexts = new()
-        {
-            new TypingText { title = "情報工学概論", hiragana = "じょうほうこうがくがいろん" },
-            new TypingText { title = "システムエンジニアリング", hiragana = "しすてむえんじにありんぐ" },
-            new TypingText { title = "コンピュータシステムとコミュニケーション", hiragana = "こんぴゅーたしすてむとこみゅにけーしょん" },
-            new TypingText { title = "情報リテラシ", hiragana = "じょうほうりてらし" },
-            new TypingText { title = "プログラミング入門", hiragana = "ぷろぐらみんぐにゅうもん" },
-            new TypingText { title = "線形代数学", hiragana = "せんけいだいすうがく" },
-            new TypingText { title = "解析学", hiragana = "かいせきがく" },
-            new TypingText { title = "離散数学", hiragana = "りさんすうがく" },
-            new TypingText { title = "基礎化学", hiragana = "きそかがく" },
-            new TypingText { title = "基礎力学", hiragana = "きそりきがく" },
-            new TypingText { title = "微分方程式", hiragana = "びぶんほうていしき" },
-            new TypingText { title = "確率統計", hiragana = "かくりつとうけい" },
-            new TypingText { title = "関数論", hiragana = "かんすうろん" },
-            new TypingText { title = "基礎解析力学", hiragana = "きそかいせきりきがく" },
-            new TypingText { title = "量子力学", hiragana = "りょうしりきがく" },
-            new TypingText { title = "基礎熱力学", hiragana = "きそねつりきがく" },
-            new TypingText { title = "データサイエンス実践基礎", hiragana = "でーたさいえんすじっせんきそ" },
-            new TypingText { title = "材料有機化学", hiragana = "ざいりょうゆうきかがく" },
-            new TypingText { title = "材料無機化学", hiragana = "ざいりょうむきかがく" },
-            new TypingText { title = "数値解析", hiragana = "すうちかいせき" },
-            new TypingText { title = "応用数学演習", hiragana = "おうようすうがくえんしゅう" },
-            new TypingText { title = "計測", hiragana = "けいそく" },
-            new TypingText { title = "連続体力学", hiragana = "れんぞくたいりきがく" },
-            new TypingText { title = "移動および速度論", hiragana = "いどうおよびそくどろん" },
-            new TypingText { title = "計算機アーキテクチャ", hiragana = "けいさんきあーきてくちゃ" },
-            new TypingText { title = "アルゴリズムとデータ構造", hiragana = "あるごりずむとでーたこうぞう" },
-            new TypingText { title = "プログラミング演習", hiragana = "ぷろぐらみんぐえんしゅう" },
-            new TypingText { title = "プロジェクトラーニング", hiragana = "ぷろじぇくとらーにんぐ" },
-            new TypingText { title = "電子情報工学実験", hiragana = "でんしじょうほうこうがくじっけん" },
-            new TypingText { title = "情報工学特別演習", hiragana = "じょうほうこうがくとくべつえんしゅう" },
-            new TypingText { title = "卒業研究", hiragana = "そつぎょうけんきゅう" },
-            new TypingText { title = "プログラミング", hiragana = "ぷろぐらみんぐ" },
-            new TypingText { title = "論理回路", hiragana = "ろんりかいろ" },
-            new TypingText { title = "コンピュータグラフィックス", hiragana = "こんぴゅーたぐらふぃっくす" },
-            new TypingText { title = "マルチメディア情報処理", hiragana = "まるちめでぃあじょうほうしょり" },
-            new TypingText { title = "応用数学", hiragana = "おうようすうがく" },
-            new TypingText { title = "コンピュータネットワーク", hiragana = "こんぴゅーたねっとわーく" },
-            new TypingText { title = "情報理論", hiragana = "じょうほうりろん" },
-            new TypingText { title = "ことばと論理", hiragana = "ことばとろんり" },
-            new TypingText { title = "プログラミング言語", hiragana = "ぷろぐらみんぐげんご" },
-            new TypingText { title = "システムプログラム", hiragana = "しすてむぷろぐらむ" },
-            new TypingText { title = "計算理論", hiragana = "けいさんりろん" },
-            new TypingText { title = "人工知能", hiragana = "じんこうちのう" },
-            new TypingText { title = "ディジタル信号処理", hiragana = "でぃじたるしんごうしょり" },
-            new TypingText { title = "基礎制御理論", hiragana = "きそせいぎょりろん" },
-            new TypingText { title = "コンパイラ", hiragana = "こんぱいら" },
-            new TypingText { title = "情報物理セキュリティ", hiragana = "じょうほうぶつりせきゅりてぃ" },
-            new TypingText { title = "計算機シミュレーション", hiragana = "けいさんきしみゅれーしょん" },
-            new TypingText { title = "理論言語学", hiragana = "りろんげんごがく" },
-            new TypingText { title = "データベース", hiragana = "でーたべーす" },
-            new TypingText { title = "ソフトコンピューティング", hiragana = "そふとこんぴゅーてぃんぐ" },
-            new TypingText { title = "感覚知覚システム論", hiragana = "かんかくちかくしすてむろん" },
-            new TypingText { title = "画像音声情報処理", hiragana = "がぞうおんせいじょうほうしょり" },
-            new TypingText { title = "暗号理論", hiragana = "あんごうりろん" },
-            new TypingText { title = "自然言語処理", hiragana = "しぜんげんごしょり" },
-            new TypingText { title = "情報社会倫理", hiragana = "じょうほうしゃかいりんり" },
-            new TypingText { title = "システム最適化理論", hiragana = "しすてむさいてきかりろん" },
-            new TypingText { title = "機械学習", hiragana = "きかいがくしゅう" },
-            new TypingText { title = "サイバーフィジカルネットワークアーキテクチャ", hiragana = "さいばーふぃじかるねっとわーくあーきてくちゃ" },
-            new TypingText { title = "総合応用工学概論", hiragana = "そうごうおうようこうがくがいろん" },
-            new TypingText { title = "統計数理工学", hiragana = "とうけいすうりこうがく" },
-            new TypingText { title = "先端電子情報工学", hiragana = "せんたんでんしじょうほうこうがく" },
-            new TypingText { title = "医工学連携基礎", hiragana = "いこうがくれんけいきそ" },
-        };
+        private List<TypingText> _allTexts = new List<TypingText>();
 
-        public TypingText RandomTypingText =>
-            _typingTexts[UnityEngine.Random.Range(0, _typingTexts.Count)];
+        // 難易度設定: 0=初級, 1=中級, 2=上級
+        public int levelSetting = 1;
+
+        public TypingTextStore()
+        {
+            // ここではなにもしない
+        }
+
+        public void LoadFromCsv()
+        {
+            // Resourcesフォルダ直下に"RypingTextStore.csv"を配置してください
+            TextAsset csvFile = Resources.Load<TextAsset>("TypingTextStore");
+            if (csvFile == null)
+            {
+                Debug.LogError("RypingTextStore.csvがResourcesに見つかりません。");
+                return;
+            }
+            var lines = csvFile.text.Split('\n');
+            foreach (var line in lines)
+            {
+                if (string.IsNullOrWhiteSpace(line)) continue;
+                var cols = line.Trim().Split(',');
+                if (cols.Length < 2) continue;
+                string title = cols[0].Trim();
+                string hiragana = cols[1].Trim();
+                _allTexts.Add(new TypingText(title, hiragana));
+            }
+        }
+
+        /// <summary>
+        /// 指定した塊サイズと現在の難易度に応じて、条件に合うランダムなテキストを返す
+        /// </summary>
+        public TypingText GetRandomTypingTextForCluster(int clusterSize)
+        {
+            int minLen = 1, maxLen = 99;
+            switch (levelSetting)
+            {
+                case 0: // 初級
+                    if (clusterSize <= 4)      { minLen = 2; maxLen = 4; }
+                    else if (clusterSize <= 7) { minLen = 5; maxLen = 7; }
+                    else                       { minLen = 8; maxLen = 10; }
+                    break;
+                case 1: // 中級
+                    if (clusterSize <= 2)      { minLen = 2; maxLen = 4; }
+                    else if (clusterSize <= 4) { minLen = 5; maxLen = 7; }
+                    else if (clusterSize <= 7) { minLen = 8; maxLen = 10; }
+                    else                       { minLen = 11; maxLen = 13; }
+                    break;
+                case 2: // 上級
+                    if (clusterSize <= 2)      { minLen = 5; maxLen = 7; }
+                    else if (clusterSize <= 4) { minLen = 8; maxLen = 10; }
+                    else if (clusterSize <= 7) { minLen = 11; maxLen = 13; }
+                    else                       { minLen = 14; maxLen = 16; }
+                    break;
+            }
+
+            var candidates = _allTexts.Where(t => t.textLength >= minLen && t.textLength <= maxLen).ToList();
+            if (candidates.Count == 0)
+            {
+                Debug.LogWarning($"条件に合うテキストがありません（level={levelSetting}, cluster={clusterSize}, len={minLen}-{maxLen}）");
+                return default;
+            }
+            return candidates[UnityEngine.Random.Range(0, candidates.Count)];
+        }
     }
 }

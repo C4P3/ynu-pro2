@@ -36,9 +36,9 @@ public class LevelManager : MonoBehaviour
     [Header("Cluster Generation Settings")]
     public BlockType[] blockTypes;
     [Tooltip("値が小さいほど大きな塊に、大きいほど小さな塊になります。0.1前後がおすすめ。")]
-    public float noiseScale = 0.1f;
+    public float noiseScale = 0.4f;
     [Tooltip("この値よりノイズが大きい場所だけにブロックを生成します。値を上げると空間が増えます。")]
-    [Range(0, 1)] public float blockThreshold = 0.4f;
+    [Range(0, 1)] public float blockThreshold = 0.6f;
 
     [Header("Item Generation Settings")]
     [Tooltip("アイテムを配置する候補地ができる確率")]
@@ -313,5 +313,32 @@ public class LevelManager : MonoBehaviour
         int x = Mathf.FloorToInt((float)gridPos.x / chunkSize);
         int y = Mathf.FloorToInt((float)gridPos.y / chunkSize);
         return new Vector2Int(x, y);
+    }
+
+    public int GetConnectedBlockCount(Vector3Int startPos)
+    {
+        // 例: 幅優先探索で連結ブロック数をカウント
+        var visited = new HashSet<Vector3Int>();
+        var queue = new Queue<Vector3Int>();
+        TileBase targetTile = blockTilemap.GetTile(startPos);
+        if (targetTile == null) return 0;
+        queue.Enqueue(startPos);
+        visited.Add(startPos);
+
+        Vector3Int[] directions = { Vector3Int.up, Vector3Int.down, Vector3Int.left, Vector3Int.right };
+        while (queue.Count > 0)
+        {
+            var pos = queue.Dequeue();
+            foreach (var dir in directions)
+            {
+                var next = pos + dir;
+                if (!visited.Contains(next) && blockTilemap.GetTile(next) == targetTile)
+                {
+                    visited.Add(next);
+                    queue.Enqueue(next);
+                }
+            }
+        }
+        return visited.Count;
     }
 }
