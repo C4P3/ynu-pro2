@@ -172,7 +172,7 @@ public class TutorialManager : MonoBehaviour
     {
         if (isWaitingForInput && !isVideoPlaying && currentStep < steps.Count - 1)
         {
-            currentStep++;
+            currentStep += 1;
             ShowCurrentStep();
         }
     }
@@ -181,7 +181,7 @@ public class TutorialManager : MonoBehaviour
     {
         if (isWaitingForInput && !isVideoPlaying && currentStep > 0)
         {
-            currentStep--;
+            currentStep -= 1;
             ShowCurrentStep();
         }
     }
