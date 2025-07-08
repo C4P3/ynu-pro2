@@ -32,7 +32,6 @@ namespace Models
 
         public void LoadFromCsv()
         {
-            // Resourcesフォルダ直下に"RypingTextStore.csv"を配置してください
             TextAsset csvFile = Resources.Load<TextAsset>("TypingTextStore");
             if (csvFile == null)
             {
