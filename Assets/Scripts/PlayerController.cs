@@ -261,7 +261,13 @@ public class PlayerController : MonoBehaviour
             // _networkInputがnull（シングルプレイ時）か、isLocalPlayerがtrueの場合のみ実行
             if (_networkInput == null || _networkInput.isLocalPlayer)
             {
-                typingManager.StartTyping(moveVec);
+                // ブロックの塊サイズを取得
+                int clusterSize = 1;
+                if (levelManager != null)
+                {
+                    clusterSize = levelManager.GetConnectedBlockCount(_typingTargetPos);
+                }
+                typingManager.StartTyping(moveVec, clusterSize);
             }
         }
         else
