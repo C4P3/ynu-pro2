@@ -9,7 +9,7 @@ using TMPro;
 public class TutorialStep
 {
     public string message;            // 表示する説明文
-    public KeyCode key1;              // 修飾キー（例：Shift）
+    public KeyCode key1;              // 修飾キー（例：Shift）なしの場合は None
     public KeyCode key2;              // 入力キー（例：A）
     public VideoClip videoClip;       // 再生する動画（任意）
     public Sprite image;              // 表示する画像（任意）
@@ -69,23 +69,21 @@ public class TutorialManager : MonoBehaviour
     {
         var step = steps[currentStep];
 
-        // メッセージが空でない場合のみポップアップ表示
         if (!string.IsNullOrEmpty(step.message))
         {
             popupText.text = step.message;
             popup.SetActive(true);
 
-            // 前の画像・動画は非表示にする（ポップアップがある場合だけ）
+            // ポップアップがあるときは前のメディアを非表示
             tutorialImage.gameObject.SetActive(false);
             videoPlayer.gameObject.SetActive(false);
         }
         else
         {
             popup.SetActive(false);
-            // 前の映像はそのまま残す
+            // 前の画像や動画をそのまま残す
         }
 
-        // 🔽 ここでボタンを有効にする（次/前ステップへの移動用）
         nextButton.gameObject.SetActive(true);
         backButton.gameObject.SetActive(true);
 
@@ -119,38 +117,31 @@ public class TutorialManager : MonoBehaviour
             tutorialImage.sprite = step.image;
             tutorialImage.gameObject.SetActive(true);
             videoPlayer.gameObject.SetActive(false);
+
             StartCoroutine(WaitAndProceedAfterSeconds(2f));
         }
         else
         {
             Debug.LogWarning("動画も画像も設定されていません。");
-            ProceedToNextStep();
+            ProceedToStep(currentStep + 1);
         }
     }
 
     void OnVideoFinished(VideoPlayer vp)
     {
         Debug.Log("動画終了");
+
         videoPlayer.Stop();
         videoPlayer.frame = 0;
-        videoPlayer.Play();   // 先頭に戻す
+        videoPlayer.Play();
         videoPlayer.Pause();
 
         isVideoPlaying = false;
-        ProceedToNextStep();
-    }
 
-    IEnumerator WaitAndProceedAfterSeconds(float seconds)
-    {
-        yield return new WaitForSeconds(seconds);
-        ProceedToNextStep();
-    }
-
-    void ProceedToNextStep()
-    {
-        currentStep++;
-        if (currentStep < steps.Count)
+        // ✅ 自動で次のメディア再生は行わず、説明に戻す
+        if (currentStep < steps.Count - 1)
         {
+            currentStep++;
             ShowCurrentStep();
         }
         else
@@ -162,9 +153,24 @@ public class TutorialManager : MonoBehaviour
         }
     }
 
+    IEnumerator WaitAndProceedAfterSeconds(float seconds)
+    {
+        yield return new WaitForSeconds(seconds);
+        ProceedToStep(currentStep + 1);
+    }
+
+    void ProceedToStep(int index)
+    {
+        if (index >= 0 && index < steps.Count)
+        {
+            currentStep = index;
+            ShowCurrentStep();
+        }
+    }
+
     public void OnNextButtonPressed()
     {
-        if (isWaitingForInput && currentStep < steps.Count - 1)
+        if (isWaitingForInput && !isVideoPlaying && currentStep < steps.Count - 1)
         {
             currentStep++;
             ShowCurrentStep();
@@ -173,7 +179,7 @@ public class TutorialManager : MonoBehaviour
 
     public void OnBackButtonPressed()
     {
-        if (!isVideoPlaying && currentStep > 0)
+        if (isWaitingForInput && !isVideoPlaying && currentStep > 0)
         {
             currentStep--;
             ShowCurrentStep();
