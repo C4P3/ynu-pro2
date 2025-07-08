@@ -178,8 +178,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: roomID
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 00c2e0182d8314cf9a46acc25397e443, type: 2}
-  m_sharedMaterial: {fileID: 2609309607389407116, guid: 00c2e0182d8314cf9a46acc25397e443, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 62e2d4eaaba284e96af70e7dc4b117ce, type: 2}
+  m_sharedMaterial: {fileID: -5846966667294018994, guid: 62e2d4eaaba284e96af70e7dc4b117ce, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -2382,8 +2382,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: "\u200B"
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 62e2d4eaaba284e96af70e7dc4b117ce, type: 2}
+  m_sharedMaterial: {fileID: -5846966667294018994, guid: 62e2d4eaaba284e96af70e7dc4b117ce, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -3112,8 +3112,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: "\u200B"
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 62e2d4eaaba284e96af70e7dc4b117ce, type: 2}
+  m_sharedMaterial: {fileID: -5846966667294018994, guid: 62e2d4eaaba284e96af70e7dc4b117ce, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -4072,8 +4072,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: Join
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 62e2d4eaaba284e96af70e7dc4b117ce, type: 2}
+  m_sharedMaterial: {fileID: -5846966667294018994, guid: 62e2d4eaaba284e96af70e7dc4b117ce, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -4208,8 +4208,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: status
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 00c2e0182d8314cf9a46acc25397e443, type: 2}
-  m_sharedMaterial: {fileID: 2609309607389407116, guid: 00c2e0182d8314cf9a46acc25397e443, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 62e2d4eaaba284e96af70e7dc4b117ce, type: 2}
+  m_sharedMaterial: {fileID: -5846966667294018994, guid: 62e2d4eaaba284e96af70e7dc4b117ce, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -6815,7 +6815,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1995339588}
-  - component: {fileID: 1995339587}
+  - component: {fileID: 1995339589}
+  - component: {fileID: 1995339590}
   m_Layer: 0
   m_Name: PlayFabLobbyManager
   m_TagString: Untagged
@@ -6823,21 +6824,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1995339587
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1995339586}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4ddb9ff7561b09148ab61914fa2765b4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  roomIdInput: {fileID: 480133761}
-  roomIdDisplayText: {fileID: 24820402}
-  statusText: {fileID: 1330472497}
 --- !u!4 &1995339588
 Transform:
   m_ObjectHideFlags: 0
@@ -6853,6 +6839,35 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1995339589
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1995339586}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0c1228cd7e1ddc441884f1af9ae42285, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  roomIdInput: {fileID: 480133761}
+  roomIdDisplayText: {fileID: 24820402}
+  statusText: {fileID: 1330472497}
+  relayManager: {fileID: 74822755}
+  roomId: 
+--- !u!114 &1995339590
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1995339586}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ec837f27af8f3bc47bd3c4f72c9f7df1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &2127851567
 GameObject:
   m_ObjectHideFlags: 0
