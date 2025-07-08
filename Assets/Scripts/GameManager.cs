@@ -108,6 +108,8 @@ public class GameManager : MonoBehaviour
                 _currentOxygen = Mathf.Max(0, _currentOxygen); // 0未満にならないようにする
                 UpdateOxygenUI();
 
+                OnOxygenChanged?.Invoke(_currentOxygen, maxOxygen); //酸素切れエフェクト用
+
                 if (_currentOxygen <= 0)
                 {
                     GameOver();
