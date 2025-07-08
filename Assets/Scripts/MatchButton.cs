@@ -1,44 +1,24 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.UI;
-using TMPro;
+using UnityEngine.EventSystems;
 
 public class MatchButton : IButton
 {
-    public override void OnPointerClick()
+    public override void OnPointerClick(PointerEventData eventData)
     {
-        base.OnPointerClick();   
-        StartCoroutine(LoadSceneWithDelay( 0.3f));
+        base.OnPointerClick(eventData); // 音などの共通処理
+
+        // BGMを止めてからシーンを遷移
         StartSceneBGMManager.Instance.StopBGM();
-    }
-    
 
-    private IEnumerator LoadSceneWithDelay(float delay)
-    {
-    yield return new WaitForSeconds(delay);
-    ChangeUI(beforeUI, 0, false, false);
-    SceneManager.LoadScene("GameScene");
+        // 遷移前にUI非表示、遅延付きでシーンロード
+        ChangeUI(beforeUI, 0, false, false);
+        StartCoroutine(LoadSceneWithDelay(0.3f));
     }
 
-    public override void OnPointerEnter()
+    private System.Collections.IEnumerator LoadSceneWithDelay(float delay)
     {
-        base.OnPointerEnter();
-    }
-
-    public override void OnPointerExit()
-    {
-        base.OnPointerExit();
-    }
-
-    public override void OnPointerDown()
-    {
-        base.OnPointerDown();
-    }
-
-    public override void OnPointerUp()
-    {
-        base.OnPointerUp();
+        yield return new WaitForSeconds(delay);
+        SceneManager.LoadScene("GameScene");
     }
 }

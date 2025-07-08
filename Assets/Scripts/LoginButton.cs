@@ -1,48 +1,17 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.SceneManagement;
-using UnityEngine.UI;
-using TMPro;
+using UnityEngine.EventSystems;
 
 public class LoginButton : IButton
 {
-    [SerializeField] TMP_InputField inputField;
-
-    public override void OnPointerClick(){
-
-        var authManager = FindFirstObjectByType<PlayFabAuthManager>();
-
-        if(authManager == null)
-        {
-            Debug.LogError("PlayFabAuthManagerが見つかりません。");
-            return;
-        }
-
-        if(inputField == null)
-        {
-            Debug.LogError("InputFieldが設定されていません。");
-            return;
-        }
-
-        base.OnPointerClick();
-        authManager.SetDisplayName(inputField.text);
-    }
-    public override void OnPointerEnter()
+    public override void OnPointerClick(PointerEventData eventData)
     {
-        base.OnPointerEnter();
-    }
-    public override void OnPointerExit()
-    {
-        base.OnPointerExit();
-    }
-    public override void OnPointerDown()
-    {
-        base.OnPointerDown();
-    }
+        base.OnPointerClick(eventData); // 音などの共通処理
 
-    public override void OnPointerUp()
-    {
-        base.OnPointerUp();
+        // 入力チェックやUI遷移などの処理をここに記述
+        Debug.Log("ログインボタンが押されました");
+
+        // 例: UI 切り替え（ログイン → マッチングへ）
+        ChangeUI(beforeUI, 0, false, false);
+        ChangeUI(afterUI, 1, true, true);
     }
 }

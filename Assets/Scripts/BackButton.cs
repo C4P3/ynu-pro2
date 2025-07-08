@@ -1,31 +1,12 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.SceneManagement;
-using UnityEngine.UI;
-using TMPro;
+using UnityEngine.EventSystems;
 
 public class BackButton : IButton
 {
-    public override void OnPointerClick()
+    public override void OnPointerClick(PointerEventData eventData)
     {
-        base.OnPointerClick();
-    }
-    public override void OnPointerEnter()
-    {
-        base.OnPointerEnter();
-    }
-    public override void OnPointerExit()
-    {
-        base.OnPointerExit();
-    }
-    public override void OnPointerDown()
-    {
-        base.OnPointerDown();
-    }
-
-    public override void OnPointerUp()
-    {
-        base.OnPointerUp();
+        base.OnPointerClick(eventData);
+        ChangeUI(beforeUI, 1, true, true);  // 元のUIを表示
+        ChangeUI(afterUI, 0, false, false); // 現在のUIを非表示
     }
 }
