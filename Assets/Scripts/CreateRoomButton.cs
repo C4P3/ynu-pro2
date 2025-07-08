@@ -12,7 +12,7 @@ public class CreateRoomButton : IButton
     public override void OnPointerClick()
     {
         base.OnPointerClick();
-        PlayFabLobbyManager.Instance.CreateRoom();
+        PlayFabMatchmakingManager.Instance.CreateRoom();
     }
 
 
