@@ -269,25 +269,25 @@ public class LevelManager : MonoBehaviour
                 if (x * x + y * y > radius * radius) continue; // 円形の範囲
                 Vector3Int pos = center + new Vector3Int(x, y, 0);
 
-                // 爆破対象のブロックがウンチタイルならスキップ
+                // ブロック破壊判定
+                bool blockDestroyed = false;
                 if (unchiItemData != null && blockTilemap.GetTile(pos) == unchiItemData.unchiTile)
                 {
-                    // 何もしない
+                    // ウンチタイルは破壊しない
+                }
+                else if (itemTilemap.HasTile(pos))
+                {
+                    // アイテムがある場所のブロックは破壊しない
                 }
                 else
                 {
                     blockTilemap.SetTile(pos, null);
+                    blockDestroyed = true;
                 }
 
-                // 爆破対象のアイテムがウンチタイルならスキップ
-                if (unchiItemData != null && itemTilemap.GetTile(pos) == unchiItemData.unchiTile)
-                {
-                    // 何もしない
-                }
-                else
-                {
-                    itemTilemap.SetTile(pos, null);
-                }
+                // アイテムは爆弾で破壊しない（何もしない）
+                // もし「ブロックが破壊された場合のみアイテムも消したい」場合は下記を有効化
+                // if (blockDestroyed) itemTilemap.SetTile(pos, null);
             }
         }
     }
