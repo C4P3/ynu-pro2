@@ -15,7 +15,7 @@ public class GameManager : MonoBehaviour
 
     [Header("Oxygen")]
     public float maxOxygen = 100f;              // 最大酸素量
-    public float oxygenDecreaseRate = 1f;       // 1秒あたりに減る酸素量
+    public float oxygenDecreaseRate = 0.5f;       // 1秒あたりに減る酸素量
     public Slider oxygenSlider;                 // 酸素ゲージUI
 
     [Header("Oxygen Bar Colors")]
