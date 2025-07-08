@@ -141,6 +141,25 @@ public class PlayerController : MonoBehaviour
     private void HandleRoamingState()
     {   
         // 入力待ち
+        // SHIFTキーが押されているかチェック
+        if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
+        {
+            Vector3Int moveVec = Vector3Int.zero;
+
+            // WASDの長押しをチェックし、移動方向を決定
+            if (Input.GetKey(KeyCode.W))      moveVec = Vector3Int.up;
+            else if (Input.GetKey(KeyCode.S)) moveVec = Vector3Int.down;
+            else if (Input.GetKey(KeyCode.A)) moveVec = Vector3Int.left;
+            else if (Input.GetKey(KeyCode.D)) moveVec = Vector3Int.right;
+
+            // 移動方向が決定された場合（キーが押されている場合）
+            if (moveVec != Vector3Int.zero)
+            {
+                // 既存の移動/タイピング開始処理を呼び出す
+                // これにより、移動先にブロックがあればタイピング、なければ移動が開始される
+                CheckAndMove(moveVec);
+            }
+        }
     }
 
     /// <summary>
