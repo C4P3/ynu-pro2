@@ -5,13 +5,21 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using TMPro;
 
-public class MatchButton : IButton
+public class GameStartButton : IButton
 {
     public override void OnPointerClick()
     {
-        base.OnPointerClick();
-        ChangeUI(beforeUI, 1, false, false);
-        ChangeUI(afterUI, 1, true, true);
+        base.OnPointerClick();   
+        StartCoroutine(LoadSceneWithDelay( 0.3f));
+        StartSceneBGMManager.Instance.StopBGM();
+    }
+    
+
+    private IEnumerator LoadSceneWithDelay(float delay)
+    {
+    yield return new WaitForSeconds(delay);
+    ChangeUI(beforeUI, 0, false, false);
+    SceneManager.LoadScene("GameScene");
     }
 
     public override void OnPointerEnter()

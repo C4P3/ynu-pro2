@@ -11,9 +11,11 @@ public class IButton : MonoBehaviour
     protected Color hoverColor = new Color(1, 1, 0, 1);
     protected Color normalColor = new Color(1, 1, 1, 1); // 透明
     protected Material matInstance;
+    protected Vector3 originalScale;
 
     protected void Start()
     {
+        originalScale = transform.localScale;
         if (buttonImage == null)
         {
             Debug.LogError("targetImageをInspectorで設定してください");
@@ -37,12 +39,16 @@ public class IButton : MonoBehaviour
         }
     }
 
-    public virtual void OnPointerEnter(){
+    public virtual void OnPointerEnter()
+    {
         matInstance.SetFloat("_IsHover", 1f);
+        transform.localScale = originalScale * 1.05f;
     }
 
-    public virtual void OnPointerExit(){
+    public virtual void OnPointerExit()
+    {
         matInstance.SetFloat("_IsHover", 0f);
+        transform.localScale = originalScale;
     }
 
     public virtual void OnPointerDown()

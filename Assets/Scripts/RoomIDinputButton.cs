@@ -5,25 +5,20 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using TMPro;
 
-public class MatchButton : IButton
+public class RoomIDInputButton : IButton
 {
     public override void OnPointerClick()
     {
         base.OnPointerClick();
-        ChangeUI(beforeUI, 1, false, false);
-        ChangeUI(afterUI, 1, true, true);
     }
-
     public override void OnPointerEnter()
     {
         base.OnPointerEnter();
     }
-
     public override void OnPointerExit()
     {
         base.OnPointerExit();
     }
-
     public override void OnPointerDown()
     {
         base.OnPointerDown();

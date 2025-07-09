@@ -10,6 +10,8 @@ public class RoomJoinButton : IButton
     public override void OnPointerClick()
     {
         base.OnPointerClick();
+        ChangeUI(beforeUI, 1, false, false);
+        ChangeUI(afterUI, 1, true, true);
     }
 
     public override void OnPointerEnter()
