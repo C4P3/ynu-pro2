@@ -96,10 +96,10 @@ public class PlayerController : MonoBehaviour
         _gridTargetPos = blockTilemap.WorldToCell(transform.position);
         transform.position = blockTilemap.GetCellCenterWorld(_gridTargetPos);
         CheckForItemAt(_gridTargetPos);
-        // アニメーションを初期状態(Idle)に設定
+
         if (animationManager != null)
         {
-            animationManager.SetWalking(false);
+            // プレイヤーの初期スプライトを上向きに設定
             animationManager.UpdateSpriteDirection(_lastMoveDirection);
         }
     }
@@ -184,12 +184,6 @@ public class PlayerController : MonoBehaviour
             }
             // 移動が完了したので、Roaming状態に戻る
             _currentState = PlayerState.Roaming;
-
-            //　移動が完了したので、アニメーションをIdleに戻す
-            if (animationManager != null)
-            {
-                animationManager.SetWalking(false);
-            }
         }
     }
 
@@ -198,11 +192,6 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     private void HandleTypingEnded(bool wasSuccessful)
     {
-        // タイピングが成功/失敗問わず終了したので、アニメーションを停止する
-        if (animationManager != null)
-        {
-            animationManager.SetTyping(false);
-        }
         if (wasSuccessful)
         {
             if (_networkInput != null)
@@ -259,23 +248,12 @@ public class PlayerController : MonoBehaviour
             if (levelManager != null && levelManager.unchiItemData != null && blockTilemap.GetTile(nextGridPos) == levelManager.unchiItemData.unchiTile)
             {
                 // ウンチタイルがある場合は、タイピングを開始しない
-                if (animationManager != null)
-                {
-                    animationManager.SetTyping(false);
-                    animationManager.SetWalking(false);
-                }
                 return;
             }
 
             // ブロックがある場合
             _typingTargetPos = nextGridPos;
             _currentState = PlayerState.Typing;
-
-            // タイピング開始に合わせて、Attackアニメーションを開始する
-            if (animationManager != null)
-            {
-                animationManager.SetTyping(true);
-            }
 
             // _networkInputがnull（シングルプレイ時）か、isLocalPlayerがtrueの場合のみ実行
             if (_networkInput == null || _networkInput.isLocalPlayer)
@@ -332,12 +310,6 @@ public class PlayerController : MonoBehaviour
         // Roaming状態でない場合は何もしない
         _gridTargetPos = targetPos;
         _currentState = PlayerState.Moving;
-
-        // 移動開始に合わせて、歩行アニメーションを開始
-        if (animationManager != null)
-        {
-            animationManager.SetWalking(true);
-        }
 
         //移動音を再生
          if (walkSoundCoroutine != null)
