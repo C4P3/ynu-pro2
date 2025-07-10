@@ -21,6 +21,8 @@ public class IButton : MonoBehaviour,
     protected Color normalColor = new Color(1, 1, 1, 1);
     protected Material matInstance;
     protected Vector3 originalScale;
+    protected AudioClip mouseOverSound;
+
 
     protected void Start()
     {
@@ -53,6 +55,7 @@ public class IButton : MonoBehaviour,
     public virtual void OnPointerEnter(PointerEventData eventData){
         matInstance.SetFloat("_IsHover", 1f);
         transform.localScale = originalScale * 1.05f;
+         audioSource.PlayOneShot(mouseOverSound);       
     }
 
     public virtual void OnPointerExit(PointerEventData eventData ){
