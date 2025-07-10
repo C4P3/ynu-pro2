@@ -1,34 +1,30 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.SceneManagement;
-using UnityEngine.UI;
-using TMPro;
+using UnityEngine.EventSystems;
 
 public class RankMatchButton : IButton
 {
-    public override void OnPointerClick()
+    public override void OnPointerClick(PointerEventData eventData)
     {
-        base.OnPointerClick();
+        base.OnPointerClick(eventData);
     }
 
-    public override void OnPointerEnter()
+    public override void OnPointerEnter(PointerEventData eventData)
     {
-        base.OnPointerEnter();
+        base.OnPointerEnter(eventData);
     }
 
-    public override void OnPointerExit()
+    public override void OnPointerExit(PointerEventData eventData)
     {
-        base.OnPointerExit();
+        base.OnPointerExit(eventData);
     }
 
-    public override void OnPointerDown()
+    public override void OnPointerDown(PointerEventData eventData)
     {
-        base.OnPointerDown();
+        base.OnPointerDown(eventData);
     }
 
-    public override void OnPointerUp()
+    public override void OnPointerUp(PointerEventData eventData)
     {
-        base.OnPointerUp();
+        base.OnPointerUp(eventData);
     }
 }
