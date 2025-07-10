@@ -1,0 +1,81 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &204301028653296878
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3543531649290911962}
+  - component: {fileID: 1890074603984694371}
+  m_Layer: 0
+  m_Name: LevelManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3543531649290911962
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 204301028653296878}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.123543695, y: -0.15310861, z: -5}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1890074603984694371
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 204301028653296878}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: af5aebb505a2a4ef99d2190ec5d65ef7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  mapSeed: 10
+  blockTilemap: {fileID: 0}
+  itemTilemap: {fileID: 0}
+  playerTransform: {fileID: 0}
+  blockTypes:
+  - name: "\u6C34\u8272\u30D6\u30ED\u30C3\u30AF"
+    tile: {fileID: 11400000, guid: 1362087bd6b4e404d9e259a3b0a88701, type: 2}
+    probabilityWeight: 0.2
+  - name: "\u9752\u8272\u30D6\u30ED\u30C3\u30AF"
+    tile: {fileID: 11400000, guid: afc0fff9f08d84279849db3bf799276a, type: 2}
+    probabilityWeight: 0.2
+  - name: "\u6843\u8272\u30D6\u30ED\u30C3\u30AF"
+    tile: {fileID: 11400000, guid: 8289a85b11caa4a2d9bdd92ec9b5e914, type: 2}
+    probabilityWeight: 0.2
+  - name: "\u7D2B\u8272\u30D6\u30ED\u30C3\u30AF"
+    tile: {fileID: 11400000, guid: b68c430b9a40747029451d1e0d01fe88, type: 2}
+    probabilityWeight: 0.2
+  - name: "\u8D64\u8272\u30D6\u30ED\u30C3\u30AF"
+    tile: {fileID: 11400000, guid: dd6a166fec79b464eb7aac0f901fce1b, type: 2}
+    probabilityWeight: 0.2
+  - name: "\u9EC4\u8272\u30D6\u30ED\u30C3\u30AF"
+    tile: {fileID: 11400000, guid: fa791cc9833aa458cb77093386ea3fec, type: 2}
+    probabilityWeight: 0.2
+  - name: "\u7DD1\u8272\u30D6\u30ED\u30C3\u30AF"
+    tile: {fileID: 11400000, guid: 511668c2d34e341ce9e7260f7f41fb24, type: 2}
+    probabilityWeight: 0.2
+  - name: "\u7070\u8272\u30D6\u30ED\u30C3\u30AF"
+    tile: {fileID: 11400000, guid: abcafb59ab0604d6282698bb0cb02067, type: 2}
+    probabilityWeight: 0.2
+  noiseScale: 0.4
+  blockThreshold: 0.4
+  itemAreaChance: 0.02
+  chunkSize: 16
+  generationRadiusInChunks: 2
+  unchiItemData: {fileID: 11400000, guid: 2b52397f5ebbeb84da4af078c3b1a0f9, type: 2}

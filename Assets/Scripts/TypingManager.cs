@@ -14,7 +14,7 @@ public class TypingManager : MonoBehaviour
     public GameObject typingPanel;
     private TextMeshProUGUI _typedText;
     // タイピング用データ管理
-    private TypingTextStore _typingTextStore = new TypingTextStore();
+    private TypingTextStore _typingTextStore;
     private CurrentTypingTextModel _typingModel = new CurrentTypingTextModel();
     private Vector3Int _initialMoveDirection;
 
@@ -25,6 +25,12 @@ public class TypingManager : MonoBehaviour
     [SerializeField] private AudioClip missSound;
 
     private AudioSource audioSource;
+
+    void Awake()
+    {
+        _typingTextStore = new TypingTextStore();
+        _typingTextStore.LoadFromCsv(); // LoadFromCsvをpublicにする
+    }
 
     void Start()
     {
@@ -56,10 +62,11 @@ public class TypingManager : MonoBehaviour
     }
 
     // タイピン開始時の初期化処理
-    public void StartTyping(Vector3Int moveDirection)
+    public void StartTyping(Vector3Int moveDirection, int clusterSize)
     {
         _initialMoveDirection = moveDirection;
-        TypingText currentTypingText = _typingTextStore.RandomTypingText;
+        // clusterSizeに応じてテキストを取得
+        TypingText currentTypingText = _typingTextStore.GetRandomTypingTextForCluster(clusterSize);
 
         // ひらがなをローマ字に変換
         var converter = new ConvertHiraganaToRomanModel();

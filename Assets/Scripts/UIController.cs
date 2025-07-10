@@ -6,9 +6,12 @@ public class UIController : MonoBehaviour
     [SerializeField] CanvasGroup loginUI;
     [SerializeField] CanvasGroup tittleUI;
     [SerializeField] CanvasGroup homeUI;
+    [SerializeField] CanvasGroup ruleSelectUI;
     [SerializeField] CanvasGroup recordUI;
     [SerializeField] CanvasGroup configUI;
-    [SerializeField] CanvasGroup roomUI;
+    [SerializeField] CanvasGroup multiplayUI;
+    [SerializeField] CanvasGroup roomRuleSelectUI;
+    [SerializeField] CanvasGroup roomIDInputUI;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -17,9 +20,13 @@ public class UIController : MonoBehaviour
         SetUI(loginUI, 0, false, false);
         SetUI(tittleUI, 0, false, false);
         SetUI(homeUI, 0, false, false);
+        SetUI(ruleSelectUI, 0, false, false);
         SetUI(recordUI, 0, false, false);
         SetUI(configUI, 0, false, false);
-        SetUI(roomUI, 0, false, false);
+        SetUI(multiplayUI, 0, false, false);
+        SetUI(roomRuleSelectUI, 0, false, false);
+        SetUI(roomIDInputUI, 0, false, false);
+
 
 
     }

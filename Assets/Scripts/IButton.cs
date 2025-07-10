@@ -21,9 +21,11 @@ public class IButton : MonoBehaviour,
     protected Color hoverColor = new Color(1, 1, 0, 1);
     protected Color normalColor = new Color(1, 1, 1, 1);
     protected Material matInstance;
+    protected Vector3 originalScale;
 
     protected void Start()
     {
+        originalScale = transform.localScale;
         if (buttonImage == null)
         {
             Debug.LogError("targetImageをInspectorで設定してください");
@@ -47,19 +49,12 @@ public class IButton : MonoBehaviour,
         }
     }
 
-    public virtual void OnSubmit(BaseEventData eventData)
-    {
-        OnPointerClick(); // エンターキーでクリック処理
+    public virtual void OnPointerEnter(){
+        matInstance.SetFloat("_IsHover", 1f);
     }
 
-    public virtual void OnPointerEnter(PointerEventData eventData)
-    {
-        matInstance?.SetFloat("_IsHover", 1f);
-    }
-
-    public virtual void OnPointerExit(PointerEventData eventData)
-    {
-        matInstance?.SetFloat("_IsHover", 0f);
+    public virtual void OnPointerExit(){
+        matInstance.SetFloat("_IsHover", 0f);
     }
 
     public virtual void OnPointerDown(PointerEventData eventData)

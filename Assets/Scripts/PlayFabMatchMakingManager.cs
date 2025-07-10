@@ -12,6 +12,8 @@ public class PlayFabMatchmakingManager : MonoBehaviour
 
     [SerializeField] private MyRelayNetworkManager relayManager;
 
+    public string roomId;
+
     void Awake()
     {
         if (Instance == null) { Instance = this; DontDestroyOnLoad(gameObject); }
@@ -38,7 +40,8 @@ public class PlayFabMatchmakingManager : MonoBehaviour
         }
 
         // Join Codeの表示
-        roomIdDisplayText.text = relayManager.relayJoinCode;
+        roomId = relayManager.relayJoinCode;
+        roomIdDisplayText.text = roomId;
         statusText.text = "コードを相手に伝えてください";
         Debug.Log("Join Code is: " + relayManager.relayJoinCode);
     }
