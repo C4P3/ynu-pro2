@@ -17,7 +17,6 @@ public class IButton : MonoBehaviour,
     [SerializeField] protected AudioSource audioSource;
     [SerializeField] protected CanvasGroup beforeUI;
     [SerializeField] protected CanvasGroup afterUI;
-
     protected Color hoverColor = new Color(1, 1, 0, 1);
     protected Color normalColor = new Color(1, 1, 1, 1);
     protected Material matInstance;
@@ -38,6 +37,8 @@ public class IButton : MonoBehaviour,
         matInstance.SetColor("_HoverColor", hoverColor);
         matInstance.SetColor("_NormalColor", normalColor);
         matInstance.SetFloat("_IsHover", 0f);
+
+        mouseOverSound = Resources.Load<AudioClip>("選択音");
     }
 
     // Submit（Enterキー）やクリックに対応
@@ -51,6 +52,7 @@ public class IButton : MonoBehaviour,
 
     public virtual void OnPointerEnter(PointerEventData eventData){
         matInstance.SetFloat("_IsHover", 1f);
+        transform.localScale = originalScale * 1.05f;
     }
 
     public virtual void OnPointerExit(PointerEventData eventData ){
