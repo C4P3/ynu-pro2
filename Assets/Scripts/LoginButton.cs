@@ -3,15 +3,18 @@ using UnityEngine.EventSystems;
 
 public class LoginButton : IButton
 {
+    public GameObject joinButton; // ← これだけ定義すればOK
+
     public override void OnPointerClick(PointerEventData eventData)
     {
-        base.OnPointerClick(eventData); // 音などの共通処理
+        base.OnPointerClick(eventData);
 
-        // 入力チェックやUI遷移などの処理をここに記述
         Debug.Log("ログインボタンが押されました");
 
-        // 例: UI 切り替え（ログイン → マッチングへ）
-        ChangeUI(beforeUI, 0, false, false);
+        ChangeUI(beforeUI, 0, false, false); // 基底クラスの beforeUI をそのまま使用
         ChangeUI(afterUI, 1, true, true);
+
+        EventSystem.current.SetSelectedGameObject(null);
+        EventSystem.current.SetSelectedGameObject(joinButton);
     }
 }

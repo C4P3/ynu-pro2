@@ -3,11 +3,11 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
 public class IButton : MonoBehaviour,
-    IPointerClickHandler,
     IPointerEnterHandler,
     IPointerExitHandler,
     IPointerDownHandler,
     IPointerUpHandler,
+    IPointerClickHandler,
     ISelectHandler,
     IDeselectHandler,
     ISubmitHandler
@@ -19,7 +19,7 @@ public class IButton : MonoBehaviour,
     [SerializeField] protected CanvasGroup afterUI;
 
     protected Color hoverColor = new Color(1, 1, 0, 1);
-    protected Color normalColor = new Color(1, 1, 1, 1); // 通常色
+    protected Color normalColor = new Color(1, 1, 1, 1);
     protected Material matInstance;
 
     protected void Start()
@@ -38,7 +38,8 @@ public class IButton : MonoBehaviour,
         matInstance.SetFloat("_IsHover", 0f);
     }
 
-    public virtual void OnPointerClick(PointerEventData eventData)
+    // Submit（Enterキー）やクリックに対応
+    public virtual void OnPointerClick(PointerEventData eventData = null)
     {
         if (clickSound != null && audioSource != null)
         {
@@ -46,14 +47,19 @@ public class IButton : MonoBehaviour,
         }
     }
 
+    public virtual void OnSubmit(BaseEventData eventData)
+    {
+        OnPointerClick(); // エンターキーでクリック処理
+    }
+
     public virtual void OnPointerEnter(PointerEventData eventData)
     {
-        ApplyHoverEffect(true);
+        matInstance?.SetFloat("_IsHover", 1f);
     }
 
     public virtual void OnPointerExit(PointerEventData eventData)
     {
-        ApplyHoverEffect(false);
+        matInstance?.SetFloat("_IsHover", 0f);
     }
 
     public virtual void OnPointerDown(PointerEventData eventData)
@@ -72,23 +78,12 @@ public class IButton : MonoBehaviour,
 
     public virtual void OnSelect(BaseEventData eventData)
     {
-        ApplyHoverEffect(true);
+        OnPointerEnter(null);
     }
 
     public virtual void OnDeselect(BaseEventData eventData)
     {
-        ApplyHoverEffect(false);
-    }
-
-    public virtual void OnSubmit(BaseEventData eventData)
-    {
-        OnPointerClick(null); // Enterキーでクリック処理実行
-    }
-
-    protected void ApplyHoverEffect(bool isHovering)
-    {
-        if (matInstance != null)
-            matInstance.SetFloat("_IsHover", isHovering ? 1f : 0f);
+        OnPointerExit(null);
     }
 
     public void ChangeUI(CanvasGroup canvasGroup, int alpha, bool interactable, bool blocksRaycasts)
