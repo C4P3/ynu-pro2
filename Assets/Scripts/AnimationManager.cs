@@ -1,18 +1,24 @@
 using UnityEngine;
 
 /// <summary>
-/// プレイヤーのアニメーション（Idle, Walk, Attack）とスプライトの向きを管理するクラス。
-/// PlayerオブジェクトにAnimatorコンポーネントと一緒にアタッチしてください。
+/// スプライトの向きを管理するクラス。
 /// </summary>
-[RequireComponent(typeof(Animator))]
 public class AnimationManager : MonoBehaviour
 {
-    private Animator animator;
     private SpriteRenderer spriteRenderer;
+    
+    [Header("Directional Sprites")]
+    [Tooltip("上向きの時のスプライト")]
+    public Sprite spriteUp;
+    [Tooltip("下向きの時のスプライト")]
+    public Sprite spriteDown;
+    [Tooltip("左向きの時のスプライト")]
+    public Sprite spriteLeft;
+    [Tooltip("右向きの時のスプライト")]
+    public Sprite spriteRight;
+
     void Awake()
     {
-        // 必要なコンポーネントへの参照を自動で取得します。
-        animator = GetComponent<Animator>();
         // プレイヤーのグラフィックを持つ子オブジェクトのSpriteRendererを取得します。
         spriteRenderer = GetComponentInChildren<SpriteRenderer>();
         if (spriteRenderer == null)
@@ -22,31 +28,7 @@ public class AnimationManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 歩行アニメーションの状態を設定します。
-    /// Animator Controllerの"IsWalking"という名前のboolパラメータを制御します。
-    /// </summary>
-    /// <param name="isWalking">歩いている状態にする場合はtrueを指定します。</param>
-    public void SetWalking(bool isWalking)
-    {
-        if (animator == null) return;
-        animator.SetBool("IsWalking", isWalking);
-    }
-
-    /// <summary>
-    /// タイピング中（攻撃中）のアニメーション状態を設定します。
-    /// このメソッドは、以前のTriggerAttack()を置き換えるものです。
-    /// Animator Controllerの"IsTyping"という名前のboolパラメータを制御します。
-    /// </summary>
-    /// <param name="isTyping">タイピング中の場合はtrueを指定します。</param>
-    public void SetTyping(bool isTyping)
-    {
-        if (animator == null) return;
-        // Animatorの"IsTyping"パラメータを更新し、Attack(Typing)アニメーションへ遷移させます。
-        animator.SetBool("IsTyping", isTyping);
-    }
-
-    /// <summary>
-    /// キャラクターの向きを、指定された角度にZ軸回転させて設定します。
+    /// キャラクターの向きに応じて、表示するスプライトを切り替えます。
     /// </summary>
     /// <param name="direction">プレイヤーの移動方向のベクトル。</param>
     public void UpdateSpriteDirection(Vector3Int direction)
@@ -56,28 +38,22 @@ public class AnimationManager : MonoBehaviour
             return;
         }
 
-        Transform spriteTransform = spriteRenderer.transform;
-        float angle = spriteTransform.localEulerAngles.z; // 現在の角度を維持
-
-        // 水平方向の移動を優先して角度を決定します
-        if (direction.x < 0) // 左へ移動
+        // 移動方向に応じてスプライトを切り替える
+        if (direction.y > 0) // 上へ移動
         {
-            angle = 90f;
-        }
-        else if (direction.x > 0) // 右へ移動
-        {
-            angle = -90f;
+            spriteRenderer.sprite = spriteUp;
         }
         else if (direction.y < 0) // 下へ移動
         {
-            angle = 180f;
+            spriteRenderer.sprite = spriteDown;
         }
-        else if (direction.y > 0) // 上へ移動
+        else if (direction.x < 0) // 左へ移動
         {
-            angle = 0f;
+            spriteRenderer.sprite = spriteLeft;
         }
-
-        // 計算した角度をZ軸の回転として適用します
-        spriteTransform.localRotation = Quaternion.Euler(0, 0, angle);
+        else if (direction.x > 0) // 右へ移動
+        {
+            spriteRenderer.sprite = spriteRight;
+        }
     }
 }
