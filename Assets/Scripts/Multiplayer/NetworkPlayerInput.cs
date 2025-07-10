@@ -11,109 +11,78 @@ public class NetworkPlayerInput : NetworkBehaviour
 {
     [Header("Player Info")]
     [Tooltip("サーバーから割り当てられるプレイヤー番号")]
-    [SyncVar] // この変数がサーバーから全クライアントに自動同期される
+    [SyncVar]
     public int playerIndex = 0;
 
+    // --- Private References ---
     private PlayerController _playerController;
     private TypingManager _typingManager;
 
-
     void Awake()
     {
+        // --- 参照をまとめて取得 ---
         _playerController = GetComponent<PlayerController>();
-        _typingManager = GetComponent<TypingManager>(); // 参照を取得
+        _typingManager = GetComponent<TypingManager>();
 
-        // ★★★ まずはTypingManagerを無効にしておく ★★★
-        _typingManager.enabled = false;
+        _typingManager.enabled = false; // ローカルプレイヤー以外は無効化
     }
 
     void Start()
     {
-        // Debug.Log($"--- Debug Start for {gameObject.name} ---");
-        // Debug.Log($"My playerIndex is [{playerIndex}]", gameObject);
-
-        // LevelManager と TypingManager を探す処理を、プレイヤー番号に応じて変更
+        // --- LevelManagerの検索 ---
         LevelManager levelManager = null;
-        GameObject gridObject = null;
-
-        if (playerIndex == 1)
-        {
-            gridObject = GameObject.Find("Grid_P1");
-            // Debug.Log("playerIndex is 1, trying to find Grid_P1...", gameObject);
-        }
-        else if (playerIndex == 2)
-        {
-            gridObject = GameObject.Find("Grid_P2");
-            // Debug.Log("playerIndex is 2, trying to find Grid_P2...", gameObject);
-        }
-
+        GameObject gridObject = GameObject.Find((playerIndex == 1) ? "Grid_P1" : "Grid_P2");
         if (gridObject != null)
         {
             levelManager = gridObject.GetComponent<LevelManager>();
-            // Debug.Log($"Found GameObject: {gridObject.name}", gameObject);
         }
         else
         {
-            Debug.LogError("Could not find Grid GameObject!", gameObject);
+            Debug.LogError($"Could not find Grid GameObject for Player {playerIndex}!", gameObject);
         }
 
-        // Debug.Log($"Found LevelManager component on: {(levelManager != null ? levelManager.gameObject.name : "NULL")}", gameObject);
-
-
+        // --- 参照の受け渡し ---
         if (levelManager != null)
         {
-            // --- デバッグここから ---
-            // Debug.Log($"Assigning my transform ('{this.transform.name}') to {levelManager.gameObject.name}'s playerTransform.", gameObject);
-            // --- デバッグここまで ---
-
             levelManager.playerTransform = this.transform;
-
-            // ★★★ 最重要チェック ★★★
-            // Debug.Log($"IMMEDIATELY AFTER ASSIGNMENT, levelManager.playerTransform is: {(levelManager.playerTransform != null ? levelManager.playerTransform.name : "NULL")}", gameObject);
-
-            // 他の参照設定
             _playerController.blockTilemap = levelManager.blockTilemap;
             _playerController.itemTilemap = levelManager.itemTilemap;
             _playerController.levelManager = levelManager;
+            
+            // PlayerControllerとTypingManagerに自身のPlayerIndexを教える
+            _playerController.playerIndex = playerIndex;
+            _typingManager.playerIndex = playerIndex;
         }
         else
         {
             Debug.LogError($"Player {playerIndex} のLevelManagerが見つかりません！");
         }
 
-        // ★★★ 対応するTypingPanelをTypingManagerに設定する ★★★
-        if (playerIndex == 1)
+        // --- TypingPanelの設定 ---
+        GameObject typingPanelObject = GameObject.Find((playerIndex == 1) ? "TypingPanel_P1" : "TypingPanel_P2");
+        if (typingPanelObject != null)
         {
-            _typingManager.typingPanel = GameObject.Find("TypingPanel_P1");
+            _typingManager.typingPanel = typingPanelObject;
         }
-        else if (playerIndex == 2)
+        else
         {
-            _typingManager.typingPanel = GameObject.Find("TypingPanel_P2");
+            Debug.LogError($"Player {playerIndex} のTypingPanelが見つかりません！");
         }
-        if (_typingManager.typingPanel == null) { Debug.LogError($"Player {playerIndex} のTypingPanelが見つかりません！"); }
 
         _playerController.Initialize();
 
+        // --- レイヤーとカメラの設定 ---
         switch (playerIndex)
         {
-            case 1: // 1人目のプレイヤー
+            case 1:
                 SetLayerRecursively(gameObject, LayerMask.NameToLayer("Player1"));
                 var vcam1 = GameObject.Find("VCam1")?.GetComponent<Unity.Cinemachine.CinemachineCamera>();
-                if (vcam1 != null)
-                {
-                    vcam1.Follow = transform;
-                    vcam1.gameObject.layer = LayerMask.NameToLayer("Player1"); // ★★★ VCam1のレイヤーを設定 ★★★
-                }
+                if (vcam1 != null) vcam1.Follow = transform;
                 break;
-
-            case 2: // 2人目のプレイヤー
+            case 2:
                 SetLayerRecursively(gameObject, LayerMask.NameToLayer("Player2"));
                 var vcam2 = GameObject.Find("VCam2")?.GetComponent<Unity.Cinemachine.CinemachineCamera>();
-                if (vcam2 != null)
-                {
-                    vcam2.Follow = transform;
-                    vcam2.gameObject.layer = LayerMask.NameToLayer("Player2"); // ★★★ VCam2のレイヤーを設定 ★★★
-                }
+                if (vcam2 != null) vcam2.Follow = transform;
                 break;
         }
     }

@@ -7,6 +7,9 @@ using Models;
 
 public class TypingManager : MonoBehaviour
 {
+    [HideInInspector]
+    public int playerIndex; // NetworkPlayerInputから設定される
+
     // タイピング終了時のイベント
     public event System.Action<bool> OnTypingEnded; 
     // UIの参照
@@ -116,9 +119,9 @@ public class TypingManager : MonoBehaviour
                     if (result == TypeResult.Incorrect)
                     {
                         PlaySound(missSound); // missSoundの再生
-                        if (GameManager.Instance != null)
+                        if (GameManagerMulti.Instance != null)
                         {
-                            GameManager.Instance.AddMissType(); // ミスタイプ数を加算
+                            GameManagerMulti.Instance.AddMissType(playerIndex);
                         }
                     }
                     else if (result == TypeResult.Correct)

@@ -90,48 +90,46 @@ public class ItemManager : MonoBehaviour
     /// <param name="itemTile">取得したアイテムのタイル</param>
     /// <param name="itemPosition">取得したアイテムのタイルマップ座標</param>
     /// <param name="levelManager">アイテムを取得したプレイヤーが所属するLevelManager</param> // 引数を追加
+    // 引数に GameManagerMulti を追加
     public void AcquireItem(TileBase itemTile, Vector3Int itemPosition, LevelManager levelManager, Transform playerTransform)
     {
-        // データベースに登録されていないタイルであれば何もしない
         if (!_itemDatabase.TryGetValue(itemTile, out ItemData data)) return;
 
         Debug.Log($"Acquired: {data.itemName}");
 
-        // アイテムを取得したら、まずその場所のアイテムをタイルマップから削除する
         levelManager.itemTilemap.SetTile(itemPosition, null);
 
-        // アイテムの効果音を再生
         if (data.useSound != null && _audioSource != null)
         {
             _audioSource.PlayOneShot(data.useSound);
         }
 
-        // EffectManagerに、どのアイテムをどの場所で取得したかを伝え、エフェクト再生を依頼する
         if (EffectManager.Instance != null)
         {
-            // 引数に levelManager.itemTilemap を渡す
             EffectManager.Instance.PlayItemAcquisitionEffect(data, itemPosition, levelManager.itemTilemap);
-            
             if (data.followEffectPrefab != null)
             {
-                // 引数に playerTransform を渡す
                 EffectManager.Instance.PlayFollowEffect(data.followEffectPrefab, data.followEffectDuration, playerTransform);
             }
         }
-        // アイテムの種類に応じて効果を発動
+
+        // アイテムの種類に応じて効果を発動 (GameManager.InstanceをplayerGameManagerに置き換え)
         switch (data.effectType)
         {
             case ItemEffectType.OxygenRecovery:
                 var oxygenData = data as OxygenRecoveryItemData;
-                if (oxygenData != null && GameManager.Instance != null)
+                if (oxygenData != null)
                 {
-                    GameManager.Instance.RecoverOxygen(oxygenData.recoveryAmount);
+                    PlayerController playerController = playerTransform.GetComponent<PlayerController>();
+                    if (playerController != null && GameManagerMulti.Instance != null)
+                    {
+                        GameManagerMulti.Instance.RecoverOxygen(playerController.playerIndex, oxygenData.recoveryAmount);
+                    }
                 }
                 break;
 
             case ItemEffectType.Bomb:
                 var bombData = data as BombItemData;
-                // Instanceではなく、引数で渡されたlevelManagerを使う
                 if (bombData != null && levelManager != null)
                 {
                     levelManager.ExplodeBlocks(itemPosition, bombData.radius);
@@ -140,12 +138,15 @@ public class ItemManager : MonoBehaviour
 
             case ItemEffectType.Star:
                 var starData = data as StarItemData;
-                // StarItemDataに無敵時間が設定されていれば、GameManagerに無敵化を依頼
-                if (starData != null && GameManager.Instance != null)
+                if (starData != null)
                 {
-                    GameManager.Instance.StartCoroutine(
-                        GameManager.Instance.TemporaryOxygenInvincibility(starData.invincibleDuration)
-                    );
+                    PlayerController playerController = playerTransform.GetComponent<PlayerController>();
+                    if (playerController != null && GameManagerMulti.Instance != null)
+                    {
+                        GameManagerMulti.Instance.StartCoroutine(
+                            GameManagerMulti.Instance.TemporaryOxygenInvincibility(playerController.playerIndex, starData.invincibleDuration)
+                        );
+                    }
                 }
                 break;
 
@@ -153,22 +154,12 @@ public class ItemManager : MonoBehaviour
                 var rocketData = data as RocketItemData;
                 if (rocketData != null && levelManager != null)
                 {
-                    // プレイヤーの向きをPlayerControllerから取得
                     PlayerController playerController = playerTransform.GetComponent<PlayerController>();
-                    Vector3Int direction = Vector3Int.right; // デフォルト
-                    if (playerController != null)
-                    {
-                        direction = playerController.GetLastMoveDirection();
-                    }
-
-                    // EffectManagerに、向きを指定したエフェクトの再生を依頼
+                    Vector3Int direction = (playerController != null) ? playerController.GetLastMoveDirection() : Vector3Int.right;
                     if (EffectManager.Instance != null && rocketData.beamEffectPrefab != null)
                     {
-                        // プレイヤーの現在地をエフェクトの再生位置とする
-                        Vector3 effectPosition = playerTransform.position;
-                        EffectManager.Instance.PlayDirectionalEffect(rocketData.beamEffectPrefab, effectPosition, direction);
+                        EffectManager.Instance.PlayDirectionalEffect(rocketData.beamEffectPrefab, playerTransform.position, direction);
                     }
-                    
                     rocketData.Activate(playerTransform, direction, levelManager.blockTilemap);
                 }
                 break;
@@ -177,18 +168,20 @@ public class ItemManager : MonoBehaviour
                 var unchiData = data as UnchiItemData;
                 if (unchiData != null && levelManager != null)
                 {
-                    // itemTilemapのグリッド座標で中心を取得し、変数に格納
                     Vector3Int playerGridCenter = levelManager.itemTilemap.WorldToCell(playerTransform.position);
-                    // UnchiItemData.Activate の引数名に合わせて playerGridCenter を渡す
                     unchiData.Activate(playerGridCenter, levelManager.blockTilemap, levelManager.itemTilemap);
                 }
                 break;
 
             case ItemEffectType.Poison:
                 var poisonData = data as PoisonItemData;
-                if (poisonData != null && GameManager.Instance != null)
+                if (poisonData != null)
                 {
-                    GameManager.Instance.RecoverOxygen(-Mathf.Abs(poisonData.poisonAmount));
+                    PlayerController playerController = playerTransform.GetComponent<PlayerController>();
+                    if (playerController != null && GameManagerMulti.Instance != null)
+                    {
+                        GameManagerMulti.Instance.RecoverOxygen(playerController.playerIndex, -Mathf.Abs(poisonData.poisonAmount));
+                    }
                 }
                 break;
 
@@ -197,10 +190,7 @@ public class ItemManager : MonoBehaviour
                 if (thunderData != null && playerTransform != null)
                 {
                     PlayerController playerController = playerTransform.GetComponent<PlayerController>();
-                    if (playerController != null)
-                    {
-                        playerController.Stun(thunderData.stunDuration);
-                    }
+                    if (playerController != null) playerController.Stun(thunderData.stunDuration);
                 }
                 break;
         }
