@@ -68,6 +68,12 @@ public class RedPanelManager : MonoBehaviour
             targetBGM = GameSceneBGMManager.Instance.kikenBGM; // 少し危険な状態のBGM
             targetPitch = 1.2f; // 少し危険な状態のピッチは通常
         } 
+        else if(oxygenRatio == 0)
+        {
+            // 酸素が0の場合はゲームオーバーの状態
+            targetInterval = 0f; // 点滅しない
+            targetPitch = 1.0f; // 通常のピッチ
+        }
             
         else
         {
