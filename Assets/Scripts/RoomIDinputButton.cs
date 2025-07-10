@@ -10,6 +10,7 @@ public class RoomIDInputButton : IButton
     public override void OnPointerClick()
     {
         base.OnPointerClick();
+        PlayFabMatchmakingManager.Instance.JoinRoom();
     }
     public override void OnPointerEnter()
     {
