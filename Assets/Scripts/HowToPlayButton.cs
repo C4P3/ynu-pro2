@@ -1,33 +1,30 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.SceneManagement;
-using UnityEngine.UI;
-using TMPro;
+using UnityEngine.EventSystems;
 
-public class HowtoPlayButton : IButton
+public class HowToPlayButton : IButton
 {
-    public override void OnPointerClick()
+    public override void OnPointerClick(PointerEventData eventData)
     {
-        base.OnPointerClick();
-    }
-    public override void OnPointerEnter()
-    {
-        base.OnPointerEnter();
+        base.OnPointerClick(eventData);
     }
 
-    public override void OnPointerExit()
+    public override void OnPointerEnter(PointerEventData eventData)
     {
-        base.OnPointerExit();
+        base.OnPointerEnter(eventData);
     }
 
-    public override void OnPointerDown()
+    public override void OnPointerExit(PointerEventData eventData)
     {
-        base.OnPointerDown();
+        base.OnPointerExit(eventData);
     }
 
-    public override void OnPointerUp()
+    public override void OnPointerDown(PointerEventData eventData)
     {
-        base.OnPointerUp();
+        base.OnPointerDown(eventData);
+    }
+
+    public override void OnPointerUp(PointerEventData eventData)
+    {
+        base.OnPointerUp(eventData);
     }
 }

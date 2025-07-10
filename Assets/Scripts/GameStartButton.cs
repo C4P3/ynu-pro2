@@ -1,44 +1,43 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
-using UnityEngine.UI;
-using TMPro;
 
 public class GameStartButton : IButton
 {
-    public override void OnPointerClick()
+    public override void OnPointerClick(PointerEventData eventData)
     {
-        base.OnPointerClick();   
-        StartCoroutine(LoadSceneWithDelay( 0.3f));
+        base.OnPointerClick(eventData);
+
+        StartCoroutine(LoadSceneWithDelay(0.3f));
         StartSceneBGMManager.Instance.StopBGM();
     }
-    
 
     private IEnumerator LoadSceneWithDelay(float delay)
     {
-    yield return new WaitForSeconds(delay);
-    ChangeUI(beforeUI, 0, false, false);
-    SceneManager.LoadScene("GameScene");
+        yield return new WaitForSeconds(delay);
+
+        ChangeUI(beforeUI, 0, false, false);
+        SceneManager.LoadScene("GameScene");
     }
 
-    public override void OnPointerEnter()
+    public override void OnPointerEnter(PointerEventData eventData)
     {
-        base.OnPointerEnter();
+        base.OnPointerEnter(eventData);
     }
 
-    public override void OnPointerExit()
+    public override void OnPointerExit(PointerEventData eventData)
     {
-        base.OnPointerExit();
+        base.OnPointerExit(eventData);
     }
 
-    public override void OnPointerDown()
+    public override void OnPointerDown(PointerEventData eventData)
     {
-        base.OnPointerDown();
+        base.OnPointerDown(eventData);
     }
 
-    public override void OnPointerUp()
+    public override void OnPointerUp(PointerEventData eventData)
     {
-        base.OnPointerUp();
+        base.OnPointerUp(eventData);
     }
 }

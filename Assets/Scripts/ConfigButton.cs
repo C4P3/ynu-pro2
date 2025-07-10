@@ -1,33 +1,32 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.SceneManagement;
-using UnityEngine.UI;
-using TMPro;
+using UnityEngine.EventSystems;
 
 public class ConfigButton : IButton
 {
-    public override void OnPointerClick()
+    public override void OnPointerClick(PointerEventData eventData)
     {
-        base.OnPointerClick();
+        base.OnPointerClick(eventData);
         ChangeUI(beforeUI, 0, false, false);
         ChangeUI(afterUI, 1, true, true);
     }
-    public override void OnPointerEnter()
+
+    public override void OnPointerEnter(PointerEventData eventData)
     {
-        base.OnPointerEnter();
-    }
-    public override void OnPointerExit()
-    {
-        base.OnPointerExit();
-    }
-    public override void OnPointerDown()
-    {
-        base.OnPointerDown();
+        base.OnPointerEnter(eventData);
     }
 
-    public override void OnPointerUp()
+    public override void OnPointerExit(PointerEventData eventData)
     {
-        base.OnPointerUp();
+        base.OnPointerExit(eventData);
+    }
+
+    public override void OnPointerDown(PointerEventData eventData)
+    {
+        base.OnPointerDown(eventData);
+    }
+
+    public override void OnPointerUp(PointerEventData eventData)
+    {
+        base.OnPointerUp(eventData);
     }
 }

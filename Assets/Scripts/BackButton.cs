@@ -1,31 +1,30 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.SceneManagement;
-using UnityEngine.UI;
-using TMPro;
+using UnityEngine.EventSystems;
 
 public class BackButton : IButton
 {
-    public override void OnPointerClick()
+    public override void OnPointerClick(PointerEventData eventData)
     {
-        base.OnPointerClick();
-    }
-    public override void OnPointerEnter()
-    {
-        base.OnPointerEnter();
-    }
-    public override void OnPointerExit()
-    {
-        base.OnPointerExit();
-    }
-    public override void OnPointerDown()
-    {
-        base.OnPointerDown();
+        base.OnPointerClick(eventData);
     }
 
-    public override void OnPointerUp()
+    public override void OnPointerEnter(PointerEventData eventData)
     {
-        base.OnPointerUp();
+        base.OnPointerEnter(eventData);
+    }
+
+    public override void OnPointerExit(PointerEventData eventData)
+    {
+        base.OnPointerExit(eventData);
+    }
+
+    public override void OnPointerDown(PointerEventData eventData)
+    {
+        base.OnPointerDown(eventData);
+    }
+
+    public override void OnPointerUp(PointerEventData eventData)
+    {
+        base.OnPointerUp(eventData);
     }
 }

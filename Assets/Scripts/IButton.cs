@@ -1,15 +1,25 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
-public class IButton : MonoBehaviour
+public class IButton : MonoBehaviour,
+    IPointerEnterHandler,
+    IPointerExitHandler,
+    IPointerDownHandler,
+    IPointerUpHandler,
+    IPointerClickHandler,
+    ISelectHandler,
+    IDeselectHandler,
+    ISubmitHandler
 {
     [SerializeField] protected Image buttonImage;
     [SerializeField] protected AudioClip clickSound;
     [SerializeField] protected AudioSource audioSource;
     [SerializeField] protected CanvasGroup beforeUI;
     [SerializeField] protected CanvasGroup afterUI;
+
     protected Color hoverColor = new Color(1, 1, 0, 1);
-    protected Color normalColor = new Color(1, 1, 1, 1); // 透明
+    protected Color normalColor = new Color(1, 1, 1, 1);
     protected Material matInstance;
     protected Vector3 originalScale;
 
@@ -22,7 +32,6 @@ public class IButton : MonoBehaviour
             return;
         }
 
-        // マテリアルをインスタンス化して独立制御
         matInstance = Instantiate(buttonImage.material);
         buttonImage.material = matInstance;
 
@@ -31,50 +40,57 @@ public class IButton : MonoBehaviour
         matInstance.SetFloat("_IsHover", 0f);
     }
 
-    public virtual void OnPointerClick()
+    // Submit（Enterキー）やクリックに対応
+    public virtual void OnPointerClick(PointerEventData eventData = null)
     {
-        if (clickSound != null)
+        if (clickSound != null && audioSource != null)
         {
             audioSource.PlayOneShot(clickSound);
         }
     }
 
-    public virtual void OnPointerEnter()
-    {
+    public virtual void OnPointerEnter(PointerEventData eventData){
         matInstance.SetFloat("_IsHover", 1f);
-        transform.localScale = originalScale * 1.05f;
     }
 
-    public virtual void OnPointerExit()
-    {
+    public virtual void OnPointerExit(PointerEventData eventData ){
         matInstance.SetFloat("_IsHover", 0f);
-        transform.localScale = originalScale;
     }
 
-    public virtual void OnPointerDown()
+    public virtual void OnPointerDown(PointerEventData eventData)
     {
-        buttonImage.color = buttonImage.color * 0.7f;
-        if (matInstance != null)
-        {
-            matInstance.SetFloat("_ClickDarkness", 0.7f);
-            matInstance.SetFloat("_ClickSaturation", 1.3f);
-        }
+        buttonImage.color *= 0.7f;
+        matInstance?.SetFloat("_ClickDarkness", 0.7f);
+        matInstance?.SetFloat("_ClickSaturation", 1.3f);
     }
 
-    public virtual void OnPointerUp()
+    public virtual void OnPointerUp(PointerEventData eventData)
     {
-        buttonImage.color = buttonImage.color / 0.7f;
-        if (matInstance != null)
-        {
-            matInstance.SetFloat("_ClickDarkness", 1.0f);
-            matInstance.SetFloat("_ClickSaturation", 1.0f);
-        }
+        buttonImage.color /= 0.7f;
+        matInstance?.SetFloat("_ClickDarkness", 1.0f);
+        matInstance?.SetFloat("_ClickSaturation", 1.0f);
     }
 
-    public void ChangeUI(CanvasGroup canvasGroup, int alfha, bool interactable, bool blocksRaycasts){//UIの表示非表示
-        canvasGroup.alpha = alfha;//透明度
-        canvasGroup.interactable = interactable;//
+    public virtual void OnSelect(BaseEventData eventData)
+    {
+        OnPointerEnter(null);
+    }
+
+    public virtual void OnDeselect(BaseEventData eventData)
+    {
+        OnPointerExit(null);
+    }
+
+    public void ChangeUI(CanvasGroup canvasGroup, int alpha, bool interactable, bool blocksRaycasts)
+    {
+        canvasGroup.alpha = alpha;
+        canvasGroup.interactable = interactable;
         canvasGroup.blocksRaycasts = blocksRaycasts;
     }
-}
 
+    public virtual void OnSubmit(BaseEventData eventData)
+{
+    Debug.Log("Submit (e.g. Enter key) pressed on button.");
+    OnPointerClick(null); // クリック処理と共通にしたい場合
+}
+} 

@@ -1,36 +1,19 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.SceneManagement;
-using UnityEngine.UI;
-using TMPro;
+using UnityEngine.EventSystems;
+using System.Collections; // ← これが必要！
 
 public class MatchButton : IButton
 {
-    public override void OnPointerClick()
+    public override void OnPointerClick(PointerEventData eventData)
     {
-        base.OnPointerClick();
-        ChangeUI(beforeUI, 1, false, false);
-        ChangeUI(afterUI, 1, true, true);
+        base.OnPointerClick(eventData);
+        StartCoroutine(DoMatching());
     }
 
-    public override void OnPointerEnter()
+    private IEnumerator DoMatching()
     {
-        base.OnPointerEnter();
-    }
-
-    public override void OnPointerExit()
-    {
-        base.OnPointerExit();
-    }
-
-    public override void OnPointerDown()
-    {
-        base.OnPointerDown();
-    }
-
-    public override void OnPointerUp()
-    {
-        base.OnPointerUp();
+        // 処理の例
+        yield return new WaitForSeconds(1f);
+        Debug.Log("マッチング開始");
     }
 }
