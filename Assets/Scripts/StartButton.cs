@@ -1,36 +1,32 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.EventSystems;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
+using TMPro;
 
 public class StartButton : IButton
 {
-    public GameObject joinButton;
-    public override void OnPointerClick(PointerEventData eventData)
+    public override void OnPointerClick()
     {
-        base.OnPointerClick(eventData);
-        Debug.Log("スタートボタンが押されました");
+        base.OnPointerClick();
         ChangeUI(beforeUI, 0, false, false);
         ChangeUI(afterUI, 1, true, true);
-         EventSystem.current.SetSelectedGameObject(null);
-        EventSystem.current.SetSelectedGameObject(joinButton);
     }
-
-    public override void OnPointerEnter(PointerEventData eventData)
+    public override void OnPointerEnter()
     {
-        base.OnPointerEnter(eventData);
+
     }
-
-    public override void OnPointerExit(PointerEventData eventData)
+    public override void OnPointerExit()
     {
-        base.OnPointerExit(eventData);
+
     }
-
-    public override void OnPointerDown(PointerEventData eventData)
+    public override void OnPointerDown()
     {
-        base.OnPointerDown(eventData);
+
     }
-
-    public override void OnPointerUp(PointerEventData eventData)
+    public override void OnPointerUp()
     {
-        base.OnPointerUp(eventData);
+
     }
 }

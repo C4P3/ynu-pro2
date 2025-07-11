@@ -1,57 +1,48 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.EventSystems;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 using TMPro;
 
 public class LoginButton : IButton
 {
     [SerializeField] TMP_InputField inputField;
-    public GameObject joinButton;
 
-    public override void OnPointerClick(PointerEventData eventData)
-    {
+    public override void OnPointerClick(){
+
         var authManager = FindFirstObjectByType<PlayFabAuthManager>();
 
-        if (authManager == null)
+        if(authManager == null)
         {
             Debug.LogError("PlayFabAuthManagerが見つかりません。");
             return;
         }
 
-        if (inputField == null)
+        if(inputField == null)
         {
             Debug.LogError("InputFieldが設定されていません。");
             return;
         }
 
-        base.OnPointerClick(eventData);
-        Debug.Log("ログインボタンが押されました");
-
-        ChangeUI(beforeUI, 0, false, false); // 基底クラスの beforeUI をそのまま使用
-        ChangeUI(afterUI, 1, true, true);
-
-        EventSystem.current.SetSelectedGameObject(null);
-        EventSystem.current.SetSelectedGameObject(joinButton);
-        
+        base.OnPointerClick();
         authManager.SetDisplayName(inputField.text);
     }
-
-    public override void OnPointerEnter(PointerEventData eventData)
+    public override void OnPointerEnter()
     {
-        base.OnPointerEnter(eventData);
+        base.OnPointerEnter();
+    }
+    public override void OnPointerExit()
+    {
+        base.OnPointerExit();
+    }
+    public override void OnPointerDown()
+    {
+        base.OnPointerDown();
     }
 
-    public override void OnPointerExit(PointerEventData eventData)
+    public override void OnPointerUp()
     {
-        base.OnPointerExit(eventData);
-    }
-
-    public override void OnPointerDown(PointerEventData eventData)
-    {
-        base.OnPointerDown(eventData);
-    }
-
-    public override void OnPointerUp(PointerEventData eventData)
-    {
-        base.OnPointerUp(eventData);
+        base.OnPointerUp();
     }
 }
