@@ -1,31 +1,31 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.EventSystems;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
+using TMPro;
 
 public class RoomIDInputButton : IButton
 {
-    public override void OnPointerClick(PointerEventData eventData)
+    public override void OnPointerClick()
     {
-        base.OnPointerClick(eventData);
-        PlayFabMatchmakingManager.Instance.JoinRoom();
+        base.OnPointerClick();
+    }
+    public override void OnPointerEnter()
+    {
+        base.OnPointerEnter();
+    }
+    public override void OnPointerExit()
+    {
+        base.OnPointerExit();
+    }
+    public override void OnPointerDown()
+    {
+        base.OnPointerDown();
     }
 
-    public override void OnPointerEnter(PointerEventData eventData)
+    public override void OnPointerUp()
     {
-        base.OnPointerEnter(eventData);
-    }
-
-    public override void OnPointerExit(PointerEventData eventData)
-    {
-        base.OnPointerExit(eventData);
-    }
-
-    public override void OnPointerDown(PointerEventData eventData)
-    {
-        base.OnPointerDown(eventData);
-    }
-
-    public override void OnPointerUp(PointerEventData eventData)
-    {
-        base.OnPointerUp(eventData);
+        base.OnPointerUp();
     }
 }
