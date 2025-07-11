@@ -1,43 +1,38 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.EventSystems;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 using TMPro;
 
 public class CreateRoomButton : IButton
 {
     [SerializeField] TMP_InputField inputField;
-
-    public override void OnPointerClick(PointerEventData eventData)
+    
+    public override void OnPointerClick()
     {
-        base.OnPointerClick(eventData);
-
-        // 入力値がある場合のみ部屋を作成する処理（任意）
-        if (!string.IsNullOrEmpty(inputField.text))
-        {
-            PlayFabMatchmakingManager.Instance.CreateRoom();
-        }
-        else
-        {
-            Debug.LogWarning("ルーム名が入力されていません。");
-        }
+        base.OnPointerClick();
+        PlayFabMatchmakingManager.Instance.CreateRoom();
     }
 
-    public override void OnPointerEnter(PointerEventData eventData)
+
+    public override void OnPointerEnter()
     {
-        base.OnPointerEnter(eventData);
+        base.OnPointerEnter();
     }
 
-    public override void OnPointerExit(PointerEventData eventData)
+    public override void OnPointerExit()
     {
-        base.OnPointerExit(eventData);
+        base.OnPointerExit();
     }
 
-    public override void OnPointerDown(PointerEventData eventData)
+    public override void OnPointerDown()
     {
-        base.OnPointerDown(eventData);
+        base.OnPointerDown();
     }
 
-    public override void OnPointerUp(PointerEventData eventData)
+    public override void OnPointerUp()
     {
-        base.OnPointerUp(eventData);
+        base.OnPointerUp();
     }
 }

@@ -1,43 +1,38 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.EventSystems;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 using TMPro;
 
 public class JoinRoomButton : IButton
 {
     [SerializeField] TMP_InputField inputField;
-
-    public override void OnPointerClick(PointerEventData eventData)
+    
+    public override void OnPointerClick()
     {
-        base.OnPointerClick(eventData);
+        base.OnPointerClick();
+        PlayFabMatchmakingManager.Instance.JoinRoom();
 
-        // ルームIDが空でなければマッチング処理を実行
-        if (!string.IsNullOrEmpty(inputField.text))
-        {
-            PlayFabMatchmakingManager.Instance.JoinRoom();
-        }
-        else
-        {
-            Debug.LogWarning("ルームIDが入力されていません。");
-        }
     }
 
-    public override void OnPointerEnter(PointerEventData eventData)
+    public override void OnPointerEnter()
     {
-        base.OnPointerEnter(eventData);
+        base.OnPointerEnter();
     }
 
-    public override void OnPointerExit(PointerEventData eventData)
+    public override void OnPointerExit()
     {
-        base.OnPointerExit(eventData);
+        base.OnPointerExit();
     }
 
-    public override void OnPointerDown(PointerEventData eventData)
+    public override void OnPointerDown()
     {
-        base.OnPointerDown(eventData);
+        base.OnPointerDown();
     }
 
-    public override void OnPointerUp(PointerEventData eventData)
+    public override void OnPointerUp()
     {
-        base.OnPointerUp(eventData);
+        base.OnPointerUp();
     }
 }
