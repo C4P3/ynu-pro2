@@ -434,7 +434,7 @@ PrefabInstance:
     - target: {fileID: -6508759534709864594, guid: 713b83a4f74d340f2b4a699983dc1354, type: 3}
       propertyPath: animationManager
       value: 
-      objectReference: {fileID: 2132873802}
+      objectReference: {fileID: 2132873807}
     - target: {fileID: -6508759534709864594, guid: 713b83a4f74d340f2b4a699983dc1354, type: 3}
       propertyPath: walkSounds.Array.size
       value: 4
@@ -458,7 +458,7 @@ PrefabInstance:
     - target: {fileID: 4693212620954160527, guid: 713b83a4f74d340f2b4a699983dc1354, type: 3}
       propertyPath: missSound
       value: 
-      objectReference: {fileID: 8300000, guid: 37256a5fe114fe04db255a4ab5b2fc9d, type: 3}
+      objectReference: {fileID: 8300000, guid: 3c1d8a1f23fcdc34e82d50515fbe8788, type: 3}
     - target: {fileID: 4693212620954160527, guid: 713b83a4f74d340f2b4a699983dc1354, type: 3}
       propertyPath: typingPanel
       value: 
@@ -477,11 +477,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8285913966848699411, guid: 713b83a4f74d340f2b4a699983dc1354, type: 3}
       propertyPath: m_LocalScale.x
-      value: 0.175
+      value: 0.2
       objectReference: {fileID: 0}
     - target: {fileID: 8285913966848699411, guid: 713b83a4f74d340f2b4a699983dc1354, type: 3}
       propertyPath: m_LocalScale.y
-      value: 0.175
+      value: 0.16
       objectReference: {fileID: 0}
     - target: {fileID: 8285913966848699411, guid: 713b83a4f74d340f2b4a699983dc1354, type: 3}
       propertyPath: m_LocalPosition.x
@@ -527,16 +527,21 @@ PrefabInstance:
       propertyPath: m_FlipX
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 9197907973035183811, guid: 713b83a4f74d340f2b4a699983dc1354, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: -9066679038493711350, guid: be5259ead4b6e564f9dd2e88f5f12962, type: 3}
+    - target: {fileID: 9197907973035183811, guid: 713b83a4f74d340f2b4a699983dc1354, type: 3}
+      propertyPath: m_SortingOrder
+      value: 2
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 7757349515784494314, guid: 713b83a4f74d340f2b4a699983dc1354, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 2132873803}
-    - targetCorrespondingSourceObject: {fileID: 7757349515784494314, guid: 713b83a4f74d340f2b4a699983dc1354, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 2132873802}
+      addedObject: {fileID: 2132873807}
   m_SourcePrefab: {fileID: 100100000, guid: 713b83a4f74d340f2b4a699983dc1354, type: 3}
 --- !u!114 &171924335 stripped
 MonoBehaviour:
@@ -774,6 +779,7 @@ MonoBehaviour:
   audioSource: {fileID: 1002151170}
   gameBGM: {fileID: 8300000, guid: 22f8e5375b9eb63408bf8ea2e5aa413d, type: 3}
   kikenBGM: {fileID: 8300000, guid: 22f8e5375b9eb63408bf8ea2e5aa413d, type: 3}
+  gameOverBGM: {fileID: 8300000, guid: 0324f720618c34145a1fe964a143efef, type: 3}
 --- !u!82 &1002151170
 AudioSource:
   m_ObjectHideFlags: 0
@@ -1196,7 +1202,7 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 8285913966848699411, guid: 713b83a4f74d340f2b4a699983dc1354, type: 3}
   m_PrefabInstance: {fileID: 171924334}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &2132873802
+--- !u!114 &2132873807
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1208,28 +1214,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 59caaab836ded7a488b12780a88aacc1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!95 &2132873803
-Animator:
-  serializedVersion: 7
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1156428535}
-  m_Enabled: 1
-  m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: df0a94c89fd07d147ba25371fe853874, type: 2}
-  m_CullingMode: 0
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_StabilizeFeet: 0
-  m_AnimatePhysics: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorStateOnDisable: 0
-  m_WriteDefaultValuesOnDisable: 0
+  spriteUp: {fileID: -9066679038493711350, guid: be5259ead4b6e564f9dd2e88f5f12962, type: 3}
+  spriteDown: {fileID: 7197677887435696444, guid: be5259ead4b6e564f9dd2e88f5f12962, type: 3}
+  spriteLeft: {fileID: -7902434387478092304, guid: be5259ead4b6e564f9dd2e88f5f12962, type: 3}
+  spriteRight: {fileID: 2674309918979029221, guid: be5259ead4b6e564f9dd2e88f5f12962, type: 3}
+  typingEffectPrefab: {fileID: 4034161697179714381, guid: a7ecb40c7ee83384aa96d135261e7bd8, type: 3}
+  typingEffectPrefab_Back: {fileID: 2739803343189961253, guid: 49a4794dcb3546d43a1ec376846b9ec1, type: 3}
+  typingEffectOffset: 0.7
 --- !u!1 &2142259991
 GameObject:
   m_ObjectHideFlags: 0

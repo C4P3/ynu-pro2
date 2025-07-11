@@ -34,4 +34,3 @@ public class RoomCreateButton : IButton
         base.OnPointerUp();
     }
 }
-

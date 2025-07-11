@@ -30,4 +30,3 @@ public class RuleSelectButton : IButton
         base.OnPointerUp();
     }
 }
-

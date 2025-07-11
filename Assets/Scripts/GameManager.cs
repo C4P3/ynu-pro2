@@ -141,7 +141,8 @@ public class GameManager : MonoBehaviour
 
         _isGameOver = true;
         Time.timeScale = 0f; // ゲームを一時停止
-
+        GameSceneBGMManager.Instance.StopBGM(); // BGMを停止
+        GameSceneBGMManager.Instance.PlayBGM(GameSceneBGMManager.Instance.gameOverBGM); // ゲームオーバーBGMを再生
         Debug.Log("Game Over!");
         Debug.Log($"Final Survival Time: {_survivalTime} seconds");
         Debug.Log($"Blocks Destroyed: {_blocksDestroyed}");

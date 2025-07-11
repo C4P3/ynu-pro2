@@ -77,4 +77,3 @@ public class IButton : MonoBehaviour
         canvasGroup.blocksRaycasts = blocksRaycasts;
     }
 }
-
