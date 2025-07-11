@@ -9,7 +9,7 @@ public class RecordButton : IButton
 {
     public override void OnPointerClick()
     {
-        base.OnPointerClick();
+        //base.OnPointerClick();
         ChangeUI(beforeUI, 0, false, false);
         ChangeUI(afterUI, 1, true, true);
     }

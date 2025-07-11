@@ -9,7 +9,7 @@ public class RuleSelectButton : IButton
 {
     public override void OnPointerClick()
     {
-        base.OnPointerClick();
+        //base.OnPointerClick();
         PlayFabMatchmakingManager.Instance.CreateRoom();
     }
     public override void OnPointerEnter()

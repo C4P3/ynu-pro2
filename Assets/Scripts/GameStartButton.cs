@@ -9,7 +9,7 @@ public class GameStartButton : IButton
 {
     public override void OnPointerClick()
     {
-        base.OnPointerClick();   
+        //base.OnPointerClick();   
         StartCoroutine(LoadSceneWithDelay( 0.3f));
         StartSceneBGMManager.Instance.StopBGM();
     }

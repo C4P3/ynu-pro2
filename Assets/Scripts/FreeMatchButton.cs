@@ -9,7 +9,7 @@ public class FreeMatchButton : IButton
 {
     public override void OnPointerClick()
     {
-        base.OnPointerClick();
+        //base.OnPointerClick();
     }
 
     public override void OnPointerEnter()

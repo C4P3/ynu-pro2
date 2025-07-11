@@ -25,7 +25,7 @@ public class LoginButton : IButton
             return;
         }
 
-        base.OnPointerClick();
+        //base.OnPointerClick();
         authManager.SetDisplayName(inputField.text);
     }
     public override void OnPointerEnter()
