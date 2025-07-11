@@ -157,12 +157,48 @@ public class NetworkPlayerInput : NetworkBehaviour
         // サーバー側で受け取ったコマンドを、全てのクライアントに伝える
         RpcReceiveMoveInput(moveVec);
     }
-    // ★★★ ブロック破壊用のCommandを追加 ★★★
+
     [Command]
     public void CmdDestroyBlock(Vector3Int gridPos)
     {
         // サーバーが受け取ったら、全クライアントに破壊を命令するRPCを呼び出す
         RpcDestroyBlock(gridPos);
+    }
+
+    [Command]
+    public void CmdAddDestroyedBlock()
+    {
+        if (GameManagerMulti.Instance != null)
+        {
+            GameManagerMulti.Instance.ServerAddDestroyedBlock(playerIndex);
+        }
+    }
+
+    [Command]
+    public void CmdRecoverOxygen(float amount)
+    {
+        if (GameManagerMulti.Instance != null)
+        {
+            GameManagerMulti.Instance.ServerRecoverOxygen(playerIndex, amount);
+        }
+    }
+
+    [Command]
+    public void CmdTemporaryOxygenInvincibility(float duration)
+    {
+        if (GameManagerMulti.Instance != null)
+        {
+            GameManagerMulti.Instance.StartTemporaryInvincibility(playerIndex, duration);
+        }
+    }
+
+    [Command]
+    public void CmdNotifyMissType()
+    {
+        if (GameManagerMulti.Instance != null)
+        {
+            GameManagerMulti.Instance.ServerAddMissType(playerIndex);
+        }
     }
 
     // --- 全クライアントへのRPC ---

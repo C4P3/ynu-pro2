@@ -218,7 +218,7 @@ public class PlayerController : MonoBehaviour
                 // 【シングルプレイ時】直接LevelManagerを呼ぶ
                 if (levelManager != null)
                 {
-                    levelManager.DestroyConnectedBlocks(_typingTargetPos);
+                    levelManager.DestroyConnectedBlocks(_typingTargetPos, _networkInput);
                 }
             }
 
@@ -360,7 +360,7 @@ public class PlayerController : MonoBehaviour
         if (itemTile != null && ItemManager.Instance != null)
         {
             if (levelManager != null && levelManager.unchiItemData != null && itemTile == levelManager.unchiItemData.unchiTile) return;
-            ItemManager.Instance.AcquireItem(itemTile, position, levelManager, this.transform);
+            ItemManager.Instance.AcquireItem(itemTile, position, levelManager, this.transform, _networkInput);
         }
     }
 

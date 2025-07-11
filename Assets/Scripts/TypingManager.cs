@@ -20,6 +20,7 @@ public class TypingManager : MonoBehaviour
     private TypingTextStore _typingTextStore;
     private CurrentTypingTextModel _typingModel = new CurrentTypingTextModel();
     private Vector3Int _initialMoveDirection;
+    private NetworkPlayerInput _networkPlayerInput; // NetworkPlayerInputへの参照
 
     //効果音用AudioClipの追加
     [Header("Sound Effects")]
@@ -33,6 +34,7 @@ public class TypingManager : MonoBehaviour
     {
         _typingTextStore = new TypingTextStore();
         _typingTextStore.LoadFromCsv(); // LoadFromCsvをpublicにする
+        _networkPlayerInput = GetComponent<NetworkPlayerInput>(); // 参照を取得
     }
 
     void Start()
@@ -119,9 +121,13 @@ public class TypingManager : MonoBehaviour
                     if (result == TypeResult.Incorrect)
                     {
                         PlaySound(missSound); // missSoundの再生
-                        if (GameManagerMulti.Instance != null)
+                        if (_networkPlayerInput != null)
                         {
-                            GameManagerMulti.Instance.AddMissType(playerIndex);
+                            _networkPlayerInput.CmdNotifyMissType();
+                        }
+                        else if (GameManager.Instance != null)
+                        {
+                            GameManager.Instance.AddMissType();
                         }
                     }
                     else if (result == TypeResult.Correct)

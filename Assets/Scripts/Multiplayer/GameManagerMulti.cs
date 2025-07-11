@@ -1,15 +1,21 @@
 
 using UnityEngine;
-using UnityEngine.UI;
-using TMPro;
-using System;
 using Mirror;
+using System.Collections;
+using System.Collections.Generic; // SyncListのために追加
 
-// PlayerDataクラスの定義
-public class PlayerData
+public enum MatchState
+{
+    WaitingForPlayers,
+    Playing,
+    Finished
+}
+
+// PlayerDataをstructに変更し、Mirrorで同期できるようにします。
+[System.Serializable]
+public struct PlayerData
 {
     public float currentOxygen;
-    public float survivalTime;
     public int blocksDestroyed;
     public int missTypes;
     public bool isGameOver;
@@ -18,7 +24,6 @@ public class PlayerData
     public PlayerData(float maxOxygen)
     {
         currentOxygen = maxOxygen;
-        survivalTime = 0f;
         blocksDestroyed = 0;
         missTypes = 0;
         isGameOver = false;
@@ -34,257 +39,209 @@ public class GameManagerMulti : NetworkBehaviour
     public float maxOxygen = 100f;
     public float oxygenDecreaseRate = 0.5f;
 
-    [Header("Player 1 UI")]
-    public Slider oxygenSlider_P1;
-    public TextMeshProUGUI oxygenText_P1;
-    public TextMeshProUGUI survivalTimeDisplay_P1;
-    public GameObject gameOverPanel_P1;
-    public TextMeshProUGUI finalScoreText_P1;
-    public TextMeshProUGUI finalSurvivalTimeText_P1;
-    public TextMeshProUGUI finalBlocksDestroyedText_P1;
-    public TextMeshProUGUI finalMissTypesText_P1;
+    // --- 同期されるゲーム状態 ---
+    [SyncVar(hook = nameof(OnMatchStateChanged))]
+    public MatchState currentMatchState = MatchState.WaitingForPlayers;
 
-    [Header("Player 2 UI")]
-    public Slider oxygenSlider_P2;
-    public TextMeshProUGUI oxygenText_P2;
-    public TextMeshProUGUI survivalTimeDisplay_P2;
-    public GameObject gameOverPanel_P2;
-    public TextMeshProUGUI finalScoreText_P2;
-    public TextMeshProUGUI finalSurvivalTimeText_P2;
-    public TextMeshProUGUI finalBlocksDestroyedText_P2;
-    public TextMeshProUGUI finalMissTypesText_P2;
-    
-    [Header("Oxygen Bar Colors")]
-    public Color fullOxygenColor = Color.green;
-    public Color lowOxygenColor = Color.yellow;
-    public Color criticalOxygenColor = Color.red;
+    [SyncVar]
+    public float matchTime;
 
-    private PlayerData[] _playerData;
-    private bool _isGamePlaying = false;
+    [SyncVar]
+    public int winnerIndex = -1; // -1:未定, 0:P1, 1:P2, -2:引き分け
+
+    public readonly SyncList<PlayerData> playerData = new SyncList<PlayerData>();
+
+    private Coroutine _endGameCoroutine;
+
+    #region Unity Lifecycle & Mirror Callbacks
 
     void Awake()
     {
-        if (Instance == null)
-        {
-            Instance = this;
-        }
-        else
-        {
-            Destroy(gameObject);
-        }
-        GameDataSync.OnGameStateChanged_Client += HandleGameStateChanged;
+        if (Instance == null) Instance = this;
+        else Destroy(gameObject);
     }
 
-    void OnDestroy()
+    void OnEnable()
     {
-        GameDataSync.OnGameStateChanged_Client -= HandleGameStateChanged;
+        // GameDataSyncからのグローバルなゲーム状態変更を監視
+        GameDataSync.OnGameStateChanged_Client += HandleGameSystemStateChanged;
     }
 
-    void Start()
+    void OnDisable()
     {
+        GameDataSync.OnGameStateChanged_Client -= HandleGameSystemStateChanged;
+    }
+
+    public override void OnStartServer()
+    {
+        base.OnStartServer();
         InitializeGame();
     }
-
+    
     void Update()
     {
-        if (!_isGamePlaying) return;
+        if (!isServer || currentMatchState != MatchState.Playing) return;
 
-        for (int i = 0; i < _playerData.Length; i++)
-        {
-            if (!_playerData[i].isGameOver)
-            {
-                UpdatePlayerData(i + 1);
-            }
-        }
+        matchTime += Time.deltaTime;
+        UpdatePlayersOxygen();
     }
 
-    private void HandleGameStateChanged(GameState newState)
-    {
-        _isGamePlaying = (newState == GameState.Playing);
-        if (_isGamePlaying)
-        {
-            Debug.Log("Game is now playing. Starting player updates.");
-        }
-    }
+    #endregion
 
+    #region Server-side Logic
+
+    [Server]
     private void InitializeGame()
     {
-        _playerData = new PlayerData[2];
-        _playerData[0] = new PlayerData(maxOxygen);
-        _playerData[1] = new PlayerData(maxOxygen);
+        playerData.Clear();
+        playerData.Add(new PlayerData(maxOxygen));
+        playerData.Add(new PlayerData(maxOxygen));
+        matchTime = 0f;
+        winnerIndex = -1;
+        currentMatchState = MatchState.WaitingForPlayers;
 
-        SetupUI(gameOverPanel_P1, false);
-        SetupUI(gameOverPanel_P2, false);
-
-        UpdateAllUI();
+        if (_endGameCoroutine != null)
+        {
+            StopCoroutine(_endGameCoroutine);
+            _endGameCoroutine = null;
+        }
     }
 
-    private void UpdatePlayerData(int playerIndex)
+    [Server]
+    private void UpdatePlayersOxygen()
     {
-        int index = playerIndex - 1;
-        if (index < 0 || index >= _playerData.Length) return;
-
-        // Oxygen
-        if (!_playerData[index].isOxygenInvincible)
+        for (int i = 0; i < playerData.Count; i++)
         {
-            _playerData[index].currentOxygen -= oxygenDecreaseRate * Time.deltaTime;
-            _playerData[index].currentOxygen = Mathf.Max(0, _playerData[index].currentOxygen);
-            if (_playerData[index].currentOxygen <= 0)
+            if (playerData[i].isGameOver) continue;
+
+            PlayerData data = playerData[i];
+
+            if (!data.isOxygenInvincible)
             {
-                GameOver(playerIndex);
+                data.currentOxygen -= oxygenDecreaseRate * Time.deltaTime;
+                data.currentOxygen = Mathf.Max(0, data.currentOxygen);
+            }
+
+            if (data.currentOxygen <= 0)
+            {
+                data.isGameOver = true;
+                playerData[i] = data; // isGameOverの変更をSyncListに反映
+                CheckForWinner();
+                return; // 勝者判定ロジックに任せる
+            }
+            
+            playerData[i] = data; // 酸素量の変更をSyncListに反映
+        }
+    }
+
+    [Server]
+    private void CheckForWinner()
+    {
+        if (currentMatchState != MatchState.Playing) return;
+
+        int aliveCount = 0;
+        int lastAlivePlayerIndex = -1;
+
+        for (int i = 0; i < playerData.Count; i++)
+        {
+            if (!playerData[i].isGameOver)
+            {
+                aliveCount++;
+                lastAlivePlayerIndex = i;
             }
         }
 
-        // Survival Time
-        _playerData[index].survivalTime += Time.deltaTime;
-
-        UpdateUIForPlayer(playerIndex);
-    }
-
-    public void GameOver(int playerIndex)
-    {
-        int index = playerIndex - 1;
-        if (_playerData[index].isGameOver) return;
-
-        _playerData[index].isGameOver = true;
-        Debug.Log($"Player {playerIndex} Game Over!");
-
-        DisplayGameOverResults(playerIndex);
-
-        // Check if there is a winner
-        int alivePlayers = 0;
-        int winnerIndex = -1;
-        for(int i = 0; i < _playerData.Length; i++)
+        if (aliveCount <= 1)
         {
-            if (!_playerData[i].isGameOver)
-            {
-                alivePlayers++;
-                winnerIndex = i;
-            }
-        }
-
-        if (alivePlayers == 1)
-        {
-            Debug.Log($"Player {winnerIndex + 1} is the winner!");
-            // Optionally, you can call a method on the winner's panel as well
-            // For now, we just stop the game updates for the loser.
-            _isGamePlaying = false; // Or handle post-game state
-        }
-        else if (alivePlayers == 0)
-        {
-             Debug.Log("It's a draw!");
-            _isGamePlaying = false;
+            currentMatchState = MatchState.Finished;
+            winnerIndex = (aliveCount == 1) ? lastAlivePlayerIndex : -2; // 1人ならその人が勝ち、0人なら引き分け
+            Debug.Log($"Match Finished. Winner Index: {winnerIndex}");
         }
     }
 
-    // --- Public methods to be called from other scripts ---
+    #endregion
 
-    public void RecoverOxygen(int playerIndex, float amount)
+    #region Client-side Hooks
+
+    // GameDataSyncからのグローバルなゲームステート変更をハンドル
+    private void HandleGameSystemStateChanged(GameState newState)
     {
-        int index = playerIndex - 1;
-        if (_playerData[index].isGameOver) return;
-        _playerData[index].currentOxygen = Mathf.Min(_playerData[index].currentOxygen + amount, maxOxygen);
+        if (isServer && newState == GameState.Playing && currentMatchState == MatchState.WaitingForPlayers)
+        {
+            currentMatchState = MatchState.Playing;
+            Debug.Log("Server has set MatchState to Playing.");
+        }
     }
 
-    public void AddDestroyedBlock(int playerIndex)
+    // マッチステートが変更されたときに全クライアントで呼ばれるHook
+    public void OnMatchStateChanged(MatchState oldState, MatchState newState)
     {
-        int index = playerIndex - 1;
-        if (!_playerData[index].isGameOver) _playerData[index].blocksDestroyed++;
+        Debug.Log($"Client detected MatchState change from {oldState} to {newState}");
+        // この変更をPlayerHUDManagerが検知してUIを更新する
     }
 
-    public void AddMissType(int playerIndex)
+    #endregion
+
+    #region Public Server Methods (called via Commands from player)
+
+    [Server]
+    public void ServerRecoverOxygen(int playerIndex, float amount)
     {
         int index = playerIndex - 1;
-        if (!_playerData[index].isGameOver) _playerData[index].missTypes++;
+        if (index < 0 || index >= playerData.Count || playerData[index].isGameOver) return;
+        
+        PlayerData data = playerData[index];
+        data.currentOxygen = Mathf.Min(data.currentOxygen + amount, maxOxygen);
+        playerData[index] = data;
+    }
+
+    [Server]
+    public void ServerAddDestroyedBlock(int playerIndex)
+    {
+        int index = playerIndex - 1;
+        if (index < 0 || index >= playerData.Count || playerData[index].isGameOver) return;
+
+        PlayerData data = playerData[index];
+        data.blocksDestroyed++;
+        playerData[index] = data;
+    }
+
+    [Server]
+    public void ServerAddMissType(int playerIndex)
+    {
+        int index = playerIndex - 1;
+        if (index < 0 || index >= playerData.Count || playerData[index].isGameOver) return;
+
+        PlayerData data = playerData[index];
+        data.missTypes++;
+        playerData[index] = data;
     }
     
-    public System.Collections.IEnumerator TemporaryOxygenInvincibility(int playerIndex, float duration)
+    [Server]
+    public void StartTemporaryInvincibility(int playerIndex, float duration)
+    {
+        StartCoroutine(TemporaryOxygenInvincibilityCoroutine(playerIndex, duration));
+    }
+
+    [Server]
+    private IEnumerator TemporaryOxygenInvincibilityCoroutine(int playerIndex, float duration)
     {
         int index = playerIndex - 1;
-        _playerData[index].isOxygenInvincible = true;
+        if (index < 0 || index >= playerData.Count) yield break;
+
+        PlayerData data = playerData[index];
+        data.isOxygenInvincible = true;
+        playerData[index] = data;
+
         yield return new WaitForSeconds(duration);
-        _playerData[index].isOxygenInvincible = false;
-    }
 
-
-    // --- UI Update Methods ---
-
-    private void UpdateAllUI()
-    {
-        UpdateUIForPlayer(1);
-        UpdateUIForPlayer(2);
-    }
-
-    private void UpdateUIForPlayer(int playerIndex)
-    {
-        int index = playerIndex - 1;
-        Slider slider = (playerIndex == 1) ? oxygenSlider_P1 : oxygenSlider_P2;
-        TextMeshProUGUI oxygenText = (playerIndex == 1) ? oxygenText_P1 : oxygenText_P2;
-        TextMeshProUGUI timeDisplay = (playerIndex == 1) ? survivalTimeDisplay_P1 : survivalTimeDisplay_P2;
-
-        // Update Oxygen UI
-        if (slider != null)
+        if (index < playerData.Count && !playerData[index].isGameOver)
         {
-            slider.value = _playerData[index].currentOxygen / maxOxygen;
-            Image fillImage = slider.fillRect.GetComponent<Image>();
-            if (fillImage != null)
-            {
-                float oxygenPercentage = _playerData[index].currentOxygen / maxOxygen;
-                if (oxygenPercentage <= 0.10f) fillImage.color = criticalOxygenColor;
-                else if (oxygenPercentage <= 0.30f) fillImage.color = lowOxygenColor;
-                else fillImage.color = fullOxygenColor;
-            }
-        }
-        if (oxygenText != null)
-        {
-            oxygenText.text = $"酸素: {Mathf.CeilToInt(_playerData[index].currentOxygen)}";
-        }
-
-        // Update Survival Time UI
-        if (timeDisplay != null)
-        {
-            TimeSpan timeSpan = TimeSpan.FromSeconds(_playerData[index].survivalTime);
-            timeDisplay.text = $"{timeSpan.Minutes:D2}:{timeSpan.Seconds:D2}.{timeSpan.Milliseconds / 10:D2}";
+            data = playerData[index];
+            data.isOxygenInvincible = false;
+            playerData[index] = data;
         }
     }
 
-    private void DisplayGameOverResults(int playerIndex)
-    {
-        int index = playerIndex - 1;
-        GameObject panel = (playerIndex == 1) ? gameOverPanel_P1 : gameOverPanel_P2;
-        TextMeshProUGUI scoreText = (playerIndex == 1) ? finalScoreText_P1 : finalScoreText_P2;
-        TextMeshProUGUI timeText = (playerIndex == 1) ? finalSurvivalTimeText_P1 : finalSurvivalTimeText_P2;
-        TextMeshProUGUI blocksText = (playerIndex == 1) ? finalBlocksDestroyedText_P1 : finalBlocksDestroyedText_P2;
-        TextMeshProUGUI missText = (playerIndex == 1) ? finalMissTypesText_P1 : finalMissTypesText_P2;
-
-        SetupUI(panel, true);
-
-        int score = Mathf.FloorToInt(_playerData[index].survivalTime) + _playerData[index].blocksDestroyed - _playerData[index].missTypes;
-        score = Mathf.Max(0, score);
-
-        if (scoreText != null) scoreText.text = $"スコア: {score}";
-        if (timeText != null)
-        {
-            TimeSpan timeSpan = TimeSpan.FromSeconds(_playerData[index].survivalTime);
-            timeText.text = $"生存時間: {timeSpan.Minutes:D2}:{timeSpan.Seconds:D2}.{timeSpan.Milliseconds / 10:D2}";
-        }
-        if (blocksText != null) blocksText.text = $"破壊したブロック数: {_playerData[index].blocksDestroyed}";
-        if (missText != null) missText.text = $"ミスタイプ数: {_playerData[index].missTypes}";
-    }
-
-    private void SetupUI(GameObject panel, bool isActive)
-    {
-        if (panel == null) return;
-        CanvasGroup cg = panel.GetComponent<CanvasGroup>();
-        if (cg != null)
-        {
-            cg.alpha = isActive ? 1 : 0;
-            cg.interactable = isActive;
-            cg.blocksRaycasts = isActive;
-        }
-        else
-        {
-            panel.SetActive(isActive);
-        }
-    }
+    #endregion
 }

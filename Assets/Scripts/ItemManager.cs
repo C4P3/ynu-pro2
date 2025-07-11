@@ -91,7 +91,7 @@ public class ItemManager : MonoBehaviour
     /// <param name="itemPosition">取得したアイテムのタイルマップ座標</param>
     /// <param name="levelManager">アイテムを取得したプレイヤーが所属するLevelManager</param> // 引数を追加
     // 引数に GameManagerMulti を追加
-    public void AcquireItem(TileBase itemTile, Vector3Int itemPosition, LevelManager levelManager, Transform playerTransform)
+    public void AcquireItem(TileBase itemTile, Vector3Int itemPosition, LevelManager levelManager, Transform playerTransform, NetworkPlayerInput networkPlayerInput = null)
     {
         if (!_itemDatabase.TryGetValue(itemTile, out ItemData data)) return;
 
@@ -113,17 +113,20 @@ public class ItemManager : MonoBehaviour
             }
         }
 
-        // アイテムの種類に応じて効果を発動 (GameManager.InstanceをplayerGameManagerに置き換え)
+        // アイテムの種類に応じて効果を発動
         switch (data.effectType)
         {
             case ItemEffectType.OxygenRecovery:
                 var oxygenData = data as OxygenRecoveryItemData;
                 if (oxygenData != null)
                 {
-                    PlayerController playerController = playerTransform.GetComponent<PlayerController>();
-                    if (playerController != null && GameManagerMulti.Instance != null)
+                    if (networkPlayerInput != null)
                     {
-                        GameManagerMulti.Instance.RecoverOxygen(playerController.playerIndex, oxygenData.recoveryAmount);
+                        networkPlayerInput.CmdRecoverOxygen(oxygenData.recoveryAmount);
+                    }
+                    else if (GameManager.Instance != null)
+                    {
+                        GameManager.Instance.RecoverOxygen(oxygenData.recoveryAmount);
                     }
                 }
                 break;
@@ -132,7 +135,7 @@ public class ItemManager : MonoBehaviour
                 var bombData = data as BombItemData;
                 if (bombData != null && levelManager != null)
                 {
-                    levelManager.ExplodeBlocks(itemPosition, bombData.radius);
+                    levelManager.ExplodeBlocks(itemPosition, bombData.radius, networkPlayerInput);
                 }
                 break;
 
@@ -140,12 +143,13 @@ public class ItemManager : MonoBehaviour
                 var starData = data as StarItemData;
                 if (starData != null)
                 {
-                    PlayerController playerController = playerTransform.GetComponent<PlayerController>();
-                    if (playerController != null && GameManagerMulti.Instance != null)
+                    if (networkPlayerInput != null)
                     {
-                        GameManagerMulti.Instance.StartCoroutine(
-                            GameManagerMulti.Instance.TemporaryOxygenInvincibility(playerController.playerIndex, starData.invincibleDuration)
-                        );
+                        networkPlayerInput.CmdTemporaryOxygenInvincibility(starData.invincibleDuration);
+                    }
+                    else if (GameManager.Instance != null)
+                    {
+                        GameManager.Instance.StartCoroutine(GameManager.Instance.TemporaryOxygenInvincibility(starData.invincibleDuration));
                     }
                 }
                 break;
@@ -177,10 +181,13 @@ public class ItemManager : MonoBehaviour
                 var poisonData = data as PoisonItemData;
                 if (poisonData != null)
                 {
-                    PlayerController playerController = playerTransform.GetComponent<PlayerController>();
-                    if (playerController != null && GameManagerMulti.Instance != null)
+                    if (networkPlayerInput != null)
                     {
-                        GameManagerMulti.Instance.RecoverOxygen(playerController.playerIndex, -Mathf.Abs(poisonData.poisonAmount));
+                        networkPlayerInput.CmdRecoverOxygen(-Mathf.Abs(poisonData.poisonAmount));
+                    }
+                    else if (GameManager.Instance != null)
+                    {
+                        GameManager.Instance.RecoverOxygen(-Mathf.Abs(poisonData.poisonAmount));
                     }
                 }
                 break;
