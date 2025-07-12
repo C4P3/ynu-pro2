@@ -1833,11 +1833,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 257260611}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1eb38f61f45f2d5478a2d39c8331cbf2, type: 3}
+  m_Script: {fileID: 11500000, guid: 036d2ed45f957dc469584605584bf38e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   buttonImage: {fileID: 257260617}
-  clickSound: {fileID: 8300000, guid: 9d9889ef0c51f17418d2af0a6a5ee366, type: 3}
+  clickSound: {fileID: 8300000, guid: 9feacea25a3c31f4f94b09f42f2f0620, type: 3}
   audioSource: {fileID: 1532488429}
   beforeUI: {fileID: 2129761570}
   afterUI: {fileID: 322335554}
@@ -2459,11 +2459,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 309079627}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1eb38f61f45f2d5478a2d39c8331cbf2, type: 3}
+  m_Script: {fileID: 11500000, guid: 036d2ed45f957dc469584605584bf38e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   buttonImage: {fileID: 309079632}
-  clickSound: {fileID: 8300000, guid: 9d9889ef0c51f17418d2af0a6a5ee366, type: 3}
+  clickSound: {fileID: 8300000, guid: 9feacea25a3c31f4f94b09f42f2f0620, type: 3}
   audioSource: {fileID: 1532488429}
   beforeUI: {fileID: 1573480072}
   afterUI: {fileID: 322335554}
@@ -3936,7 +3936,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 452234221}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 25c41e40750bd2a4eae1d83bc6814d74, type: 3}
+  m_Script: {fileID: 11500000, guid: 036d2ed45f957dc469584605584bf38e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   buttonImage: {fileID: 452234226}
@@ -5809,7 +5809,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 22.658655, y: -25.921747}
+  m_AnchoredPosition: {x: 24.81, y: -25.921747}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!225 &862735196
@@ -8536,11 +8536,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 1465076101}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1eb38f61f45f2d5478a2d39c8331cbf2, type: 3}
+  m_Script: {fileID: 11500000, guid: 036d2ed45f957dc469584605584bf38e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   buttonImage: {fileID: 1465076106}
-  clickSound: {fileID: 8300000, guid: 9d9889ef0c51f17418d2af0a6a5ee366, type: 3}
+  clickSound: {fileID: 8300000, guid: 9feacea25a3c31f4f94b09f42f2f0620, type: 3}
   audioSource: {fileID: 1532488429}
   beforeUI: {fileID: 1085955684}
   afterUI: {fileID: 559981376}
@@ -9417,7 +9417,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1757813431}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f7e6fac51a2ee544f878abccfaa2b1ae, type: 3}
+  m_Script: {fileID: 11500000, guid: 616f64d5d1958d742820a9ed5cae7ce8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   buttonImage: {fileID: 1757813436}
@@ -10084,11 +10084,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 1840198377}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1eb38f61f45f2d5478a2d39c8331cbf2, type: 3}
+  m_Script: {fileID: 11500000, guid: 036d2ed45f957dc469584605584bf38e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   buttonImage: {fileID: 1840198382}
-  clickSound: {fileID: 8300000, guid: 9d9889ef0c51f17418d2af0a6a5ee366, type: 3}
+  clickSound: {fileID: 8300000, guid: 9feacea25a3c31f4f94b09f42f2f0620, type: 3}
   audioSource: {fileID: 1532488429}
   beforeUI: {fileID: 155920034}
   afterUI: {fileID: 322335554}
@@ -10318,11 +10318,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 1905132779}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1eb38f61f45f2d5478a2d39c8331cbf2, type: 3}
+  m_Script: {fileID: 11500000, guid: 036d2ed45f957dc469584605584bf38e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   buttonImage: {fileID: 1905132784}
-  clickSound: {fileID: 8300000, guid: 9d9889ef0c51f17418d2af0a6a5ee366, type: 3}
+  clickSound: {fileID: 8300000, guid: 9feacea25a3c31f4f94b09f42f2f0620, type: 3}
   audioSource: {fileID: 1532488429}
   beforeUI: {fileID: 835071669}
   afterUI: {fileID: 322335554}
@@ -11246,7 +11246,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1990347933}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c7de9e95389b12a4eb1f5c0f4848e1ff, type: 3}
+  m_Script: {fileID: 11500000, guid: 616f64d5d1958d742820a9ed5cae7ce8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   buttonImage: {fileID: 1990347938}
@@ -11816,7 +11816,7 @@ GameObject:
   - component: {fileID: 2121266105}
   - component: {fileID: 2121266104}
   m_Layer: 5
-  m_Name: cancelButton2
+  m_Name: cancelButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -11850,11 +11850,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 2121266102}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1eb38f61f45f2d5478a2d39c8331cbf2, type: 3}
+  m_Script: {fileID: 11500000, guid: 036d2ed45f957dc469584605584bf38e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   buttonImage: {fileID: 2121266107}
-  clickSound: {fileID: 8300000, guid: 9d9889ef0c51f17418d2af0a6a5ee366, type: 3}
+  clickSound: {fileID: 8300000, guid: 9feacea25a3c31f4f94b09f42f2f0620, type: 3}
   audioSource: {fileID: 1532488429}
   beforeUI: {fileID: 862735196}
   afterUI: {fileID: 559981376}
