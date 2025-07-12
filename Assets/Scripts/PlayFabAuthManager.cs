@@ -67,20 +67,19 @@ public class PlayFabAuthManager : MonoBehaviour
 
         SetUI(loadingUI, 0, false, false);
 
-        // if (result.NewlyCreated)
-        // {
-        //     Debug.Log("初回ログイン（新規アカウント作成）！");
-        //     // 初回ログイン専用処理（例：ニックネーム設定画面へ遷移）
-        //     SetUI(loginUI, 1, true, true);
-        // }
-        // else
-        // {
-        //     Debug.Log("既存アカウントでログイン成功！");
-        //     // 通常のホーム画面へ遷移など
-        //     SetUI(tittleUI, 1, true, true);
-        // }
+        if (result.NewlyCreated)
+        {
+            Debug.Log("初回ログイン（新規アカウント作成）！");
+            // 初回ログイン専用処理（例：ニックネーム設定画面へ遷移）
+            SetUI(loginUI, 1, true, true);
+        }
+        else
+        {
+            Debug.Log("既存アカウントでログイン成功！");
+            // 通常のホーム画面へ遷移など
+            SetUI(tittleUI, 1, true, true);
+        }
         
-        //デバッグ用：通常の処理がしたいときは上の処理を使う
         SetUI(loginUI, 1, true, true);
     }
 
