@@ -10543,7 +10543,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   roomIdInput: {fileID: 43385436}
-  roomIdDisplayText: {fileID: 24820402}
+  roomIdDisplayText: {fileID: 1332360725}
   statusText: {fileID: 1330472497}
   relayManager: {fileID: 74822755}
   roomId: 
