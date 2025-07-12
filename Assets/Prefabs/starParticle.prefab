@@ -4743,7 +4743,7 @@ GameObject:
   - component: {fileID: 8709908555616991674}
   - component: {fileID: 3003534451592243736}
   m_Layer: 0
-  m_Name: StarParticle
+  m_Name: starParticle
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -9521,7 +9521,7 @@ ParticleSystem:
   startDelay:
     serializedVersion: 2
     minMaxState: 0
-    scalar: 0.4
+    scalar: 0.6
     minScalar: 0
     maxCurve:
       serializedVersion: 2
@@ -10263,7 +10263,7 @@ ParticleSystem:
     rateOverTime:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 5
+      scalar: 10
       minScalar: 10
       maxCurve:
         serializedVersion: 2
