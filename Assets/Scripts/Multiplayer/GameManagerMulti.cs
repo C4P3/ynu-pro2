@@ -1,15 +1,7 @@
-
 using UnityEngine;
 using Mirror;
 using System.Collections;
 using System.Collections.Generic; // SyncListのために追加
-
-public enum MatchState
-{
-    WaitingForPlayers,
-    Playing,
-    Finished
-}
 
 // PlayerDataをstructに変更し、Mirrorで同期できるようにします。
 [System.Serializable]
@@ -40,8 +32,8 @@ public class GameManagerMulti : NetworkBehaviour
     public float oxygenDecreaseRate = 0.5f;
 
     // --- 同期されるゲーム状態 ---
-    [SyncVar(hook = nameof(OnMatchStateChanged))]
-    public MatchState currentMatchState = MatchState.WaitingForPlayers;
+    // [SyncVar(hook = nameof(OnMatchStateChanged))]
+    // public MatchState currentMatchState = MatchState.WaitingForPlayers; // GameDataSyncに移行するためコメントアウト
 
     [SyncVar]
     public float matchTime;
@@ -52,6 +44,7 @@ public class GameManagerMulti : NetworkBehaviour
     public readonly SyncList<PlayerData> playerData = new SyncList<PlayerData>();
 
     private Coroutine _endGameCoroutine;
+    private bool _isGamePlaying = false; // GameDataSyncの状態をローカルで保持
 
     #region Unity Lifecycle & Mirror Callbacks
 
@@ -80,7 +73,8 @@ public class GameManagerMulti : NetworkBehaviour
     
     void Update()
     {
-        if (!isServer || currentMatchState != MatchState.Playing) return;
+        // isServerかつ、GameDataSyncから受け取ったプレイ中の状態フラグをチェック
+        if (!isServer || !_isGamePlaying) return;
 
         matchTime += Time.deltaTime;
         UpdatePlayersOxygen();
@@ -98,7 +92,7 @@ public class GameManagerMulti : NetworkBehaviour
         playerData.Add(new PlayerData(maxOxygen));
         matchTime = 0f;
         winnerIndex = -1;
-        currentMatchState = MatchState.WaitingForPlayers;
+        _isGamePlaying = false; // 初期状態ではプレイ中ではない
 
         if (_endGameCoroutine != null)
         {
@@ -137,7 +131,7 @@ public class GameManagerMulti : NetworkBehaviour
     [Server]
     private void CheckForWinner()
     {
-        if (currentMatchState != MatchState.Playing) return;
+        if (!_isGamePlaying) return;
 
         int aliveCount = 0;
         int lastAlivePlayerIndex = -1;
@@ -153,7 +147,11 @@ public class GameManagerMulti : NetworkBehaviour
 
         if (aliveCount <= 1)
         {
-            currentMatchState = MatchState.Finished;
+            // GameDataSyncの状態をPostGameに変更するようリクエスト
+            if(isServer)
+            {
+                GameDataSync.Instance.EndGame();
+            }
             winnerIndex = (aliveCount == 1) ? lastAlivePlayerIndex : -2; // 1人ならその人が勝ち、0人なら引き分け
             Debug.Log($"Match Finished. Winner Index: {winnerIndex}");
         }
@@ -166,18 +164,17 @@ public class GameManagerMulti : NetworkBehaviour
     // GameDataSyncからのグローバルなゲームステート変更をハンドル
     private void HandleGameSystemStateChanged(GameState newState)
     {
-        if (isServer && newState == GameState.Playing && currentMatchState == MatchState.WaitingForPlayers)
-        {
-            currentMatchState = MatchState.Playing;
-            Debug.Log("Server has set MatchState to Playing.");
-        }
-    }
+        // サーバーとクライアントの両方でフラグを更新
+        _isGamePlaying = (newState == GameState.Playing);
 
-    // マッチステートが変更されたときに全クライアントで呼ばれるHook
-    public void OnMatchStateChanged(MatchState oldState, MatchState newState)
-    {
-        Debug.Log($"Client detected MatchState change from {oldState} to {newState}");
-        // この変更をPlayerHUDManagerが検知してUIを更新する
+        if (isServer)
+        {
+            Debug.Log($"Server detected GameState change to {newState}. _isGamePlaying is now {_isGamePlaying}");
+            if (newState == GameState.PostGame)
+            {
+                // サーバー側でゲーム終了処理
+            }
+        }
     }
 
     #endregion
@@ -235,6 +232,7 @@ public class GameManagerMulti : NetworkBehaviour
 
         yield return new WaitForSeconds(duration);
 
+        // コルーチン終了時にプレイヤーデータがまだ存在し、ゲームオーバーでないことを確認
         if (index < playerData.Count && !playerData[index].isGameOver)
         {
             data = playerData[index];

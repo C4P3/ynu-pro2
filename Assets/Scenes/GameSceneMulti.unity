@@ -341,29 +341,9 @@ PrefabInstance:
       propertyPath: m_AnchorMax.y
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 5425198813856714840, guid: 6e700e24619e532429cc155198fa21de, type: 3}
-      propertyPath: TypingPanel_P1
-      value: 
-      objectReference: {fileID: 200274087}
-    - target: {fileID: 5425198813856714840, guid: 6e700e24619e532429cc155198fa21de, type: 3}
-      propertyPath: TypingPanel_P2
-      value: 
-      objectReference: {fileID: 200274086}
     - target: {fileID: 5662466696960242349, guid: 6e700e24619e532429cc155198fa21de, type: 3}
       propertyPath: m_Name
       value: CanvasMulti
-      objectReference: {fileID: 0}
-    - target: {fileID: 6985413753320838556, guid: 6e700e24619e532429cc155198fa21de, type: 3}
-      propertyPath: m_AnchoredPosition.x
-      value: 560
-      objectReference: {fileID: 0}
-    - target: {fileID: 6985413753320838556, guid: 6e700e24619e532429cc155198fa21de, type: 3}
-      propertyPath: m_AnchoredPosition.y
-      value: 2344
-      objectReference: {fileID: 0}
-    - target: {fileID: 7209974330411341004, guid: 6e700e24619e532429cc155198fa21de, type: 3}
-      propertyPath: m_IsActive
-      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7752802797856193810, guid: 6e700e24619e532429cc155198fa21de, type: 3}
       propertyPath: m_Pivot.x
@@ -450,16 +430,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 6e700e24619e532429cc155198fa21de, type: 3}
---- !u!1 &200274086 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 1582942613403210851, guid: 6e700e24619e532429cc155198fa21de, type: 3}
-  m_PrefabInstance: {fileID: 200274085}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &200274087 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 1134199834954069529, guid: 6e700e24619e532429cc155198fa21de, type: 3}
-  m_PrefabInstance: {fileID: 200274085}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &202311668
 GameObject:
   m_ObjectHideFlags: 0
@@ -961,8 +931,7 @@ MonoBehaviour:
   syncMode: 0
   syncInterval: 0
   maxOxygen: 100
-  oxygenDecreaseRate: 0.5
-  currentMatchState: 0
+  oxygenDecreaseRate: 2
   matchTime: 0
   winnerIndex: -1
 --- !u!4 &1016113164

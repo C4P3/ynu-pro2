@@ -1,45 +1,47 @@
-
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using Mirror;
 using System;
 using System.Collections;
-using UnityEngine.InputSystem;
 
 /// <summary>
-/// マルチプレイヤー時のHUD（ヘッズアップディスプレイ）とリザルトUIを管理するクラス。
-/// GameManagerMultiから同期されたデータをUIに反映させる責務を持つ。
+/// マルチプレイヤー時のHUD、カウントダウン、リザルトUIを管理するクラス。
+/// GameDataSyncから同期されたGameStateに基づいてUIを制御する。
 /// </summary>
 public class PlayerHUDManager : NetworkBehaviour
 {
     public static PlayerHUDManager Instance { get; private set; }
 
-    [Header("Typing Panel")]
-    [SerializeField] private GameObject TypingPanel_P1;
-    [SerializeField] private GameObject TypingPanel_P2; // 対戦中のUIパネル
+    [Header("State Panels")]
+    [SerializeField] private GameObject waitingForPlayerPanel;
+    [SerializeField] private GameObject inGameHUDPanel;
+    [SerializeField] private GameObject resultPanel;
 
-    [Header("Common UI")]
+    [Header("Waiting UI")]
+    [SerializeField] private TMP_InputField roomIdInputField;
+
+    [Header("Countdown UI")]
+    [SerializeField] private GameObject countdownPanel; // 3, 2, 1, START を含むパネル
+    [SerializeField] private TextMeshProUGUI countdownText;
+
+    [Header("In-Game HUD")]
     [SerializeField] private TextMeshProUGUI matchTimeText;
-    [SerializeField] private GameObject inGameHUDPanel; // 対戦中のUIパネル
-
-    [Header("My Player UI")]
     [SerializeField] private Slider myOxygenSlider;
     [SerializeField] private TextMeshProUGUI myOxygenText;
-
-    [Header("Opponent Player UI")]
     [SerializeField] private Slider opponentOxygenSlider;
     [SerializeField] private TextMeshProUGUI opponentOxygenText;
+    
+    [Header("Typing Panel")]
+    [SerializeField] private GameObject TypingPanel_P1;
+    [SerializeField] private GameObject TypingPanel_P2;
 
     [Header("Result Panel")]
-    [SerializeField] private GameObject resultPanel;
     [SerializeField] private TextMeshProUGUI resultText; // WIN, LOSE, DRAW
     [SerializeField] private TextMeshProUGUI finalMatchTimeText;
-    // My final stats
     [SerializeField] private TextMeshProUGUI myFinalScoreText;
     [SerializeField] private TextMeshProUGUI myFinalBlocksDestroyedText;
     [SerializeField] private TextMeshProUGUI myFinalMissTypesText;
-    // Opponent's final stats
     [SerializeField] private TextMeshProUGUI opponentFinalScoreText;
     [SerializeField] private TextMeshProUGUI opponentFinalBlocksDestroyedText;
     [SerializeField] private TextMeshProUGUI opponentFinalMissTypesText;
@@ -53,93 +55,142 @@ public class PlayerHUDManager : NetworkBehaviour
     private int _myPlayerIndex = -1;
     private int _opponentPlayerIndex = -1;
 
+    #region Unity Lifecycle & Event Subscriptions
+
     void Awake()
     {
-        if (Instance == null)
+        if (Instance == null) Instance = this;
+        else Destroy(gameObject);
+    }
+
+    void OnEnable()
+    {
+        GameDataSync.OnGameStateChanged_Client += HandleGameStateChanged;
+    }
+
+    void OnDisable()
+    {
+        GameDataSync.OnGameStateChanged_Client -= HandleGameStateChanged;
+    }
+
+    void Start()
+    {
+        // GameDataSyncの現在の状態に基づいてUIを初期化する
+        // これにより、シーン参加時にイベントを逃した場合でも正しいUI状態から開始できる
+        if (GameDataSync.Instance != null)
         {
-            Instance = this;
+            HandleGameStateChanged(GameDataSync.Instance.currentState);
         }
         else
         {
-            Destroy(gameObject);
+            // フォールバック：万が一GameDataSyncが見つからない場合は、待機状態にしておく
+            waitingForPlayerPanel.SetActive(true);
+            inGameHUDPanel.SetActive(false);
+            resultPanel.SetActive(false);
+            countdownPanel.SetActive(false);
         }
-    }
-    void Start()
-    {
-        // 初期状態ではすべてのUIを非表示にする
-        if (inGameHUDPanel != null) inGameHUDPanel.SetActive(false);
-        if (resultPanel != null) resultPanel.SetActive(false);
     }
 
     void Update()
     {
-        // GameManagerとローカルプレイヤーが準備できるまで待つ
-        if (GameManagerMulti.Instance == null) return;
-        if (_localPlayerInput == null)
+        // ローカルプレイヤーの情報を取得・設定
+        if (_localPlayerInput == null && NetworkClient.localPlayer != null)
         {
-            if (NetworkClient.localPlayer != null)
+            _localPlayerInput = NetworkClient.localPlayer.GetComponent<NetworkPlayerInput>();
+            if (_localPlayerInput != null && _localPlayerInput.playerIndex != 0)
             {
-                _localPlayerInput = NetworkClient.localPlayer.GetComponent<NetworkPlayerInput>();
-                if (_localPlayerInput != null && _localPlayerInput.playerIndex != 0)
-                {
-                    // playerIndexが割り当てられるまで待つ
-                    _myPlayerIndex = _localPlayerInput.playerIndex - 1; // 0-based index
-                    _opponentPlayerIndex = (_myPlayerIndex == 0) ? 1 : 0;
-                }
+                _myPlayerIndex = _localPlayerInput.playerIndex - 1;
+                _opponentPlayerIndex = (_myPlayerIndex == 0) ? 1 : 0;
             }
-            return; // 次のフレームで再試行
         }
 
-        var gm = GameManagerMulti.Instance;
-        switch (gm.currentMatchState)
+        // ゲームプレイ中のHUD更新
+        if (GameDataSync.Instance != null && GameDataSync.Instance.currentState == GameState.Playing)
         {
-            case MatchState.WaitingForPlayers:
-                // 待機中はUIを非表示
-                if (inGameHUDPanel.activeSelf) inGameHUDPanel.SetActive(false);
-                if (resultPanel.activeSelf) resultPanel.SetActive(false);
+            UpdateInGameHUD();
+        }
+    }
+
+    #endregion
+
+    #region UI State Management
+
+    private void HandleGameStateChanged(GameState newState)
+    {
+        // 全てのパネルを一旦非表示にする（切り替えを確実にするため）
+        waitingForPlayerPanel.SetActive(false);
+        inGameHUDPanel.SetActive(false);
+        resultPanel.SetActive(false);
+        countdownPanel.SetActive(false);
+
+        switch (newState)
+        {
+            case GameState.WaitingForPlayers:
+                waitingForPlayerPanel.SetActive(true);
+                UpdateWaitingPanel();
                 break;
 
-            case MatchState.Playing:
-                // 対戦が始まったらHUDを表示
-                if (!inGameHUDPanel.activeSelf) inGameHUDPanel.SetActive(true);
-                if (resultPanel.activeSelf) resultPanel.SetActive(false);
-                UpdateInGameHUD(gm);
+            case GameState.Countdown:
+                inGameHUDPanel.SetActive(true); // HUDはカウントダウンから表示
+                countdownPanel.SetActive(true);
+                StartCoroutine(CountdownCoroutine());
                 break;
 
-            case MatchState.Finished:
-                // 対戦が終了したらリザルトを表示
-                if (inGameHUDPanel.activeSelf) inGameHUDPanel.SetActive(false);
-                if (!resultPanel.activeSelf)
-                {
-                    ShowResultPanel(gm);
-                }
+            case GameState.Playing:
+                inGameHUDPanel.SetActive(true);
+                break;
+
+            case GameState.PostGame:
+                resultPanel.SetActive(true);
+                ShowResultPanel();
                 break;
         }
     }
 
-    /// <summary>
-    /// 対戦中のHUD情報を更新する
-    /// </summary>
-    private void UpdateInGameHUD(GameManagerMulti gm)
+    private IEnumerator CountdownCoroutine()
     {
-        // 対戦時間を更新
+        countdownText.text = "3";
+        yield return new WaitForSeconds(1f);
+        countdownText.text = "2";
+        yield return new WaitForSeconds(1f);
+        countdownText.text = "1";
+        yield return new WaitForSeconds(1f);
+        countdownText.text = "START!";
+        yield return new WaitForSeconds(0.5f);
+        countdownPanel.SetActive(false);
+    }
+
+    #endregion
+
+    #region UI Content Updates
+
+    private void UpdateWaitingPanel()
+    {
+        Debug.Log($"Room ID: {PlayFabMatchmakingManager.Instance.roomId}");
+        if (roomIdInputField != null && PlayFabMatchmakingManager.Instance != null)
+        {
+            roomIdInputField.text = $"Room ID: {PlayFabMatchmakingManager.Instance.roomId}";
+        }
+    }
+
+    private void UpdateInGameHUD()
+    {
+        var gm = GameManagerMulti.Instance;
+        if (gm == null) return;
+
+        // Match Time
         if (matchTimeText != null)
         {
             TimeSpan timeSpan = TimeSpan.FromSeconds(gm.matchTime);
             matchTimeText.text = $"TIME {timeSpan.Minutes:D2}:{timeSpan.Seconds:D2}";
         }
 
-        // プレイヤーデータが準備できていなければ何もしない
+        // Player Data
         if (gm.playerData.Count < 2 || _myPlayerIndex == -1) return;
-
-        // 自分と相手のUIを更新
         UpdateSinglePlayerUI(myOxygenSlider, myOxygenText, gm.playerData[_myPlayerIndex]);
         UpdateSinglePlayerUI(opponentOxygenSlider, opponentOxygenText, gm.playerData[_opponentPlayerIndex]);
     }
 
-    /// <summary>
-    /// 一人のプレイヤーの酸素UIを更新するヘルパーメソッド
-    /// </summary>
     private void UpdateSinglePlayerUI(Slider slider, TextMeshProUGUI oxygenText, PlayerData data)
     {
         if (slider != null)
@@ -161,15 +212,12 @@ public class PlayerHUDManager : NetworkBehaviour
         }
     }
 
-    /// <summary>
-    /// リザルトパネルを表示し、最終結果を反映する
-    /// </summary>
-    private void ShowResultPanel(GameManagerMulti gm)
+    private void ShowResultPanel()
     {
-        if (resultPanel == null) return;
-        resultPanel.SetActive(true);
+        var gm = GameManagerMulti.Instance;
+        if (gm == null) return;
 
-        // 勝敗テキストを設定
+        // Result Text
         if (resultText != null)
         {
             if (gm.winnerIndex == _myPlayerIndex) resultText.text = "WIN!";
@@ -177,24 +225,20 @@ public class PlayerHUDManager : NetworkBehaviour
             else resultText.text = "LOSE...";
         }
 
-        // 最終対戦時間を設定
+        // Final Time
         if (finalMatchTimeText != null)
         {
             TimeSpan timeSpan = TimeSpan.FromSeconds(gm.matchTime);
             finalMatchTimeText.text = $"Match Time: {timeSpan.Minutes:D2}:{timeSpan.Seconds:D2}.{timeSpan.Milliseconds / 10:D2}";
         }
 
-        // プレイヤーデータが準備できていなければ何もしない
         if (gm.playerData.Count < 2 || _myPlayerIndex == -1) return;
-
-        // 自分と相手の最終ステータスを表示
+        
+        // Final Stats
         DisplayFinalStats(myFinalScoreText, myFinalBlocksDestroyedText, myFinalMissTypesText, gm.playerData[_myPlayerIndex], gm.matchTime);
         DisplayFinalStats(opponentFinalScoreText, opponentFinalBlocksDestroyedText, opponentFinalMissTypesText, gm.playerData[_opponentPlayerIndex], gm.matchTime);
     }
 
-    /// <summary>
-    /// 一人のプレイヤーの最終スタッツをUIに表示するヘルパーメソッド
-    /// </summary>
     private void DisplayFinalStats(TextMeshProUGUI scoreText, TextMeshProUGUI blocksText, TextMeshProUGUI missText, PlayerData data, float time)
     {
         int score = Mathf.FloorToInt(time) + data.blocksDestroyed - data.missTypes;
@@ -204,7 +248,7 @@ public class PlayerHUDManager : NetworkBehaviour
         if (blocksText != null) blocksText.text = $"Blocks Destroyed: {data.blocksDestroyed}";
         if (missText != null) missText.text = $"Miss Types: {data.missTypes}";
     }
-
+    
     public GameObject GetTypingPanel(string key)
     {
         switch (key) {
@@ -216,4 +260,5 @@ public class PlayerHUDManager : NetworkBehaviour
                 return null;
         }
     }
+    #endregion
 }
