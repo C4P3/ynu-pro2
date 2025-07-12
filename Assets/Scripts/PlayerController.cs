@@ -28,6 +28,9 @@ public class PlayerController : MonoBehaviour
     public LevelManager levelManager;
     public AnimationManager animationManager;
 
+    [HideInInspector]
+    public int playerIndex; // NetworkPlayerInputから設定される
+
     [Header("Audio")]
     [SerializeField] private AudioClip[] walkSounds;
     [SerializeField] private float walkSoundInterval = 0.4f;
@@ -210,7 +213,7 @@ public class PlayerController : MonoBehaviour
                 // 【シングルプレイ時】直接LevelManagerを呼ぶ
                 if (levelManager != null)
                 {
-                    levelManager.DestroyConnectedBlocks(_typingTargetPos);
+                    levelManager.DestroyConnectedBlocks(_typingTargetPos, _networkInput);
                 }
             }
 
@@ -341,9 +344,8 @@ public class PlayerController : MonoBehaviour
         TileBase itemTile = itemTilemap.GetTile(position);
         if (itemTile != null && ItemManager.Instance != null)
         {
-            // アイテムがある場合は、アイテムを取得する
             if (levelManager != null && levelManager.unchiItemData != null && itemTile == levelManager.unchiItemData.unchiTile) return;
-            ItemManager.Instance.AcquireItem(itemTile, position, levelManager, this.transform);
+            ItemManager.Instance.AcquireItem(itemTile, position, levelManager, this.transform, _networkInput);
         }
     }
 

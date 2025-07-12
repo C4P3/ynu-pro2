@@ -8,10 +8,12 @@ using UnityEngine;
 public class LocalPlayerInput : MonoBehaviour
 {
     private PlayerController _playerController;
+    private TypingManager _typingManager;
 
     void Awake()
     {
         _playerController = GetComponent<PlayerController>();
+        _typingManager = GetComponent<TypingManager>();
     }
 
     void Start()
@@ -34,14 +36,7 @@ public class LocalPlayerInput : MonoBehaviour
             Debug.LogError("LevelManagerが見つかりません！");
         }
 
-        // ★★★ PlayerControllerのtypingManagerを設定する処理は不要なので削除 ★★★
-        /*
-        var typingManager = FindObjectOfType<TypingManager>();
-        if (typingManager != null)
-        {
-            _playerController.typingManager = typingManager;
-        }
-        */
+        _typingManager.Initialize();
         
         // GameManagerへの登録
         if (GameManager.Instance != null)

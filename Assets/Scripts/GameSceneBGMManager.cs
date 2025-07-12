@@ -7,9 +7,7 @@ public class GameSceneBGMManager : MonoBehaviour
     public AudioSource audioSource;
     public AudioClip gameBGM;
     public AudioClip kikenBGM;
-    public AudioClip gameOverBGM;
    
-
     void Awake()
     {
         // シングルトンにする

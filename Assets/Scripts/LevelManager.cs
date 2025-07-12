@@ -222,7 +222,7 @@ public class LevelManager : MonoBehaviour
     /// <summary>
     /// 連結している同種のブロックをすべて破壊する
     /// </summary>
-    public void DestroyConnectedBlocks(Vector3Int startPos)
+    public void DestroyConnectedBlocks(Vector3Int startPos, NetworkPlayerInput networkPlayerInput = null)
     {
         TileBase targetTile = blockTilemap.GetTile(startPos);
         if (targetTile == null) return;
@@ -250,7 +250,11 @@ public class LevelManager : MonoBehaviour
             if (unchiItemData != null && blockTilemap.GetTile(pos) == unchiItemData.unchiTile) continue;
             blockTilemap.SetTile(pos, null);
             // ブロック破壊数を加算
-            if (GameManager.Instance != null)
+            if (networkPlayerInput != null)
+            {
+                networkPlayerInput.CmdAddDestroyedBlock();
+            }
+            else if (GameManager.Instance != null)
             {
                 GameManager.Instance.AddDestroyedBlock();
             }
@@ -260,7 +264,7 @@ public class LevelManager : MonoBehaviour
     /// <summary>
     /// 指定された中心と半径のブロックとアイテムを破壊する（爆弾用）
     /// </summary>
-    public void ExplodeBlocks(Vector3Int center, int radius)
+    public void ExplodeBlocks(Vector3Int center, int radius, NetworkPlayerInput networkPlayerInput = null)
     {
         for (int x = -radius; x <= radius; x++)
         {
@@ -270,24 +274,29 @@ public class LevelManager : MonoBehaviour
                 Vector3Int pos = center + new Vector3Int(x, y, 0);
 
                 // ブロック破壊判定
-                bool blockDestroyed = false;
-                if (unchiItemData != null && blockTilemap.GetTile(pos) == unchiItemData.unchiTile)
+                if (blockTilemap.HasTile(pos))
                 {
-                    // ウンチタイルは破壊しない
+                    if (unchiItemData != null && blockTilemap.GetTile(pos) == unchiItemData.unchiTile)
+                    {
+                        // ウンチタイルは破壊しない
+                    }
+                    else if (itemTilemap.HasTile(pos))
+                    {
+                        // アイテムがある場所のブロックは破壊しない
+                    }
+                    else
+                    {
+                        blockTilemap.SetTile(pos, null);
+                        if (networkPlayerInput != null)
+                        {
+                            networkPlayerInput.CmdAddDestroyedBlock();
+                        }
+                        else if (GameManager.Instance != null)
+                        {
+                            GameManager.Instance.AddDestroyedBlock();
+                        }
+                    }
                 }
-                else if (itemTilemap.HasTile(pos))
-                {
-                    // アイテムがある場所のブロックは破壊しない
-                }
-                else
-                {
-                    blockTilemap.SetTile(pos, null);
-                    blockDestroyed = true;
-                }
-
-                // アイテムは爆弾で破壊しない（何もしない）
-                // もし「ブロックが破壊された場合のみアイテムも消したい」場合は下記を有効化
-                // if (blockDestroyed) itemTilemap.SetTile(pos, null);
             }
         }
     }

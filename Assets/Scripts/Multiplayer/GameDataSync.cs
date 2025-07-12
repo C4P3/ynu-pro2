@@ -1,43 +1,41 @@
-// Multiplayer/GameDataSync.cs
+// Assets/Scripts/Multiplayer/GameDataSync.cs
+
 using Mirror;
 using UnityEngine;
 using System.Collections;
+using System; // Actionのために追加
 
 public enum GameState
 {
-    WaitingForPlayers, // プレイヤー待機中
-    Countdown,         // 開始前カウントダウン
-    Playing,           // プレイ中
-    PostGame           // ゲーム終了後（リザルト表示など）
+    WaitingForPlayers,
+    Countdown,
+    Playing,
+    PostGame
 }
-
 
 public class GameDataSync : NetworkBehaviour
 {
-    // シングルトンとしてアクセスできるようにする
     public static GameDataSync Instance { get; private set; }
 
-    [SyncVar]
-    public long mapSeed1;
+    [SyncVar] public long mapSeed1;
+    [SyncVar] public long mapSeed2;
 
-    [SyncVar]
-    public long mapSeed2;
-
-    // ★★★ 現在のゲーム状態を同期するSyncVarを追加 ★★★
-    // hookを設定すると、値が変化した時に指定したメソッドが自動で呼ばれる
-    [SyncVar(hook = nameof(OnGameStateChanged))]
+    [SyncVar(hook = nameof(OnGameStateChanged_Hook))]
     public GameState currentState = GameState.WaitingForPlayers;
+
+    // ★★★ クライアント側で状態変化を購読するためのイベントを追加 ★★★
+    public static event Action<GameState> OnGameStateChanged_Client;
 
     void Awake()
     {
         if (Instance == null)
         {
             Instance = this;
-            DontDestroyOnLoad(gameObject); // シーンをまたいで永続化させる
+            DontDestroyOnLoad(gameObject);
         }
         else
         {
-            Destroy(gameObject); // 既に存在する場合は、新しい方を破棄
+            Destroy(gameObject);
         }
     }
 
@@ -48,10 +46,6 @@ public class GameDataSync : NetworkBehaviour
         mapSeed2 = System.DateTime.Now.Ticks + 1;
 
         Debug.Log($"Seeds generated: Seed1={mapSeed1}, Seed2={mapSeed2}");
-    }
-
-    public override void OnStartClient()
-    {
     }
 
     [Server]
@@ -77,27 +71,21 @@ public class GameDataSync : NetworkBehaviour
         Debug.Log("Game state: Playing");
     }
 
-    // ★★★ currentStateの値が変化した時に全クライアントで呼ばれるフックメソッド ★★★
-    private void OnGameStateChanged(GameState oldState, GameState newState)
+    // SyncVarのフックメソッド（名前を_Hookに変更して意図を明確化）
+    private void OnGameStateChanged_Hook(GameState oldState, GameState newState)
     {
         Debug.Log($"Game state changed from {oldState} to {newState}");
 
-        // ★★★ カウントダウン開始時に、責任をもってマップ生成を行う ★★★
+        // ★★★ 全クライアントでイベントを発行 ★★★
+        OnGameStateChanged_Client?.Invoke(newState);
+
+        // Countdownになったらマップ生成を開始するロジックはそのまま
         if (newState == GameState.Countdown)
         {
             StartCoroutine(GenerateMapsWhenReady());
-            // ここでカウントダウンUIを表示するなどの処理も行える
-        }
-        else if (newState == GameState.Playing)
-        {
-            // カウントダウンUIを非表示にするなど
-        }
-        else if (newState == GameState.PostGame)
-        {
-            // 「You Win/Lose」UIを表示するなど
         }
     }
-    // ★★★ コルーチンの名前と中身を以下のように変更 ★★★
+
     private IEnumerator GenerateMapsWhenReady()
     {
         Debug.Log("Waiting for LevelManagers to be ready...");
