@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System;
+using System.Collections;
 
 public class GameManager : MonoBehaviour
 {
@@ -38,6 +39,9 @@ public class GameManager : MonoBehaviour
     private int _missTypes = 0;                 // ミスタイプ数
     private bool _isGameOver = false;           // ゲーム終了フラグ (以前の_gameEndedをこれに統一)
 
+    [Header("Sound Effects")]
+    public AudioClip startsound; // ゲーム開始時の音
+
     // 結果表示用UIの参照 (Unityエディタで設定)
     [Header("Game Over UI")]
     public GameObject gameOverPanel; // 結果表示パネル
@@ -45,6 +49,10 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI finalSurvivalTimeText;
     public TextMeshProUGUI finalBlocksDestroyedText;
     public TextMeshProUGUI finalMissTypesText;
+
+    // ゲーム開始時にカウントダウンを表示するためのパネル
+    [Header("Countdown UI")]
+    public TextMeshProUGUI countdownText; // ← カウントダウン用テキスト
 
     void Awake()
     {
@@ -61,6 +69,9 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
+        Time.timeScale = 0f;
+        StartCoroutine(StartCountdownAndGame());
+    
         // ゲーム開始時に酸素を最大値に設定
         _currentOxygen = maxOxygen;
         // 酸素ゲージの初期化
@@ -94,8 +105,7 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        Time.timeScale = 1f;
-    }
+    } 
 
     void Update()
     {
@@ -122,6 +132,33 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    // カウントダウンとゲーム開始のコルーチン
+    IEnumerator StartCountdownAndGame()
+    {
+        string[] countdownWords = { "3", "2", "1", "START" };
+
+        if (countdownText != null)
+        {
+            countdownText.gameObject.SetActive(true);
+        }
+        for (int i = 0; i < countdownWords.Length; i++)
+        {
+            if (countdownText != null)
+                countdownText.text = countdownWords[i];
+
+            // 音を再生
+            if (i != null)
+                SoundManager.Instance.PlaySound(startsound);
+            yield return new WaitForSecondsRealtime(1f);
+        }
+
+        if (countdownText != null)
+            countdownText.gameObject.SetActive(false);
+
+        Time.timeScale = 1f; // ゲームスタート！
+    }
+
+
     // 生存時間UIをリアルタイムで更新するメソッド (メソッド名を変更しました)
     private void UpdateSurvivalTimeDisplay()
     {
@@ -142,7 +179,7 @@ public class GameManager : MonoBehaviour
         _isGameOver = true;
         Time.timeScale = 0f; // ゲームを一時停止
         GameSceneBGMManager.Instance.StopBGM(); // BGMを停止
-        GameSceneBGMManager.Instance.PlayBGM(GameSceneBGMManager.Instance.gameOverBGM); // ゲームオーバーBGMを再生
+        SoundManager.Instance.PlaySound(SoundManager.Instance.gameoversound); // ゲームオーバー音を再生
         Debug.Log("Game Over!");
         Debug.Log($"Final Survival Time: {_survivalTime} seconds");
         Debug.Log($"Blocks Destroyed: {_blocksDestroyed}");
