@@ -8,6 +8,7 @@ public class UIController : MonoBehaviour
     [SerializeField] CanvasGroup homeUI;
     [SerializeField] CanvasGroup ruleSelectUI;
     [SerializeField] CanvasGroup recordUI;
+    [SerializeField] CanvasGroup rankingUI;
     [SerializeField] CanvasGroup configUI;
     [SerializeField] CanvasGroup multiplayUI;
     [SerializeField] CanvasGroup roomRuleSelectUI;
@@ -22,6 +23,7 @@ public class UIController : MonoBehaviour
         SetUI(homeUI, 0, false, false);
         SetUI(ruleSelectUI, 0, false, false);
         SetUI(recordUI, 0, false, false);
+        SetUI(rankingUI, 0, false, false);
         SetUI(configUI, 0, false, false);
         SetUI(multiplayUI, 0, false, false);
         SetUI(roomRuleSelectUI, 0, false, false);

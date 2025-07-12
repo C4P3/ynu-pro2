@@ -5,12 +5,12 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using TMPro;
 
-public class MultiPlayButton : IButton
+public class OpenUIButton : IButton
 {
     public override void OnPointerClick()
     {
         base.OnPointerClick();
-        ChangeUI(beforeUI, 0, false, false);
+        ChangeUI(beforeUI, 1, false, false);
         ChangeUI(afterUI, 1, true, true);
     }
 
