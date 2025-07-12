@@ -15,6 +15,10 @@ public class PlayerHUDManager : NetworkBehaviour
 {
     public static PlayerHUDManager Instance { get; private set; }
 
+    [Header("Waiting For Player")]
+    [SerializeField] private GameObject waitingForPlayerPanel;
+    [SerializeField] private TextMeshProUGUI roomIdText;
+
     [Header("Typing Panel")]
     [SerializeField] private GameObject TypingPanel_P1;
     [SerializeField] private GameObject TypingPanel_P2; // 対戦中のUIパネル
@@ -67,6 +71,7 @@ public class PlayerHUDManager : NetworkBehaviour
     void Start()
     {
         // 初期状態ではすべてのUIを非表示にする
+        if (waitingForPlayerPanel != null) waitingForPlayerPanel.SetActive(true);
         if (inGameHUDPanel != null) inGameHUDPanel.SetActive(false);
         if (resultPanel != null) resultPanel.SetActive(false);
     }
@@ -95,12 +100,15 @@ public class PlayerHUDManager : NetworkBehaviour
         {
             case MatchState.WaitingForPlayers:
                 // 待機中はUIを非表示
+                if (!waitingForPlayerPanel.activeSelf) waitingForPlayerPanel.SetActive(true);
                 if (inGameHUDPanel.activeSelf) inGameHUDPanel.SetActive(false);
                 if (resultPanel.activeSelf) resultPanel.SetActive(false);
+                UpdateWaitingPanel(gm);
                 break;
 
             case MatchState.Playing:
                 // 対戦が始まったらHUDを表示
+                if (waitingForPlayerPanel.activeSelf) waitingForPlayerPanel.SetActive(false);
                 if (!inGameHUDPanel.activeSelf) inGameHUDPanel.SetActive(true);
                 if (resultPanel.activeSelf) resultPanel.SetActive(false);
                 UpdateInGameHUD(gm);
@@ -108,12 +116,24 @@ public class PlayerHUDManager : NetworkBehaviour
 
             case MatchState.Finished:
                 // 対戦が終了したらリザルトを表示
+                if (waitingForPlayerPanel.activeSelf) waitingForPlayerPanel.SetActive(false);
                 if (inGameHUDPanel.activeSelf) inGameHUDPanel.SetActive(false);
                 if (!resultPanel.activeSelf)
                 {
                     ShowResultPanel(gm);
                 }
                 break;
+        }
+    }
+
+    /// <summary>
+    /// 待機中の情報を更新する
+    /// </summary>
+    private void UpdateWaitingPanel(GameManagerMulti gm)
+    {
+        if (roomIdText != null)
+        {
+            roomIdText.text = PlayFabMatchmakingManager.Instance.roomId;
         }
     }
 
