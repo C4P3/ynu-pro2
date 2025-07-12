@@ -77,10 +77,9 @@ public class PlayFabAuthManager : MonoBehaviour
         {
             Debug.Log("既存アカウントでログイン成功！");
             // 通常のホーム画面へ遷移など
+            SetUI(loginUI, 0, false, false);
             SetUI(tittleUI, 1, true, true);
         }
-        
-        SetUI(loginUI, 1, true, true);
     }
 
     void OnLoginFailure(PlayFabError error)
