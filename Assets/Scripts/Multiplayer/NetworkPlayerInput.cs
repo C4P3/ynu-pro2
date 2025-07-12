@@ -59,7 +59,7 @@ public class NetworkPlayerInput : NetworkBehaviour
         }
 
         // --- TypingPanelの設定 ---
-        GameObject typingPanelObject = GameObject.Find((playerIndex == 1) ? "TypingPanel_P1" : "TypingPanel_P2");
+        GameObject typingPanelObject = PlayerHUDManager.Instance.GetTypingPanel((playerIndex == 1) ? "TypingPanel_P1" : "TypingPanel_P2");
         if (typingPanelObject != null)
         {
             _typingManager.typingPanel = typingPanelObject;
@@ -68,6 +68,7 @@ public class NetworkPlayerInput : NetworkBehaviour
         {
             Debug.LogError($"Player {playerIndex} のTypingPanelが見つかりません！");
         }
+        _typingManager.Initialize();
 
         _playerController.Initialize();
 

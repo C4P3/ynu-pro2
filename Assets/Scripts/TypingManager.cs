@@ -8,7 +8,7 @@ using Models;
 public class TypingManager : MonoBehaviour
 {
     [HideInInspector]
-    public int playerIndex; // NetworkPlayerInputから設定される
+    public int playerIndex = 0; // NetworkPlayerInputから設定される
 
     // タイピング終了時のイベント
     public event System.Action<bool> OnTypingEnded; 
@@ -37,13 +37,9 @@ public class TypingManager : MonoBehaviour
         _networkPlayerInput = GetComponent<NetworkPlayerInput>(); // 参照を取得
     }
 
-    void Start()
-    {
+    public void Initialize()
+    {   
         // パネルを非表示にしておく
-        if (typingPanel != null)
-        {
-            typingPanel.SetActive(false);
-        }
         _typedText = typingPanel.GetComponentInChildren<TextMeshProUGUI>();
 
         //AudioSourceの初期化

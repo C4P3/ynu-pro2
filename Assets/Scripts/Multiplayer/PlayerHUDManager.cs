@@ -4,6 +4,8 @@ using UnityEngine.UI;
 using TMPro;
 using Mirror;
 using System;
+using System.Collections;
+using UnityEngine.InputSystem;
 
 /// <summary>
 /// マルチプレイヤー時のHUD（ヘッズアップディスプレイ）とリザルトUIを管理するクラス。
@@ -11,6 +13,12 @@ using System;
 /// </summary>
 public class PlayerHUDManager : NetworkBehaviour
 {
+    public static PlayerHUDManager Instance { get; private set; }
+
+    [Header("Typing Panel")]
+    [SerializeField] private GameObject TypingPanel_P1;
+    [SerializeField] private GameObject TypingPanel_P2; // 対戦中のUIパネル
+
     [Header("Common UI")]
     [SerializeField] private TextMeshProUGUI matchTimeText;
     [SerializeField] private GameObject inGameHUDPanel; // 対戦中のUIパネル
@@ -35,7 +43,7 @@ public class PlayerHUDManager : NetworkBehaviour
     [SerializeField] private TextMeshProUGUI opponentFinalScoreText;
     [SerializeField] private TextMeshProUGUI opponentFinalBlocksDestroyedText;
     [SerializeField] private TextMeshProUGUI opponentFinalMissTypesText;
-    
+
     [Header("Oxygen Bar Colors")]
     [SerializeField] private Color fullOxygenColor = Color.green;
     [SerializeField] private Color lowOxygenColor = Color.yellow;
@@ -45,6 +53,17 @@ public class PlayerHUDManager : NetworkBehaviour
     private int _myPlayerIndex = -1;
     private int _opponentPlayerIndex = -1;
 
+    void Awake()
+    {
+        if (Instance == null)
+        {
+            Instance = this;
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+    }
     void Start()
     {
         // 初期状態ではすべてのUIを非表示にする
@@ -167,7 +186,7 @@ public class PlayerHUDManager : NetworkBehaviour
 
         // プレイヤーデータが準備できていなければ何もしない
         if (gm.playerData.Count < 2 || _myPlayerIndex == -1) return;
-        
+
         // 自分と相手の最終ステータスを表示
         DisplayFinalStats(myFinalScoreText, myFinalBlocksDestroyedText, myFinalMissTypesText, gm.playerData[_myPlayerIndex], gm.matchTime);
         DisplayFinalStats(opponentFinalScoreText, opponentFinalBlocksDestroyedText, opponentFinalMissTypesText, gm.playerData[_opponentPlayerIndex], gm.matchTime);
@@ -184,5 +203,17 @@ public class PlayerHUDManager : NetworkBehaviour
         if (scoreText != null) scoreText.text = $"Score: {score}";
         if (blocksText != null) blocksText.text = $"Blocks Destroyed: {data.blocksDestroyed}";
         if (missText != null) missText.text = $"Miss Types: {data.missTypes}";
+    }
+
+    public GameObject GetTypingPanel(string key)
+    {
+        switch (key) {
+            case "TypingPanel_P1":
+                return TypingPanel_P1;
+            case "TypingPanel_P2":
+                return TypingPanel_P2;
+            default:
+                return null;
+        }
     }
 }
