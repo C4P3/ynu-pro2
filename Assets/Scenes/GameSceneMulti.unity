@@ -333,6 +333,14 @@ PrefabInstance:
       propertyPath: sceneId
       value: 1508010040
       objectReference: {fileID: 0}
+    - target: {fileID: 3692618155648461599, guid: 6e700e24619e532429cc155198fa21de, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4098325767101976245, guid: 6e700e24619e532429cc155198fa21de, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5662466696960242349, guid: 6e700e24619e532429cc155198fa21de, type: 3}
       propertyPath: m_Name
       value: CanvasMulti
@@ -924,7 +932,6 @@ MonoBehaviour:
   syncInterval: 0
   maxOxygen: 100
   oxygenDecreaseRate: 2
-  currentMatchState: 0
   matchTime: 0
   winnerIndex: -1
 --- !u!4 &1016113164

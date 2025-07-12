@@ -56,6 +56,17 @@ public class GameDataSync : NetworkBehaviour
 
         StartCoroutine(GameSequenceCoroutine());
     }
+    
+    [Server]
+    public void EndGame()
+    {
+        if (currentState == GameState.Playing)
+        {
+            currentState = GameState.PostGame;
+            Debug.Log("Game state: PostGame");
+        }
+    }
+
 
     private IEnumerator GameSequenceCoroutine()
     {
