@@ -109,6 +109,17 @@ public class PlayerHUDManager : NetworkBehaviour
         {
             UpdateInGameHUD();
         }
+
+        // waitingForPlayerPanelが表示されている間、Room IDを更新し続ける
+        // ビルド版でroomIdの非同期取得に対応するため
+        if (waitingForPlayerPanel.activeSelf && PlayFabMatchmakingManager.Instance != null)
+        {
+            if (!string.IsNullOrEmpty(PlayFabMatchmakingManager.Instance.roomId) && 
+                roomIdInputField.text != $"Room ID: {PlayFabMatchmakingManager.Instance.roomId}")
+            {
+                UpdateWaitingPanel();
+            }
+        }
     }
 
     #endregion
