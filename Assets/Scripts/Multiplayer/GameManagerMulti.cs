@@ -175,7 +175,7 @@ public class GameManagerMulti : NetworkBehaviour
 
     #region Client-side Hooks
 
-    // GameDataSyncからのグローバルなゲームステート変更をハンドル
+    // GameDataSyncからのグロ���バルなゲームステート変更をハンドル
     private void HandleGameSystemStateChanged(GameState newState)
     {
         // サーバーとクライアントの両方でフラグを更新
@@ -235,6 +235,43 @@ public class GameManagerMulti : NetworkBehaviour
     }
 
     [Server]
+    public void ServerApplyPoisonToOpponent(int attackerPlayerIndex, float amount)
+    {
+        NetworkPlayerInput opponentNPI = GetOpponentNPI(attackerPlayerIndex);
+        if (opponentNPI == null) return;
+
+        int targetIndex = opponentNPI.playerIndex - 1;
+        if (targetIndex < 0 || targetIndex >= playerData.Count || playerData[targetIndex].isGameOver) return;
+
+        PlayerData data = playerData[targetIndex];
+        data.currentOxygen = Mathf.Max(0, data.currentOxygen - Mathf.Abs(amount));
+        playerData[targetIndex] = data;
+
+        // 相手のクライアントで毒エフェクトを再生
+        opponentNPI.RpcPlayDebuffEffect(ItemEffectType.Poison);
+    }
+
+    [Server]
+    public void ServerStunOpponent(int attackerPlayerIndex, float duration)
+    {
+        NetworkPlayerInput opponentNPI = GetOpponentNPI(attackerPlayerIndex);
+        if (opponentNPI == null) return;
+
+        // 相手をスタンさせ、クライアントでエフェクトを再生
+        opponentNPI.RpcStunPlayer(duration);
+        opponentNPI.RpcPlayDebuffEffect(ItemEffectType.Thunder);
+    }
+
+    [Server]
+    public void ServerPlaceUnchiOnOpponent(int attackerPlayerIndex)
+    {
+        NetworkPlayerInput opponentNPI = GetOpponentNPI(attackerPlayerIndex);
+        if (opponentNPI == null) return;
+
+        opponentNPI.RpcPlaceUnchiTile();
+    }
+
+    [Server]
     private IEnumerator TemporaryOxygenInvincibilityCoroutine(int playerIndex, float duration)
     {
         int index = playerIndex - 1;
@@ -253,6 +290,26 @@ public class GameManagerMulti : NetworkBehaviour
             data.isOxygenInvincible = false;
             playerData[index] = data;
         }
+    }
+
+    #endregion
+
+    #region Helper Methods
+
+    [Server]
+    private NetworkPlayerInput GetOpponentNPI(int attackerPlayerIndex)
+    {
+        int targetPlayerIndex = (attackerPlayerIndex == 1) ? 2 : 1;
+
+        foreach (var conn in NetworkServer.connections.Values)
+        {
+            NetworkPlayerInput npi = conn.identity.GetComponent<NetworkPlayerInput>();
+            if (npi != null && npi.playerIndex == targetPlayerIndex)
+            {
+                return npi;
+            }
+        }
+        return null;
     }
 
     #endregion
