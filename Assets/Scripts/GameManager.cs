@@ -16,7 +16,7 @@ public class GameManager : MonoBehaviour
     /// 引数: (現在の酸素量, 最大酸素量)
     /// </summary>
     public static event Action<float, float> OnOxygenChanged;
-
+    
     [Header("PlayFab")]
     private const string LeaderboardName = "SinglePlayerScore"; // PlayFabでのリーダーボード名
     public int PlayerRank { get; private set; }
@@ -30,12 +30,13 @@ public class GameManager : MonoBehaviour
     public float oxygenDecreaseRate = 0.5f;       // 1秒あたりに減る酸素量
     public Slider oxygenSlider;                 // 酸素ゲージUI
     public TextMeshProUGUI oxygenText;
+    public RectTransform fillRectTransform; // 【追加】InspectorでFillオブジェクトのRectTransformをアタッチ
 
     [Header("Oxygen Bar Colors")]
     public Color fullOxygenColor = Color.green;     // 満タン時の色 (黄緑)
     public Color lowOxygenColor = Color.yellow;     // 30%以下になった時の色
     public Color criticalOxygenColor = Color.red;   // 10%以下になった時の色
-    private Image fillImage;                        // ゲージの色を変更するためのImageコンポーネント
+    public Image fillImage;                        // ゲージの色を変更するためのImageコンポーネント
 
     [Header("UI References")]
     public TextMeshProUGUI survivalTimeDisplay;    // 生存時間をリアルタイムで表示するTextMeshProUGUI
@@ -197,7 +198,7 @@ public class GameManager : MonoBehaviour
         Time.timeScale = 0f; // ゲームを一時停止
         GameSceneBGMManager.Instance.StopBGM(); // BGMを停止
         SoundManager.Instance.PlaySound(SoundManager.Instance.gameoversound); // ゲームオーバー音を再生
-
+        
         // ゲームオーバー時に不要なUI��非表示にする
         if (UIPanel != null)
         {
@@ -355,11 +356,22 @@ public class GameManager : MonoBehaviour
             oxygenText.text = $"酸素: {Mathf.CeilToInt(_currentOxygen)}";
         }
 
+        float oxygenPercentage = _currentOxygen / maxOxygen;
+
+        // 【追加】fillRectTransformが設定されていれば、PosXを動かす処理を行う
+        if (fillRectTransform != null)
+        {
+            // Lerpを使って割合をPosXの範囲(0 ~ -840)に変換
+            // oxygenPercentageが1のとき0、0のとき-840になる
+            float newPosX = Mathf.Lerp(-840f, 0f, oxygenPercentage);
+
+            // RectTransformのX座標を更新（Y座標は元の値を維持）
+            fillRectTransform.anchoredPosition = new Vector2(newPosX, fillRectTransform.anchoredPosition.y);
+        }
+
         // 酸素残量に応じて色を変化
         if (fillImage != null)
         {
-            float oxygenPercentage = _currentOxygen / maxOxygen;
-
             if (oxygenPercentage <= 0.10f) // 10%以下
             {
                 fillImage.color = criticalOxygenColor;
