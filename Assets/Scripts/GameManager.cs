@@ -24,7 +24,11 @@ public class GameManager : MonoBehaviour
     public Color fullOxygenColor = Color.green;     // 満タン時の色 (黄緑)
     public Color lowOxygenColor = Color.yellow;     // 30%以下になった時の色
     public Color criticalOxygenColor = Color.red;   // 10%以下になった時の色
-    private Image fillImage;                        // ゲージの色を変更するためのImageコンポーネント
+    public Image fillImage;                        // ゲージの色を変更するためのImageコンポーネント
+
+    [Header("Oxygen Bar Mask Control")]
+    public RectTransform fillImageRectTransform; // InspectorでFill_ImageのRectTransformをアサイン
+    public float fullHpBarWidth = 200f; // HP満タン時のバーの幅
 
     [Header("UI References")]
     public TextMeshProUGUI survivalTimeDisplay;    // 生存時間をリアルタイムで表示するTextMeshProUGUI
@@ -74,11 +78,11 @@ public class GameManager : MonoBehaviour
     
         // ゲーム開始時に酸素を最大値に設定
         _currentOxygen = maxOxygen;
-        // 酸素ゲージの初期化
-        if (oxygenSlider != null && oxygenSlider.fillRect != null)
-        {
-            fillImage = oxygenSlider.fillRect.GetComponent<Image>();
-        }
+        // // 酸素ゲージの初期化
+        // if (oxygenSlider != null && oxygenSlider.fillRect != null)
+        // {
+        //     fillImage = oxygenSlider.fillRect.GetComponent<Image>();
+        // }
         UpdateOxygenUI();
         // UIマネージャーなどに初期状態を通知する
         OnOxygenChanged?.Invoke(_currentOxygen, maxOxygen);
@@ -254,6 +258,15 @@ public class GameManager : MonoBehaviour
             oxygenText.text = $"酸素: {Mathf.CeilToInt(_currentOxygen)}";
         }
 
+        // マスクされた画像のX座標を動かしてバーの長さを表現する
+        if (fillImageRectTransform != null)
+        {
+            float currentHpRatio = _currentOxygen / maxOxygen;
+            // anchoredPositionを動かして、バーが左に隠れていくように見せる
+            // (HPが0の時に-fullHpBarWidth、HPが満タンの時に0になるように調整)
+            fillImageRectTransform.anchoredPosition = new Vector2((currentHpRatio - 1) * fullHpBarWidth, fillImageRectTransform.anchoredPosition.y);
+        }
+        
         // 酸素残量に応じて色を変化
         if (fillImage != null)
         {
