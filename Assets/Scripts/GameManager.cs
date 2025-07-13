@@ -3,6 +3,9 @@ using UnityEngine.UI;
 using TMPro;
 using System;
 using System.Collections;
+using System.Collections.Generic;
+using PlayFab;
+using PlayFab.ClientModels;
 
 public class GameManager : MonoBehaviour
 {
@@ -13,6 +16,11 @@ public class GameManager : MonoBehaviour
     /// 引数: (現在の酸素量, 最大酸素量)
     /// </summary>
     public static event Action<float, float> OnOxygenChanged;
+
+    [Header("PlayFab")]
+    private const string LeaderboardName = "SinglePlayerScore"; // PlayFabでのリーダーボード名
+    public int PlayerRank { get; private set; }
+    public int PlayerBestScore { get; private set; }
 
     [Header("Oxygen")]
     public float maxOxygen = 100f;              // 最大酸素量
@@ -49,6 +57,8 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI finalSurvivalTimeText;
     public TextMeshProUGUI finalBlocksDestroyedText;
     public TextMeshProUGUI finalMissTypesText;
+    public TextMeshProUGUI bestScoreText; // 自己ベストスコア表示用
+    public TextMeshProUGUI rankText;      // 順位表示用
 
     // ゲーム開始時にカウントダウンを表示するためのパネル
     [Header("Countdown UI")]
@@ -228,8 +238,81 @@ public class GameManager : MonoBehaviour
 
             if (finalMissTypesText != null)
                 finalMissTypesText.text = $"ミスタイプ数: {_missTypes}";
+            
+            // PlayFabにスコアを送信
+            SubmitScoreToPlayFab(score);
         }
     }
+
+    // PlayFabにスコアを送信し、順位とベストスコアを取得する
+    private void SubmitScoreToPlayFab(int score)
+    {
+        // ローディング表示などをここに入れると親切
+        if (bestScoreText) bestScoreText.text = "自己ベスト: ---";
+        if (rankText) rankText.text = "順位: ---";
+
+        var request = new UpdatePlayerStatisticsRequest
+        {
+            Statistics = new List<StatisticUpdate>
+            {
+                new StatisticUpdate
+                {
+                    StatisticName = LeaderboardName,
+                    Value = score
+                }
+            }
+        };
+
+        PlayFabClientAPI.UpdatePlayerStatistics(request, OnUpdateStatisticsSuccess, OnError);
+    }
+
+    private void OnUpdateStatisticsSuccess(UpdatePlayerStatisticsResult result)
+    {
+        Debug.Log("Successfully submitted score to PlayFab.");
+        // スコア送信に成功したら、リーダーボードから自分の順位を取得
+        FetchPlayerLeaderboardRank();
+    }
+
+    private void FetchPlayerLeaderboardRank()
+    {
+        var request = new GetLeaderboardAroundPlayerRequest
+        {
+            StatisticName = LeaderboardName,
+            MaxResultsCount = 1 // 自分のデータだけ取得
+        };
+
+        PlayFabClientAPI.GetLeaderboardAroundPlayer(request, OnGetLeaderboardAroundPlayerSuccess, OnError);
+    }
+
+    private void OnGetLeaderboardAroundPlayerSuccess(GetLeaderboardAroundPlayerResult result)
+    {
+        if (result.Leaderboard.Count > 0)
+        {
+            var playerEntry = result.Leaderboard[0];
+            PlayerRank = playerEntry.Position + 1; // Positionは0ベースなので+1する
+            PlayerBestScore = playerEntry.StatValue;
+
+            Debug.Log($"Player Rank: {PlayerRank}, Best Score: {PlayerBestScore}");
+
+            // UIを更新
+            if (bestScoreText) bestScoreText.text = $"自己ベスト: {PlayerBestScore}";
+            if (rankText) rankText.text = $"順位: {PlayerRank}位";
+        }
+        else
+        {
+            Debug.LogWarning("Could not find player on the leaderboard.");
+            if (bestScoreText) bestScoreText.text = "自己ベスト: N/A";
+            if (rankText) rankText.text = "順位: N/A";
+        }
+    }
+
+    private void OnError(PlayFabError error)
+    {
+        Debug.LogError("PlayFab API call failed: " + error.GenerateErrorReport());
+        if (bestScoreText) bestScoreText.text = "自己ベスト: 取得失敗";
+        if (rankText) rankText.text = "順位: 取得失敗";
+    }
+
 
     // 酸素を回復する（アイテム取得時に呼ばれる）
     public void RecoverOxygen(float amount)
