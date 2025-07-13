@@ -166,7 +166,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   UIPanel: {fileID: 1903087177}
   maxOxygen: 100
-  oxygenDecreaseRate: 10
+  oxygenDecreaseRate: 2
   oxygenSlider: {fileID: 1222053330}
   oxygenText: {fileID: 0}
   fullOxygenColor: {r: 0.06385722, g: 0.9669811, b: 0.38715085, a: 1}
