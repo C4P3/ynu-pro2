@@ -172,7 +172,7 @@ MonoBehaviour:
   - message: "\u30CF\u30FC\u30C8\uFF08Enter\u3067\u9032\u3080\uFF09"
     key1: 0
     key2: 13
-    videoClip: {fileID: 32900000, guid: c8ebeaf5db00b4da38e26c724e403faa, type: 3}
+    videoClip: {fileID: 32900000, guid: 40041f44adaec4267b6702308a8ba097, type: 3}
     image: {fileID: 2797613150122127160, guid: cf2a41d926ab84df49a5175b9087ec2e, type: 3}
   - message: "\u6BD2\uFF08Enter\u3067\u9032\u3080\uFF09"
     key1: 0
@@ -182,7 +182,7 @@ MonoBehaviour:
   - message: "\u661F\uFF08Enter\u3067\u9032\u3080\uFF09"
     key1: 0
     key2: 13
-    videoClip: {fileID: 32900000, guid: 93d10618399ae4fe1bc97645ffd023ed, type: 3}
+    videoClip: {fileID: 32900000, guid: 226fdddc5df4a4d7cae11dc4d011c1f2, type: 3}
     image: {fileID: 2797613150122127160, guid: cf2a41d926ab84df49a5175b9087ec2e, type: 3}
   - message: "\u7206\u767A\uFF08Enter\u3067\u9032\u3080\uFF09"
     key1: 0
