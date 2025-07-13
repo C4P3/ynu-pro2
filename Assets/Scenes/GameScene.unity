@@ -1737,6 +1737,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2103760955199001049, guid: e30639e93fea141968f9993bc031e1fb, type: 3}
+      propertyPath: _blinkAlpha
+      value: 0.6
+      objectReference: {fileID: 0}
+    - target: {fileID: 2103760955199001049, guid: e30639e93fea141968f9993bc031e1fb, type: 3}
       propertyPath: _lowHealthEffectPanel
       value: 
       objectReference: {fileID: 1594737431}
@@ -1844,6 +1848,26 @@ PrefabInstance:
     - target: {fileID: 1658986668553915499, guid: 25c5f07fe4ee141d9b030c46072ba005, type: 3}
       propertyPath: m_ConstrainProportionsScale
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5330227329069367270, guid: 25c5f07fe4ee141d9b030c46072ba005, type: 3}
+      propertyPath: m_Type
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5330227329069367270, guid: 25c5f07fe4ee141d9b030c46072ba005, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 1260213667743586282, guid: ae11293e95197984ba84dc03b3267694, type: 3}
+    - target: {fileID: 5330227329069367270, guid: 25c5f07fe4ee141d9b030c46072ba005, type: 3}
+      propertyPath: m_Color.b
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5330227329069367270, guid: 25c5f07fe4ee141d9b030c46072ba005, type: 3}
+      propertyPath: m_Color.g
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5330227329069367270, guid: 25c5f07fe4ee141d9b030c46072ba005, type: 3}
+      propertyPath: m_Color.r
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5662466696960242349, guid: 25c5f07fe4ee141d9b030c46072ba005, type: 3}
       propertyPath: m_Name
