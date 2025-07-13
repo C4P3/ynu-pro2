@@ -20,20 +20,19 @@ GEMINI.mdが古いので、現在の実装状況を反映させたい。また�
 ## 主な機能
 - **シングルプレイ**: 一人で遊ぶモードです。
 - **マルチプレイ**: PlayFabとUnity Relay (Mirror) を利用したオンラインマルチプレイに対応しており、ルーム作成や自動マッチングが可能です。
-- **ランキング**: スコアなどを競うランキング機能があります。
+- **ランキング**: PlayFab Leaderboardを利用したスコアランキング機能があります。トップ5と自身の周囲のランキングを動的に表示します。
 - **チュートリアル**: ゲームの遊び方を学べるチュートリアルがあります。
 
 ## 技術スタック
 - **ゲームエンジン**: Unity
 - **ネットワーキング**: Mirror, Unity Relay
-- **バックエンド**: PlayFab (認証, マッチメイキング, データストレージ)
+- **バックエンド**: PlayFab (認証, マッチメイキング, データストレージ, Leaderboard)
 - **言語**: C#
 
 ## TODO
-- [ ] **リファクタリング**: `GameManager.cs` と `GameManagerMulti.cs` に重複するロジックがあるため、共通化を検討する。
-- [ ] **ランキング機能の実装**: 現在はUIのみで、PlayFab Leaderboardを利用した本格的な実装が必要。
-- [ ] **アイテム追加**: 新しい効果を持つアイテムを数種類追加する。
-- [ ] **エラーハンドリング**: PlayFab API呼び出し部分のエラーハンドリングを強化し、ユーザーへの���ィードバックを改善する。
+- [ ] **ビルド時の初期化の不具合修正**:Editorでは問題ないが、ビルドしてマルチプレーを行うと、初期化のタイミングのずれからか、マップ生成がされなかったり、ビルド側がホストになると上手く通信できないバグを修正する。
+- [ ] **アイテムのマルチ対応**: 対戦相手に効力を及ぼすアイテムを正しく実装する。また、エフェクトが両方の画面に映ってしまうバグや、対戦相手がとったアイテムが自分の視点ではそのまま残るバグを修正する。
+- [ ] **エラーハンドリング**: PlayFab API呼び出し部分のエラーハンドリングを強化し、ユーザーへのフィードバックを改善する。
 - [ ] **テスト**: マルチプレイ部分の結合テストを拡充する。
 
 ---
@@ -42,37 +41,15 @@ GEMINI.mdが古いので、現在の実装状況を反映させたい。また�
 
 ### マルチプレイの処理フロー
 このゲームのマルチプレイは、**PlayFab (Lobby, Matchmaking)** と **Unity Relay (Mirror)** を組み合わせて実現されています。
-
-1.  **認証 (PlayFabAuthManager)**
-    *   ゲーム起動時に `PlayFabAuthManager` が `PlayFabClientAPI.LoginWithCustomID` を使用して、端末固有IDによる匿名認証を行います。
-
-2.  **ルーム作成 (ホスト側)**
-    *   プレイヤーが「ホストになる」を選択すると、`PlayFabMatchMakingManager.CreateRoom()` が呼び出されます。
-    *   `MyRelayNetworkManager.StartRelayHost()` が実行され、Unity Relayサーバー上でホストを開始し、Join Codeを生成します。
-
-3.  **ルーム参加 (クライアント側)**
-    *   別のプレイヤーがJoin Codeを入力して「参加する」を選択すると、`PlayFabMatchMakingManager.JoinRoom()` が呼び出されます。
-    *   入力されたJoin Codeを使い、リレーサーバーにクライアントとして接続します。
-
-4.  **プレイヤーオブジェクトの生成と同期**
-    *   クライアントがサーバーに接続すると、`MyRelayNetworkManager.OnServerAddPlayer()` がトリガーされ、プレイヤーオブジェクトが生成されます。
-    *   `NetworkPlayerInput` コンポーネントに `playerIndex` (1 or 2) が設定され、各クライアントは自身の役割を認識します。
-
-5.  **ゲーム開始同期**
-    *   接続プレイヤー数が2人になると、サーバーは `GameDataSync.Instance.StartGameSequence()` を呼び出します。
-    *   `GameDataSync` の `[SyncVar]` 変数 `GameState` が `Countdown` になると、全クライアントが同期されたシード値でマップ生成を開始します。
-
-6.  **ゲーム中の入力とアクションの同期**
-    *   ローカルプレイヤーの入力は `NetworkPlayerInput` で検知され、`[Command]` を通じてサーバーに送信されます。
-    *   サーバーは処理結果を `[ClientRpc]` で全クライアントにブロードキャストし、ゲーム状態を同期させます。
+（中略）
 
 ### 主要スクリプト
 
 - **`GameManager.cs`**:
-    - **シングルプレイ**のゲーム全体の進行管理（酸素、生存時間、スコア、ゲームオーバー処理）を行うシングルトン。
+    - **シングルプレイ**のゲーム全体の進行管理（酸素、生存時間、スコア、ゲームオーバー処理）を行うシングルトン。ゲームオーバー時に不要なUIを非表示にする責務も負う。
 
 - **`GameManagerMulti.cs`**:
-    - **マルチプレイ**のゲーム全体の進行管理を行う。`GameDataSync` と連携し、両プレイヤーの状態を同期す��。
+    - **マルチプレイ**のゲーム全体の進行管理を行う。`GameDataSync` と連携し、両プレイヤーの状態を同期する。
 
 - **`PlayerController.cs`**:
     - プレイヤーの移動、状態（通常、移動中、タイピング中）を管理する。`TypingManager` のイベントに応じてアクションを実行する。
@@ -87,13 +64,25 @@ GEMINI.mdが古いので、現在の実装状況を反映させたい。また�
     - ステージ（タイルマップ）の生成と管理を行う。
 
 - **`PlayFabAuthManager.cs`**:
-    - PlayFabへの匿名認証を管理するシングルトン。
+    - PlayFabへの匿名認証を管理するシングルトン。シーンをまたいで生存し、ログイン状態を外部に提供する役割も持つ。
+
+- **`PlayFabLeaderboardManager.cs`**:
+    - PlayFabのLeaderboardからランキング情報を取得し、UIに表示する責務を持つシングルトン。「トップ5」と「自身の周囲」のランキングをマージし、重複なく表示する。`RankingEntry`プレハブを動的に生成してリストを構築する。
+
+- **`RankingEntry.cs`**:
+    - ランキングの1行分のUI（順位、名前、スコア）を管理するコンポーネント。プレハブにアタッチして使用される。
 
 - **`PlayFabMatchMakingManager.cs`**:
     - PlayFabを利用したマッチメイキング（ルーム作成、参加）を管理するシングルトン。`MyRelayNetworkManager` と連携する。
 
 - **`MyRelayNetworkManager.cs`**:
-    - Mirrorの`NetworkManager`を継承し、Unity Relayサービスとの連携を担う。
+    - Mirrorの`NetworkManager`を継承し、Unity Relay���ービスとの連携を担う。
 
 - **`UIController.cs`**:
-    - ゲーム全体のUI（CanvasGroup）の表示/非表示を管理し、画面遷移を実現する。
+    - ゲーム全体のUI（CanvasGroup）の表示/非表示を管理し、画面遷移を実現する。`PlayFabAuthManager`のログイン状態に応じて、初回起動かシーン遷移による復帰かを判断し、表示するUIを切り替える。
+
+- **`StartSceneBGMManager.cs`**:
+    - `StartScene`のBGMを管理するシングルトン。シーンのロードを検知し、`StartScene`にいる場合のみBGMを再生する。
+
+- **`Back2HomeButton.cs`**:
+    - `GameScene`から`StartScene`へ戻るためのボタンロジック。`Time.timeScale`をリセットし、シーンを遷移させる。
