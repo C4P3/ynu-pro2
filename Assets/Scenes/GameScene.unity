@@ -173,6 +173,7 @@ MonoBehaviour:
   fullOxygenColor: {r: 0.06385722, g: 0.9669811, b: 0.38715085, a: 1}
   lowOxygenColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   criticalOxygenColor: {r: 1, g: 0, b: 0, a: 1}
+  fillImage: {fileID: 1667354732}
   survivalTimeDisplay: {fileID: 1664582754}
   startsound: {fileID: 8300000, guid: 66ed3f3ff8f20a44c878ea3c02b2c0f4, type: 3}
   gameOverPanel: {fileID: 420656713}
@@ -180,6 +181,9 @@ MonoBehaviour:
   finalSurvivalTimeText: {fileID: 19093186}
   finalBlocksDestroyedText: {fileID: 2139961458}
   finalMissTypesText: {fileID: 125812795}
+  bestScoreText: {fileID: 0}
+  rankText: {fileID: 0}
+  countdownPanel: {fileID: 0}
   countdownText: {fileID: 1654474304}
 --- !u!4 &93972838
 Transform:
@@ -1277,6 +1281,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 1658986668553915499, guid: 25c5f07fe4ee141d9b030c46072ba005, type: 3}
   m_PrefabInstance: {fileID: 7184938170344408532}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1667354732 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6853725493632039962, guid: 25c5f07fe4ee141d9b030c46072ba005, type: 3}
+  m_PrefabInstance: {fileID: 7184938170344408532}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1798190674
 GameObject:
   m_ObjectHideFlags: 0
@@ -1808,7 +1823,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1126825998668618779, guid: 25c5f07fe4ee141d9b030c46072ba005, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1222483727807303004, guid: 25c5f07fe4ee141d9b030c46072ba005, type: 3}
       propertyPath: m_FillRect

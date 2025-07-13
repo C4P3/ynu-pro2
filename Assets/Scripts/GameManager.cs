@@ -36,7 +36,7 @@ public class GameManager : MonoBehaviour
     public Color fullOxygenColor = Color.green;     // 満タン時の色 (黄緑)
     public Color lowOxygenColor = Color.yellow;     // 30%以下になった時の色
     public Color criticalOxygenColor = Color.red;   // 10%以下になった時の色
-    private Image fillImage;                        // ゲージの色を変更するためのImageコンポーネント
+    public Image fillImage;                        // ゲージの色を変更するためのImageコンポーネント
 
     [Header("UI References")]
     public TextMeshProUGUI survivalTimeDisplay;    // 生存時間をリアルタイムで表示するTextMeshProUGUI
