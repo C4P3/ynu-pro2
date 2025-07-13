@@ -15,6 +15,9 @@ public class PlayFabAuthManager : MonoBehaviour
     public static PlayFabAuthManager Instance { get; private set; }
     public static EntityKey MyEntity { get; private set; }
 
+    // ★ ログイン状態を外部から確認できるようにするプロパティ
+    public bool IsLoggedIn => PlayFabClientAPI.IsClientLoggedIn();
+
     void Awake()
     {
         if (Instance == null) { Instance = this; DontDestroyOnLoad(gameObject); }
