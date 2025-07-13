@@ -29,18 +29,17 @@ public class NetworkPlayerInput : NetworkBehaviour
 
     void Start()
     {
-        // --- LevelManagerの検索 ---
-        LevelManager levelManager = null;
-        GameObject gridObject = GameObject.Find((playerIndex == 1) ? "Grid_P1" : "Grid_P2");
-        if (gridObject != null)
+        // GameManagerMultiから参照を取���
+        GameManagerMulti gm = GameManagerMulti.Instance;
+        if (gm == null)
         {
-            levelManager = gridObject.GetComponent<LevelManager>();
-        }
-        else
-        {
-            Debug.LogError($"Could not find Grid GameObject for Player {playerIndex}!", gameObject);
+            Debug.LogError("GameManagerMulti instance not found!");
+            return;
         }
 
+        // --- LevelManagerの取得 ---
+        LevelManager levelManager = (playerIndex == 1) ? gm.levelManagerP1 : gm.levelManagerP2;
+        
         // --- 参照の受け渡し ---
         if (levelManager != null)
         {
@@ -55,18 +54,18 @@ public class NetworkPlayerInput : NetworkBehaviour
         }
         else
         {
-            Debug.LogError($"Player {playerIndex} のLevelManagerが見つかりません！");
+            Debug.LogError($"Player {playerIndex} のLevelManagerが見つかりません！ GameManagerMultiのインスペクターで設定されているか確認してください。");
         }
 
         // --- TypingPanelの設定 ---
-        GameObject typingPanelObject = PlayerHUDManager.Instance.GetTypingPanel((playerIndex == 1) ? "TypingPanel_P1" : "TypingPanel_P2");
+        GameObject typingPanelObject = (playerIndex == 1) ? gm.typingPanelP1 : gm.typingPanelP2;
         if (typingPanelObject != null)
         {
             _typingManager.typingPanel = typingPanelObject;
         }
         else
         {
-            Debug.LogError($"Player {playerIndex} のTypingPanelが見つかりません！");
+            Debug.LogError($"Player {playerIndex} のTypingPanelが見つかりません！ GameManagerMultiのインスペクターで設定されているか確認してください。");
         }
         _typingManager.Initialize();
 
@@ -77,13 +76,15 @@ public class NetworkPlayerInput : NetworkBehaviour
         {
             case 1:
                 SetLayerRecursively(gameObject, LayerMask.NameToLayer("Player1"));
-                var vcam1 = GameObject.Find("VCam1")?.GetComponent<Unity.Cinemachine.CinemachineCamera>();
+                var vcam1 = gm.vcamP1;
                 if (vcam1 != null) vcam1.Follow = transform;
+                else Debug.LogError("VCam1がGameManagerMultiに設定されていません。");
                 break;
             case 2:
                 SetLayerRecursively(gameObject, LayerMask.NameToLayer("Player2"));
-                var vcam2 = GameObject.Find("VCam2")?.GetComponent<Unity.Cinemachine.CinemachineCamera>();
+                var vcam2 = gm.vcamP2;
                 if (vcam2 != null) vcam2.Follow = transform;
+                else Debug.LogError("VCam2がGameManagerMultiに設定されていません。");
                 break;
         }
     }
@@ -113,10 +114,23 @@ public class NetworkPlayerInput : NetworkBehaviour
     {
         // ★★★ ローカルプレイヤーのTypingManagerだけを有効にする ★★★
         _typingManager.enabled = true;
+
+        // サーバーに準備完了を通知
+        CmdPlayerReady();
+    }
+
+    [Command]
+    void CmdPlayerReady()
+    {
+        Debug.Log($"Player {playerIndex} is ready.");
+        GameDataSync.Instance.PlayerReady();
     }
 
     void Update()
     {
+        // ★★★ GameDataSyncが利用可能かチェック ★★★
+        if (GameDataSync.Instance == null) return;
+
         // ★★★ ゲームがプレイ中でなければ入力を受け付けない ★★★
         if (GameDataSync.Instance.currentState != GameState.Playing) return;
 

@@ -43,6 +43,20 @@ public class GameManagerMulti : NetworkBehaviour
 
     public readonly SyncList<PlayerData> playerData = new SyncList<PlayerData>();
 
+    [Header("Scene References")]
+    [Tooltip("Player1のLevelManager")]
+    public LevelManager levelManagerP1;
+    [Tooltip("Player2のLevelManager")]
+    public LevelManager levelManagerP2;
+    [Tooltip("Player1の仮想カメラ")]
+    public Unity.Cinemachine.CinemachineCamera vcamP1;
+    [Tooltip("Player2の仮想カメラ")]
+    public Unity.Cinemachine.CinemachineCamera vcamP2;
+    [Tooltip("Player1のタイピングパネル")]
+    public GameObject typingPanelP1;
+    [Tooltip("Player2のタイピングパネル")]
+    public GameObject typingPanelP2;
+
     private Coroutine _endGameCoroutine;
     private bool _isGamePlaying = false; // GameDataSyncの状態をローカルで保持
 

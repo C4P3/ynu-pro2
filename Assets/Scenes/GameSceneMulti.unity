@@ -430,6 +430,16 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 6e700e24619e532429cc155198fa21de, type: 3}
+--- !u!1 &200274086 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1582942613403210851, guid: 6e700e24619e532429cc155198fa21de, type: 3}
+  m_PrefabInstance: {fileID: 200274085}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &200274087 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1134199834954069529, guid: 6e700e24619e532429cc155198fa21de, type: 3}
+  m_PrefabInstance: {fileID: 200274085}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &202311668
 GameObject:
   m_ObjectHideFlags: 0
@@ -934,6 +944,12 @@ MonoBehaviour:
   oxygenDecreaseRate: 2
   matchTime: 0
   winnerIndex: -1
+  levelManagerP1: {fileID: 1317333746}
+  levelManagerP2: {fileID: 1928319287}
+  vcamP1: {fileID: 1524485198}
+  vcamP2: {fileID: 2052136735}
+  typingPanelP1: {fileID: 200274087}
+  typingPanelP2: {fileID: 200274086}
 --- !u!4 &1016113164
 Transform:
   m_ObjectHideFlags: 0

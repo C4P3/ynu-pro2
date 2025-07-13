@@ -97,34 +97,37 @@ public class GameDataSync : NetworkBehaviour
         }
     }
 
+    private int _readyPlayerCount = 0;
+
+    [Server]
+    public void PlayerReady()
+    {
+        _readyPlayerCount++;
+        Debug.Log($"Ready player count: {_readyPlayerCount}");
+        // 2人揃ったらマップ生成を開始
+        if (_readyPlayerCount == 2)
+        {
+            StartCoroutine(GenerateMapsWhenReady());
+        }
+    }
+
     private IEnumerator GenerateMapsWhenReady()
     {
-        Debug.Log("Waiting for LevelManagers to be ready...");
+        Debug.Log("Both players are ready! Generating maps.");
 
-        // まず、LevelManagerのオブジェクト自体が見つかるのを待つ
-        LevelManager levelManager1 = null;
-        LevelManager levelManager2 = null;
-        while (levelManager1 == null || levelManager2 == null)
+        // LevelManagerの取得は念のため残しておく
+        LevelManager levelManager1 = GameObject.Find("Grid_P1")?.GetComponent<LevelManager>();
+        LevelManager levelManager2 = GameObject.Find("Grid_P2")?.GetComponent<LevelManager>();
+
+        if (levelManager1 != null && levelManager2 != null)
         {
-            levelManager1 = GameObject.Find("Grid_P1")?.GetComponent<LevelManager>();
-            levelManager2 = GameObject.Find("Grid_P2")?.GetComponent<LevelManager>();
-            yield return null; // 1フレーム待って再試行
+            levelManager1.GenerateMap();
+            levelManager2.GenerateMap();
         }
-
-        Debug.Log("Found both LevelManager objects. Now waiting for playerTransforms...");
-
-        // ★★★ 本題：両方のLevelManagerのplayerTransformが設定されるまでループして待機 ★★★
-        while (levelManager1.playerTransform == null || levelManager2.playerTransform == null)
+        else
         {
-            // NetworkPlayerInputのStart()が実行され、transformが設定されるのを待つ
-            yield return null; // 1フレーム待って、次のフレームで再度whileの条件をチェック
+            Debug.LogError("Could not find one or both LevelManagers during map generation.");
         }
-
-        // ループを抜けたら、両方の準備が整ったということ
-        Debug.Log("Both LevelManagers are ready! Generating maps.");
-
-        // 両方の準備が整ったので、マップを生成する
-        levelManager1.GenerateMap();
-        levelManager2.GenerateMap();
+        yield return null;
     }
 }
