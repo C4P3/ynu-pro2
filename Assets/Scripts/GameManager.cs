@@ -22,6 +22,9 @@ public class GameManager : MonoBehaviour
     public int PlayerRank { get; private set; }
     public int PlayerBestScore { get; private set; }
 
+    [Header("GameUI")]
+    public GameObject UIPanel;
+
     [Header("Oxygen")]
     public float maxOxygen = 100f;              // 最大酸素量
     public float oxygenDecreaseRate = 0.5f;       // 1秒あたりに減る酸素量
@@ -62,6 +65,7 @@ public class GameManager : MonoBehaviour
 
     // ゲーム開始時にカウントダウンを表示するためのパネル
     [Header("Countdown UI")]
+    public GameObject countdownPanel;
     public TextMeshProUGUI countdownText; // ← カウントダウン用テキスト
 
     void Awake()
@@ -147,10 +151,11 @@ public class GameManager : MonoBehaviour
     {
         string[] countdownWords = { "3", "2", "1", "START" };
 
-        if (countdownText != null)
+        if (countdownPanel != null)
         {
-            countdownText.gameObject.SetActive(true);
+            countdownPanel.SetActive(true);
         }
+
         for (int i = 0; i < countdownWords.Length; i++)
         {
             if (countdownText != null)
@@ -162,8 +167,10 @@ public class GameManager : MonoBehaviour
             yield return new WaitForSecondsRealtime(1f);
         }
 
-        if (countdownText != null)
-            countdownText.gameObject.SetActive(false);
+        if (countdownPanel != null)
+        {
+            countdownPanel.SetActive(false);
+        }
 
         Time.timeScale = 1f; // ゲームスタート！
     }
@@ -190,6 +197,17 @@ public class GameManager : MonoBehaviour
         Time.timeScale = 0f; // ゲームを一時停止
         GameSceneBGMManager.Instance.StopBGM(); // BGMを停止
         SoundManager.Instance.PlaySound(SoundManager.Instance.gameoversound); // ゲームオーバー音を再生
+
+        // ゲームオーバー時に不要なUI��非表示にする
+        if (UIPanel != null)
+        {
+            UIPanel.SetActive(false);
+        }
+        if (countdownPanel != null)
+        {
+            countdownPanel.SetActive(false);
+        }
+
         Debug.Log("Game Over!");
         Debug.Log($"Final Survival Time: {_survivalTime} seconds");
         Debug.Log($"Blocks Destroyed: {_blocksDestroyed}");
