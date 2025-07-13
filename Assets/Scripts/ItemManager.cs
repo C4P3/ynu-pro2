@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.Tilemaps;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq;
 
 /// <summary>
 /// アイテムの出現設定（データと出現確率）を管理するためのクラス
@@ -85,6 +86,184 @@ public class ItemManager : MonoBehaviour
     }
 
     /// <summary>
+    /// アイテム設定リストのインデックスをIDとして、ItemDataを取得する
+    /// </summary>
+    public ItemData GetItemDataByID(int id)
+    {
+        if (id >= 0 && id < _itemSpawnSettings.Count)
+        {
+            return _itemSpawnSettings[id].itemData;
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// アイテムの種類(EffectType)を指定して、対応するItemDataを取得する
+    /// </summary>
+    public ItemData GetItemDataByType(ItemEffectType type)
+    {
+        foreach (var setting in _itemSpawnSettings)
+        {
+            if (setting.itemData != null && setting.itemData.effectType == type)
+            {
+                return setting.itemData;
+            }
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// ItemDataからID（リストのインデックス）を取得する
+    /// </summary>
+    private int GetIDByItemData(ItemData data)
+    {
+        for (int i = 0; i < _itemSpawnSettings.Count; i++)
+        {
+            if (_itemSpawnSettings[i].itemData == data)
+            {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    /// <summary>
+    /// [Server-side] アイテム取得処理の本体。サーバーでのみ実行される。
+    /// </summary>
+    public void ServerHandleItemAcquisition(TileBase itemTile, Vector3Int itemPosition, PlayerController playerController)
+    {
+        if (!_itemDatabase.TryGetValue(itemTile, out ItemData data)) return;
+
+        Debug.Log($"[Server] Player {playerController.playerIndex} acquired: {data.itemName}");
+
+        // 1. タイルマップからアイテムを削除
+        var networkInput = playerController.GetComponent<NetworkPlayerInput>();
+        if (networkInput != null)
+        {
+            networkInput.RpcRemoveTile(itemPosition, false); // isBlock = false
+        }
+        playerController.levelManager.itemTilemap.SetTile(itemPosition, null); // サーバー側でも削除
+
+        // 2. アイテムの効果をサーバー側で適用
+        ApplyItemEffectOnServer(data, itemPosition, playerController);
+
+        // 3. 全クライアントにエフェクト再生を通知
+        //    ただし、相手に効果を及ぼすアイテムの場合は、汎用の取得エフェクトは再生しない
+        if (data.effectType != ItemEffectType.Thunder && 
+            data.effectType != ItemEffectType.Poison && 
+            data.effectType != ItemEffectType.Unchi)
+        {
+            int itemID = GetIDByItemData(data);
+            if (itemID != -1)
+            {
+                NetworkPlayerInput networkPlayerInput = playerController.GetComponent<NetworkPlayerInput>();
+                if (networkPlayerInput != null)
+                {
+                    networkPlayerInput.RpcPlayItemAcquisitionEffects(itemID, itemPosition);
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// [Server-side] アイテム効果をサーバー上で適用する
+    /// </summary>
+    private void ApplyItemEffectOnServer(ItemData data, Vector3Int itemPosition, PlayerController playerController)
+    {
+        int playerIndex = playerController.playerIndex;
+        LevelManager levelManager = playerController.levelManager;
+
+        switch (data.effectType)
+        {
+            case ItemEffectType.OxygenRecovery:
+                var oxygenData = data as OxygenRecoveryItemData;
+                if (oxygenData != null)
+                {
+                    GameManagerMulti.Instance.ServerRecoverOxygen(playerIndex, oxygenData.recoveryAmount);
+                }
+                break;
+
+            case ItemEffectType.Bomb:
+                var bombData = data as BombItemData;
+                if (bombData != null && levelManager != null)
+                {
+                    // 爆破処理はLevelManagerに任せる。LevelManager内の破壊処理がRPCで同期されている必要がある。
+                    levelManager.ExplodeBlocks(itemPosition, bombData.radius, playerController.GetComponent<NetworkPlayerInput>());
+                }
+                break;
+
+            case ItemEffectType.Star:
+                var starData = data as StarItemData;
+                if (starData != null)
+                {
+                    GameManagerMulti.Instance.StartTemporaryInvincibility(playerIndex, starData.invincibleDuration);
+                }
+                break;
+
+            case ItemEffectType.Rocket:
+                var rocketData = data as RocketItemData;
+                if (rocketData != null && levelManager != null)
+                {
+                    NetworkPlayerInput npi = playerController.GetComponent<NetworkPlayerInput>();
+                    Vector3Int direction = playerController.GetLastMoveDirection();
+                    
+                    // 全クライアントでエフェクトを再生
+                    npi.RpcPlayRocketEffect(playerController.transform.position, direction, playerController.gameObject);
+                    
+                    // サーバー側でブロックを破壊
+                    rocketData.Activate(playerController.transform, direction, levelManager.blockTilemap);
+                }
+                break;
+
+            case ItemEffectType.Poison:
+                var poisonData = data as PoisonItemData;
+                if (poisonData != null)
+                {
+                    GameManagerMulti.Instance.ServerApplyPoisonToOpponent(playerIndex, poisonData.poisonAmount);
+                }
+                break;
+
+            case ItemEffectType.Thunder:
+                var thunderData = data as ThunderItemData;
+                if (thunderData != null)
+                {
+                    GameManagerMulti.Instance.ServerStunOpponent(playerIndex, thunderData.stunDuration);
+                }
+                break;
+            
+            case ItemEffectType.Unchi:
+                GameManagerMulti.Instance.ServerPlaceUnchiOnOpponent(playerIndex);
+                break;
+
+            // 他のアイテム効果も同様に実装
+        }
+    }
+
+    /// <summary>
+    /// [Client-side] 全てのクライアントでアイテム取得エフェクトとサウンドを再生する
+    /// </summary>
+    public void PlayItemAcquisitionEffectsOnClient(ItemData data, Vector3Int itemPosition, PlayerController playerController)
+    {
+        Debug.Log($"[Client] Playing effects for: {data.itemName}");
+
+        // サウンド再生
+        if (data.useSound != null && _audioSource != null)
+        {
+            _audioSource.PlayOneShot(data.useSound);
+        }
+
+        // パーティクルエフェクト再生
+        if (EffectManager.Instance != null)
+        {
+            EffectManager.Instance.PlayItemAcquisitionEffect(data, itemPosition, playerController.levelManager.itemTilemap, playerController.gameObject);
+            if (data.followEffectPrefab != null)
+            {
+                EffectManager.Instance.PlayFollowEffect(data.followEffectPrefab, data.followEffectDuration, playerController.transform, playerController.gameObject);
+            }
+        }
+    }
+
+    /// <summary>
     /// プレイヤーがアイテムを取得した時に呼ばれるメソッド
     /// </summary>
     /// <param name="itemTile">取得したアイテムのタイル</param>
@@ -106,10 +285,10 @@ public class ItemManager : MonoBehaviour
 
         if (EffectManager.Instance != null)
         {
-            EffectManager.Instance.PlayItemAcquisitionEffect(data, itemPosition, levelManager.itemTilemap);
+            EffectManager.Instance.PlayItemAcquisitionEffect(data, itemPosition, levelManager.itemTilemap, playerTransform.gameObject);
             if (data.followEffectPrefab != null)
             {
-                EffectManager.Instance.PlayFollowEffect(data.followEffectPrefab, data.followEffectDuration, playerTransform);
+                EffectManager.Instance.PlayFollowEffect(data.followEffectPrefab, data.followEffectDuration, playerTransform, playerTransform.gameObject);
             }
         }
 
@@ -162,7 +341,7 @@ public class ItemManager : MonoBehaviour
                     Vector3Int direction = (playerController != null) ? playerController.GetLastMoveDirection() : Vector3Int.right;
                     if (EffectManager.Instance != null && rocketData.beamEffectPrefab != null)
                     {
-                        EffectManager.Instance.PlayDirectionalEffect(rocketData.beamEffectPrefab, playerTransform.position, direction);
+                        EffectManager.Instance.PlayDirectionalEffect(rocketData.beamEffectPrefab, playerTransform.position, direction, playerTransform.gameObject);
                     }
                     rocketData.Activate(playerTransform, direction, levelManager.blockTilemap);
                 }

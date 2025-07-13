@@ -248,7 +248,15 @@ public class LevelManager : MonoBehaviour
         {
             // 破壊対象のブロックがウンチならスキップ
             if (unchiItemData != null && blockTilemap.GetTile(pos) == unchiItemData.unchiTile) continue;
+            
+            if (networkPlayerInput != null)
+            {
+                // マルチプレイ時：クライアントにタイル削除を通知
+                networkPlayerInput.RpcRemoveTile(pos, true);
+            }
+            // シングルプレイ、またはサーバー自身のタイルマップを更新
             blockTilemap.SetTile(pos, null);
+
             // ブロック破壊数を加算
             if (networkPlayerInput != null)
             {
@@ -286,7 +294,14 @@ public class LevelManager : MonoBehaviour
                     }
                     else
                     {
+                        if (networkPlayerInput != null)
+                        {
+                            // マルチプレイ時：クライアントにタイル削除を通知
+                            networkPlayerInput.RpcRemoveTile(pos, true);
+                        }
+                        // シングルプレイ、またはサーバー自身のタイルマップを更新
                         blockTilemap.SetTile(pos, null);
+
                         if (networkPlayerInput != null)
                         {
                             networkPlayerInput.CmdAddDestroyedBlock();

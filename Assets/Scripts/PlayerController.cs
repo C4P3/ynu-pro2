@@ -345,7 +345,16 @@ public class PlayerController : MonoBehaviour
         if (itemTile != null && ItemManager.Instance != null)
         {
             if (levelManager != null && levelManager.unchiItemData != null && itemTile == levelManager.unchiItemData.unchiTile) return;
-            ItemManager.Instance.AcquireItem(itemTile, position, levelManager, this.transform, _networkInput);
+            
+            // マルチプレイ時(_networkInputが存在する)はサーバーに通知し、それ以外(シングルプレイ)は直接実行
+            if (_networkInput != null)
+            {
+                _networkInput.CmdAcquireItem(position);
+            }
+            else
+            {
+                ItemManager.Instance.AcquireItem(itemTile, position, levelManager, this.transform, null);
+            }
         }
     }
 

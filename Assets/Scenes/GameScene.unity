@@ -1561,6 +1561,14 @@ PrefabInstance:
       propertyPath: playerTransform
       value: 
       objectReference: {fileID: 2132873798}
+    - target: {fileID: 2833179041014641398, guid: a3bf9c6c5bb914d8fa2d236b56ff962a, type: 3}
+      propertyPath: sceneId
+      value: 2768025608
+      objectReference: {fileID: 0}
+    - target: {fileID: 2833179041014641398, guid: a3bf9c6c5bb914d8fa2d236b56ff962a, type: 3}
+      propertyPath: visibility
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: 3543531649290911962, guid: a3bf9c6c5bb914d8fa2d236b56ff962a, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0.123543695
@@ -1832,6 +1840,22 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5059343259525063533, guid: 4405abcf60310458fa91a22ea47b7404, type: 3}
+      propertyPath: _itemSpawnSettings.Array.size
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 5059343259525063533, guid: 4405abcf60310458fa91a22ea47b7404, type: 3}
+      propertyPath: _itemSpawnSettings.Array.data[3].itemData
+      value: 
+      objectReference: {fileID: 11400000, guid: 1cd64fa6129df144db8cc726c097e20f, type: 2}
+    - target: {fileID: 5059343259525063533, guid: 4405abcf60310458fa91a22ea47b7404, type: 3}
+      propertyPath: _itemSpawnSettings.Array.data[4].itemData
+      value: 
+      objectReference: {fileID: 11400000, guid: 4bc4ea31983df9742827b791f36e30d6, type: 2}
+    - target: {fileID: 5059343259525063533, guid: 4405abcf60310458fa91a22ea47b7404, type: 3}
+      propertyPath: _itemSpawnSettings.Array.data[5].itemData
+      value: 
+      objectReference: {fileID: 11400000, guid: 3443b2381951f57409635a67048ef0ba, type: 2}
     - target: {fileID: 6381127629812234416, guid: 4405abcf60310458fa91a22ea47b7404, type: 3}
       propertyPath: m_Name
       value: ItemManager

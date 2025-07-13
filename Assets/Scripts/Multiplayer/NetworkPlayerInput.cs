@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Tilemaps;
 using Mirror;
 using TMPro;
 
@@ -176,8 +177,11 @@ public class NetworkPlayerInput : NetworkBehaviour
     [Command]
     public void CmdDestroyBlock(Vector3Int gridPos)
     {
-        // サーバーが受け取ったら、全クライアントに破壊を命令するRPCを呼び出す
-        RpcDestroyBlock(gridPos);
+        // サーバー側でLevelManagerの破壊処理を呼び出す
+        if (_playerController != null && _playerController.levelManager != null)
+        {
+            _playerController.levelManager.DestroyConnectedBlocks(gridPos, this);
+        }
     }
 
     [Command]
@@ -228,15 +232,89 @@ public class NetworkPlayerInput : NetworkBehaviour
         // 全てのクライアント（自分自身も含む）で、PlayerControllerのメソッドを呼び出す
         _playerController.OnMoveInput(moveVec);
     }
-    // ★★★ ブロック破壊用のClientRpcを追加 ★★★
-    [ClientRpc]
-    private void RpcDestroyBlock(Vector3Int gridPos)
+    // ★★★ ブロック破壊用のClientRpcは不要になったので削除 ★★★
+
+    [Command]
+    public void CmdAcquireItem(Vector3Int itemPosition)
     {
-        // このRPCは、このコンポーネントがアタッチされているプレイヤーオブジェクトに対して実行される
-        // そのため、各クライアントで、対応するプレイヤーのLevelManagerが正しく呼ばれる
-        if (_playerController != null && _playerController.levelManager != null)
+        TileBase itemTile = _playerController.itemTilemap.GetTile(itemPosition);
+        if (itemTile != null && ItemManager.Instance != null)
         {
-            _playerController.levelManager.DestroyConnectedBlocks(gridPos);
+            // サーバー側でアイテム処理を実行
+            ItemManager.Instance.ServerHandleItemAcquisition(itemTile, itemPosition, _playerController);
+        }
+    }
+
+    [ClientRpc]
+    public void RpcPlayItemAcquisitionEffects(int itemID, Vector3Int itemPosition)
+    {
+        ItemData itemData = ItemManager.Instance.GetItemDataByID(itemID);
+        if (itemData != null)
+        {
+            ItemManager.Instance.PlayItemAcquisitionEffectsOnClient(itemData, itemPosition, _playerController);
+        }
+    }
+
+    [ClientRpc]
+    public void RpcStunPlayer(float duration)
+    {
+        // このRPCを受け取ったクライアントのプレイヤーをスタンさせる
+        _playerController.Stun(duration);
+    }
+
+    [ClientRpc]
+    public void RpcRemoveTile(Vector3Int position, bool isBlock)
+    {
+        if (_playerController == null || _playerController.levelManager == null) return;
+
+        if (isBlock)
+        {
+            _playerController.levelManager.blockTilemap.SetTile(position, null);
+        }
+        else
+        {
+            _playerController.levelManager.itemTilemap.SetTile(position, null);
+        }
+    }
+
+    [ClientRpc]
+    public void RpcPlayDebuffEffect(ItemEffectType effectType)
+    {
+        ItemData itemData = ItemManager.Instance.GetItemDataByType(effectType);
+        if (itemData != null && EffectManager.Instance != null)
+        {
+            // 追従エフェクトを再生
+            if (itemData.followEffectPrefab != null)
+            {
+                EffectManager.Instance.PlayFollowEffect(itemData.followEffectPrefab, itemData.followEffectDuration, _playerController.transform, _playerController.gameObject);
+            }
+            // 通常のエフェクトを再生
+            else if (itemData.acquisitionEffectPrefab != null)
+            {
+                EffectManager.Instance.PlayItemAcquisitionEffect(itemData, _playerController.levelManager.itemTilemap.WorldToCell(_playerController.transform.position), _playerController.levelManager.itemTilemap, _playerController.gameObject);
+            }
+        }
+    }
+
+    [ClientRpc]
+    public void RpcPlaceUnchiTile()
+    {
+        var unchiData = ItemManager.Instance.GetItemDataByType(ItemEffectType.Unchi) as UnchiItemData;
+        if (unchiData != null && _playerController != null && _playerController.levelManager != null)
+        {
+            Vector3Int playerGridCenter = _playerController.levelManager.itemTilemap.WorldToCell(_playerController.transform.position);
+            unchiData.Activate(playerGridCenter, _playerController.levelManager.blockTilemap, _playerController.levelManager.itemTilemap);
+        }
+    }
+
+    [ClientRpc]
+    public void RpcPlayRocketEffect(Vector3 startPosition, Vector3Int direction, GameObject targetPlayer)
+    {
+        // ItemManagerからロケットのデータを取得してエフェクトを再生
+        var rocketData = ItemManager.Instance.GetItemDataByType(ItemEffectType.Rocket) as RocketItemData;
+        if (rocketData != null && EffectManager.Instance != null && rocketData.beamEffectPrefab != null)
+        {
+            EffectManager.Instance.PlayDirectionalEffect(rocketData.beamEffectPrefab, startPosition, direction, targetPlayer);
         }
     }
 }
