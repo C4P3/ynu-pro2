@@ -73,12 +73,15 @@ public class TutorialManager : MonoBehaviour
         {
             popupText.text = step.message;
             popup.SetActive(true);
+
+            // ポップアップがあるときは前のメディアを非表示
             tutorialImage.gameObject.SetActive(false);
             videoPlayer.gameObject.SetActive(false);
         }
         else
         {
             popup.SetActive(false);
+            // 前の画像や動画をそのまま残す
         }
 
         nextButton.gameObject.SetActive(true);
@@ -128,17 +131,14 @@ public class TutorialManager : MonoBehaviour
     {
         Debug.Log("動画終了");
 
-        videoPlayer.Pause();  // 最後のフレームで止める
+        videoPlayer.Stop();
+        videoPlayer.frame = 0;
+        videoPlayer.Play();
+        videoPlayer.Pause();
 
         isVideoPlaying = false;
 
-        StartCoroutine(WaitAndShowNextStep(0.5f));
-    }
-
-    IEnumerator WaitAndShowNextStep(float seconds)
-    {
-        yield return new WaitForSeconds(seconds);
-
+        // ✅ 自動で次のメディア再生は行わず、説明に戻す
         if (currentStep < steps.Count - 1)
         {
             currentStep++;
@@ -172,7 +172,7 @@ public class TutorialManager : MonoBehaviour
     {
         if (isWaitingForInput && !isVideoPlaying && currentStep < steps.Count - 1)
         {
-            currentStep += 1;
+            currentStep++;
             ShowCurrentStep();
         }
     }
@@ -181,7 +181,7 @@ public class TutorialManager : MonoBehaviour
     {
         if (isWaitingForInput && !isVideoPlaying && currentStep > 0)
         {
-            currentStep -= 1;
+            currentStep--;
             ShowCurrentStep();
         }
     }

@@ -172,7 +172,7 @@ MonoBehaviour:
   - message: "\u30CF\u30FC\u30C8\uFF08Enter\u3067\u9032\u3080\uFF09"
     key1: 0
     key2: 13
-    videoClip: {fileID: 32900000, guid: c8ebeaf5db00b4da38e26c724e403faa, type: 3}
+    videoClip: {fileID: 32900000, guid: 40041f44adaec4267b6702308a8ba097, type: 3}
     image: {fileID: 2797613150122127160, guid: cf2a41d926ab84df49a5175b9087ec2e, type: 3}
   - message: "\u6BD2\uFF08Enter\u3067\u9032\u3080\uFF09"
     key1: 0
@@ -182,7 +182,7 @@ MonoBehaviour:
   - message: "\u661F\uFF08Enter\u3067\u9032\u3080\uFF09"
     key1: 0
     key2: 13
-    videoClip: {fileID: 32900000, guid: 93d10618399ae4fe1bc97645ffd023ed, type: 3}
+    videoClip: {fileID: 32900000, guid: 226fdddc5df4a4d7cae11dc4d011c1f2, type: 3}
     image: {fileID: 2797613150122127160, guid: cf2a41d926ab84df49a5175b9087ec2e, type: 3}
   - message: "\u7206\u767A\uFF08Enter\u3067\u9032\u3080\uFF09"
     key1: 0
@@ -491,7 +491,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 4719610342279907797, guid: aae5c86992420482ea8e2450fbfa4d1a, type: 3}
+  m_Sprite: {fileID: 4061988452895568551, guid: 77a3621ecce5a46008f4c7ac3566bfd6, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -696,7 +696,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 0.27058825}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
