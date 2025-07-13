@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement; // ★ SceneManagerを使うために追加
 
 public class StartSceneBGMManager : MonoBehaviour
 {
@@ -8,37 +9,42 @@ public class StartSceneBGMManager : MonoBehaviour
     public AudioClip menuBGM;
     public AudioClip taisenBGM;
    
-
     void Awake()
     {
-        // シングルトンにする
         if (Instance == null)
         {
             Instance = this;
-            DontDestroyOnLoad(gameObject); // シーンをまたいでも破棄されないように
+            DontDestroyOnLoad(gameObject);
         }
         else
         {
             Destroy(gameObject);
+            return; // ★ Awake内でDestroyした後は、以降の処理をしないようにreturnする
         }
+
+        // ★ シーンがロードされた時のイベントにメソッドを登録
+        SceneManager.sceneLoaded += OnSceneLoaded;
     }
 
-    void Start()
+    // ★ シーンがロードされるたびに呼び出されるメソッド
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        // シーン開始時に menuBGM を自動再生
-        if (menuBGM != null && audioSource != null)
+        if (scene.name == "StartScene")
         {
+            // StartSceneならmenuBGMを再生
             PlayBGM(menuBGM);
         }
         else
         {
-            Debug.LogWarning("menuBGM または audioSource が未設定です");
+            // それ以外のシーンならBGMを停止
+            StopBGM();
         }
     }
 
     public void PlayBGM(AudioClip clip)
     {
-        if (audioSource.clip == clip) return;
+        if (audioSource == null || clip == null) return;
+        if (audioSource.isPlaying && audioSource.clip == clip) return;
 
         audioSource.Stop();
         audioSource.clip = clip;
@@ -47,9 +53,15 @@ public class StartSceneBGMManager : MonoBehaviour
 
     public void StopBGM()
     {
-         if (audioSource.isPlaying)
+         if (audioSource != null && audioSource.isPlaying)
          {
              audioSource.Stop();
          }
+    }
+
+    // ★ オブジェクトが破棄されるときにイベントの登録を解除（お作法）
+    void OnDestroy()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
     }
 }
