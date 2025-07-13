@@ -181,9 +181,9 @@ MonoBehaviour:
   finalSurvivalTimeText: {fileID: 19093186}
   finalBlocksDestroyedText: {fileID: 2139961458}
   finalMissTypesText: {fileID: 125812795}
-  bestScoreText: {fileID: 0}
-  rankText: {fileID: 0}
-  countdownPanel: {fileID: 0}
+  bestScoreText: {fileID: 491208425}
+  rankText: {fileID: 1567406698}
+  countdownPanel: {fileID: 474167397}
   countdownText: {fileID: 1654474304}
 --- !u!4 &93972838
 Transform:
