@@ -4,5 +4,5 @@ using UnityEngine;
 public class PoisonItemData : ItemData
 {
     [Header("毒アイテムの設定")]
-    public float poisonAmount = 20f; // 減らす酸素量
+    public float poisonAmount = 10f; // 減らす酸素量
 }
