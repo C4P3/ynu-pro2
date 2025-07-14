@@ -14,6 +14,8 @@ GameObject:
   - component: {fileID: -8588379201524178913}
   - component: {fileID: -6858746147590122220}
   - component: {fileID: -1298328796337970215}
+  - component: {fileID: 5650656906944751110}
+  - component: {fileID: 6404153460404493974}
   m_Layer: 0
   m_Name: Player_Multi
   m_TagString: Untagged
@@ -30,8 +32,8 @@ Transform:
   m_GameObject: {fileID: 7757349515784494314}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: 0.5, y: 0.5, z: 0}
+  m_LocalScale: {x: 0.2, y: 0.16, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -80,7 +82,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: -9095717837082945937, guid: 207ee8102dd4143d288186ef0be518ee, type: 3}
+  m_Sprite: {fileID: -9066679038493711350, guid: be5259ead4b6e564f9dd2e88f5f12962, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -107,7 +109,11 @@ MonoBehaviour:
   blockTilemap: {fileID: 0}
   itemTilemap: {fileID: 0}
   typingManager: {fileID: 0}
-  walkSound: {fileID: 0}
+  levelManager: {fileID: 0}
+  animationManager: {fileID: 0}
+  playerIndex: 0
+  walkSounds: []
+  walkSoundInterval: 0.4
 --- !u!114 &-8588379201524178913
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -174,3 +180,40 @@ MonoBehaviour:
   syncDirection: 0
   syncMode: 0
   syncInterval: 0
+  playerIndex: 0
+--- !u!114 &5650656906944751110
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7757349515784494314}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ecfd28b9a01514b48a2fe87f970ef306, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  playerIndex: 0
+  typingPanel: {fileID: 0}
+  typingSound: {fileID: 0}
+  successSound: {fileID: 0}
+  missSound: {fileID: 0}
+--- !u!114 &6404153460404493974
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7757349515784494314}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 59caaab836ded7a488b12780a88aacc1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  spriteUp: {fileID: -9066679038493711350, guid: be5259ead4b6e564f9dd2e88f5f12962, type: 3}
+  spriteDown: {fileID: 7197677887435696444, guid: be5259ead4b6e564f9dd2e88f5f12962, type: 3}
+  spriteLeft: {fileID: 2674309918979029221, guid: be5259ead4b6e564f9dd2e88f5f12962, type: 3}
+  spriteRight: {fileID: -7902434387478092304, guid: be5259ead4b6e564f9dd2e88f5f12962, type: 3}
+  typingEffectPrefab: {fileID: 0}
+  typingEffectPrefab_Back: {fileID: 0}
+  typingEffectOffset: 0.5
