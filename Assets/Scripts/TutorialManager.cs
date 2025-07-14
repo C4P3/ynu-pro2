@@ -25,7 +25,6 @@ public class TutorialManager : MonoBehaviour
     public VideoPlayer videoPlayer;
     public Image tutorialImage;
 
-    public Button nextButton;
     public Button backButton;
 
     private int currentStep = 0;
@@ -45,7 +44,6 @@ public class TutorialManager : MonoBehaviour
         videoPlayer.gameObject.SetActive(false);
         tutorialImage.gameObject.SetActive(false);
 
-        nextButton.onClick.AddListener(OnNextButtonPressed);
         backButton.onClick.AddListener(OnBackButtonPressed);
 
         ShowCurrentStep();
@@ -73,22 +71,34 @@ public class TutorialManager : MonoBehaviour
         {
             popupText.text = step.message;
             popup.SetActive(true);
-
-            // ポップアップがあるときは前のメディアを非表示
-            tutorialImage.gameObject.SetActive(false);
-            videoPlayer.gameObject.SetActive(false);
         }
         else
         {
             popup.SetActive(false);
-            // 前の画像や動画をそのまま残す
         }
 
-        nextButton.gameObject.SetActive(true);
         backButton.gameObject.SetActive(true);
-
         isWaitingForInput = true;
         isVideoPlaying = false;
+
+        // メディアの初期化
+        tutorialImage.gameObject.SetActive(false);
+        videoPlayer.gameObject.SetActive(false);
+
+        // ▶️動画の1フレーム目だけ表示
+        if (step.videoClip != null)
+        {
+            videoPlayer.clip = step.videoClip;
+            videoPlayer.gameObject.SetActive(true);
+            videoPlayer.frame = 0;
+            videoPlayer.Play();
+            videoPlayer.Pause();  // 一時停止状態で冒頭フレームだけ表示
+        }
+        else if (step.image != null)
+        {
+            tutorialImage.sprite = step.image;
+            tutorialImage.gameObject.SetActive(true);
+        }
 
         Debug.Log($"ステップ {currentStep + 1}: {(step.message == "" ? "[ポップアップなし]" : step.message)}");
     }
@@ -96,7 +106,6 @@ public class TutorialManager : MonoBehaviour
     void StartVideoOrImage(TutorialStep step)
     {
         popup.SetActive(false);
-        nextButton.gameObject.SetActive(false);
         backButton.gameObject.SetActive(false);
 
         if (step.videoClip != null)
@@ -148,7 +157,6 @@ public class TutorialManager : MonoBehaviour
         {
             Debug.Log("チュートリアル完了！");
             popup.SetActive(false);
-            nextButton.gameObject.SetActive(false);
             backButton.gameObject.SetActive(false);
         }
     }
@@ -168,21 +176,8 @@ public class TutorialManager : MonoBehaviour
         }
     }
 
-    public void OnNextButtonPressed()
-    {
-        if (isWaitingForInput && !isVideoPlaying && currentStep < steps.Count - 1)
-        {
-            currentStep++;
-            ShowCurrentStep();
-        }
-    }
-
     public void OnBackButtonPressed()
     {
-        if (isWaitingForInput && !isVideoPlaying && currentStep > 0)
-        {
-            currentStep--;
-            ShowCurrentStep();
-        }
+        Debug.Log("前の画面に戻る");
     }
 }
