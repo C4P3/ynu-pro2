@@ -1810,6 +1810,10 @@ PrefabInstance:
       propertyPath: playerTransform
       value: 
       objectReference: {fileID: 2132873798}
+    - target: {fileID: 1890074603984694371, guid: a3bf9c6c5bb914d8fa2d236b56ff962a, type: 3}
+      propertyPath: generationRadiusInChunks
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: 2833179041014641398, guid: a3bf9c6c5bb914d8fa2d236b56ff962a, type: 3}
       propertyPath: sceneId
       value: 2768025608
@@ -2147,6 +2151,26 @@ PrefabInstance:
     - target: {fileID: 5476505813357631350, guid: 25c5f07fe4ee141d9b030c46072ba005, type: 3}
       propertyPath: m_AnchoredPosition.y
       value: -359.32
+      objectReference: {fileID: 0}
+    - target: {fileID: 5330227329069367270, guid: 25c5f07fe4ee141d9b030c46072ba005, type: 3}
+      propertyPath: m_Type
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5330227329069367270, guid: 25c5f07fe4ee141d9b030c46072ba005, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 1260213667743586282, guid: ae11293e95197984ba84dc03b3267694, type: 3}
+    - target: {fileID: 5330227329069367270, guid: 25c5f07fe4ee141d9b030c46072ba005, type: 3}
+      propertyPath: m_Color.b
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5330227329069367270, guid: 25c5f07fe4ee141d9b030c46072ba005, type: 3}
+      propertyPath: m_Color.g
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5330227329069367270, guid: 25c5f07fe4ee141d9b030c46072ba005, type: 3}
+      propertyPath: m_Color.r
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5662466696960242349, guid: 25c5f07fe4ee141d9b030c46072ba005, type: 3}
       propertyPath: m_Name

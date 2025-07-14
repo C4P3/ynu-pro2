@@ -49,6 +49,7 @@ public class PlayerController : MonoBehaviour
     private float _stunTimer = 0f;
 
     public bool IsStunned => _isStunned;
+    private bool _gameStarted = false;
 
     #region Unity Lifecycle Methods
 
@@ -61,6 +62,7 @@ public class PlayerController : MonoBehaviour
         // 自分のTypingManagerのイベントだけを購読する
         if (typingManager != null)
         {
+            typingManager.Initialize();
             typingManager.OnTypingEnded += HandleTypingEnded;
         }
         else
@@ -70,10 +72,12 @@ public class PlayerController : MonoBehaviour
     }
     void OnEnable()
     {
+        GameManager.OnGameStarted += OnGameStarted;
     }
 
     void OnDisable()
     {
+        GameManager.OnGameStarted -= OnGameStarted;
     }
     void OnDestroy()
     {
@@ -109,16 +113,18 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
-        // スタン中はすべての入力を無効化
-        if (_isStunned)
+        // ゲームが開始されていない、またはスタン中はすべての入力を無効化
+        if (!_gameStarted || _isStunned)
         {
-            _stunTimer -= Time.deltaTime;
-            if (_stunTimer <= 0f)
+            if (_isStunned)
             {
-                _isStunned = false;
+                _stunTimer -= Time.deltaTime;
+                if (_stunTimer <= 0f)
+                {
+                    _isStunned = false;
+                }
             }
-            // ここでUpdate内の入力処理を全てスキップ
-            return; 
+            return;
         }
 
         // 状態に応じて処理を分岐
@@ -135,6 +141,9 @@ public class PlayerController : MonoBehaviour
                 break;
         }
     }
+
+
+
     #endregion
 
     #region State Handling
@@ -142,7 +151,7 @@ public class PlayerController : MonoBehaviour
     /// Roaming（待機・自由移動）状態の処理
     /// </summary>
     private void HandleRoamingState()
-    {   
+    {
         // 入力待ち
         // SHIFTキーが押されているかチェック
         if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
@@ -150,7 +159,7 @@ public class PlayerController : MonoBehaviour
             Vector3Int moveVec = Vector3Int.zero;
 
             // WASDの長押しをチェックし、移動方向を決定
-            if (Input.GetKey(KeyCode.W))      moveVec = Vector3Int.up;
+            if (Input.GetKey(KeyCode.W)) moveVec = Vector3Int.up;
             else if (Input.GetKey(KeyCode.S)) moveVec = Vector3Int.down;
             else if (Input.GetKey(KeyCode.A)) moveVec = Vector3Int.left;
             else if (Input.GetKey(KeyCode.D)) moveVec = Vector3Int.right;
@@ -200,7 +209,7 @@ public class PlayerController : MonoBehaviour
         {
             animationManager.StopTypingEffect();
         }
-        
+
         if (wasSuccessful)
         {
             if (_networkInput != null)
@@ -235,8 +244,8 @@ public class PlayerController : MonoBehaviour
     /// <param name="moveVec">移動方向のベクトル</param>
     public void OnMoveInput(Vector3Int moveVec)
     {
-        // Roaming状態でない場合や、移動ベクトルがゼロの場合は何もしない
-        if (_currentState != PlayerState.Roaming || moveVec == Vector3Int.zero)
+        // ゲームが開始されていない場合は何もしない
+        if (!_gameStarted || _currentState != PlayerState.Roaming || moveVec == Vector3Int.zero)
         {
             return;
         }
@@ -260,7 +269,7 @@ public class PlayerController : MonoBehaviour
                 animationManager.UpdateSpriteDirection(_lastMoveDirection);
             }
         }
-        
+
         Vector3Int nextGridPos = _gridTargetPos + moveVec;
 
         if (blockTilemap.HasTile(nextGridPos))
@@ -303,19 +312,19 @@ public class PlayerController : MonoBehaviour
     private void PlayWalkSound()
     {
         if (walkSounds != null && walkSounds.Length > 0 && audioSource != null)
-    {
-        int index = Random.Range(0, walkSounds.Length);
-        audioSource.PlayOneShot(walkSounds[index]);
-    }
+        {
+            int index = Random.Range(0, walkSounds.Length);
+            audioSource.PlayOneShot(walkSounds[index]);
+        }
     }
 
     private IEnumerator WalkSoundLoop()
     {
         while (_currentState == PlayerState.Moving)
-    {
-        PlayWalkSound();
-        yield return new WaitForSeconds(walkSoundInterval);
-    }
+        {
+            PlayWalkSound();
+            yield return new WaitForSeconds(walkSoundInterval);
+        }
 
     }
     /// <summary>
@@ -328,11 +337,11 @@ public class PlayerController : MonoBehaviour
         _currentState = PlayerState.Moving;
 
         //移動音を再生
-         if (walkSoundCoroutine != null)
-    {
-        StopCoroutine(walkSoundCoroutine);
-    }
-    walkSoundCoroutine = StartCoroutine(WalkSoundLoop());
+        if (walkSoundCoroutine != null)
+        {
+            StopCoroutine(walkSoundCoroutine);
+        }
+        walkSoundCoroutine = StartCoroutine(WalkSoundLoop());
 
     }
 
@@ -345,7 +354,7 @@ public class PlayerController : MonoBehaviour
         if (itemTile != null && ItemManager.Instance != null)
         {
             if (levelManager != null && levelManager.unchiItemData != null && itemTile == levelManager.unchiItemData.unchiTile) return;
-            
+
             // マルチプレイ時(_networkInputが存在する)はサーバーに通知し、それ以外(シングルプレイ)は直接実行
             if (_networkInput != null)
             {
@@ -369,5 +378,11 @@ public class PlayerController : MonoBehaviour
     {
         _isStunned = true;
         _stunTimer = duration;
+    }
+    
+    // GameManagerからゲーム開始を受け取るメソッド
+    private void OnGameStarted()
+    {
+        _gameStarted = true;
     }
 }
