@@ -1,9 +1,11 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Video;
+using UnityEngine.EventSystems;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
+using UnityEngine.SceneManagement;
 
 [System.Serializable]
 public class TutorialStep
@@ -15,7 +17,7 @@ public class TutorialStep
     public Sprite image;              // 表示する画像（任意）
 }
 
-public class TutorialManager : MonoBehaviour
+public class TutorialManager : MonoBehaviour, IPointerClickHandler
 {
     public List<TutorialStep> steps;
 
@@ -55,12 +57,19 @@ public class TutorialManager : MonoBehaviour
 
         var step = steps[currentStep];
 
-        if ((step.key1 == KeyCode.None && Input.GetKeyDown(step.key2)) ||
-            (step.key1 != KeyCode.None && Input.GetKey(step.key1) && Input.GetKeyDown(step.key2)))
+        bool shiftHeld = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
+
+        bool keyConditionMet =
+            (step.key1 == KeyCode.None && Input.GetKeyDown(step.key2)) ||
+            ((step.key1 == KeyCode.LeftShift || step.key1 == KeyCode.RightShift) && shiftHeld && Input.GetKeyDown(step.key2)) ||
+            (step.key1 != KeyCode.None && step.key1 != KeyCode.LeftShift && step.key1 != KeyCode.RightShift && Input.GetKey(step.key1) && Input.GetKeyDown(step.key2));
+
+        if (keyConditionMet)
         {
             isWaitingForInput = false;
             StartVideoOrImage(step);
         }
+
     }
 
     void ShowCurrentStep()
@@ -179,5 +188,17 @@ public class TutorialManager : MonoBehaviour
     public void OnBackButtonPressed()
     {
         Debug.Log("前の画面に戻る");
+
+        // Time.timeScaleを元に戻す
+        Time.timeScale = 1f;
+
+        // シンプルにStartSceneをロードするだけ
+        SceneManager.LoadScene("StartScene");
+    }
+
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        Debug.Log("クリックされました");
+        // 必要な処理を書く
     }
 }
