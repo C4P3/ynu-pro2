@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 8604445624481401075}
   - component: {fileID: 4750040708915863678}
   - component: {fileID: 2110456700906548538}
+  - component: {fileID: -2170882912248701337}
   m_Layer: 0
   m_Name: GameSceneBGM
   m_TagString: Untagged
@@ -145,3 +146,20 @@ MonoBehaviour:
   audioSource: {fileID: 4750040708915863678}
   gameBGM: {fileID: 8300000, guid: 22f8e5375b9eb63408bf8ea2e5aa413d, type: 3}
   kikenBGM: {fileID: 8300000, guid: 22f8e5375b9eb63408bf8ea2e5aa413d, type: 3}
+--- !u!114 &-2170882912248701337
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3755926942798260898}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b91ecbcc199f4492b9a91e820070131, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  sceneId: 0
+  _assetId: 1985503341
+  serverOnly: 0
+  visibility: 0
+  hasSpawned: 0
