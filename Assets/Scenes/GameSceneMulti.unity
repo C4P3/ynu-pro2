@@ -655,11 +655,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8443393474197539223, guid: 6e700e24619e532429cc155198fa21de, type: 3}
       propertyPath: m_Color.g
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8443393474197539223, guid: 6e700e24619e532429cc155198fa21de, type: 3}
       propertyPath: m_Color.r
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8543784397238115742, guid: 6e700e24619e532429cc155198fa21de, type: 3}
       propertyPath: m_Type
@@ -699,11 +699,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8723049824017772276, guid: 6e700e24619e532429cc155198fa21de, type: 3}
       propertyPath: m_Color.g
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8723049824017772276, guid: 6e700e24619e532429cc155198fa21de, type: 3}
       propertyPath: m_Color.r
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8723049824017772276, guid: 6e700e24619e532429cc155198fa21de, type: 3}
       propertyPath: m_PreserveAspect
@@ -2709,7 +2709,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!212 &1572986406
 SpriteRenderer:
   m_ObjectHideFlags: 0
