@@ -93,4 +93,24 @@ public class MyRelayNetworkManager : RelayNetworkManager
         // シンプルにStartSceneをロードするだけ
         SceneManager.LoadScene("StartScene");
     }
+
+    /// <summary>
+    /// クライアントの動作が停止したときに呼び出される。
+    /// ホストが切断された場合など、OnClientDisconnectの後に呼ばれることが多い。
+    /// </summary>
+    public override void OnStopClient()
+    {
+        // 念のため、親クラスの処理を呼び出しておく
+        base.OnStopClient();
+
+        Debug.Log("OnStopClient called. Returning to StartScene.");
+
+        // Time.timeScaleを元に戻す
+        Time.timeScale = 1f;
+
+        // シンプルにStartSceneをロードするだけ
+        // OnClientDisconnectでも同様の処理が呼ばれる可能性があるが、
+        // 確実にタ��トルに戻すためにここでも呼び出す
+        SceneManager.LoadScene("StartScene");
+    }
 }
