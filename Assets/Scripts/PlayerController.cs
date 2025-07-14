@@ -16,7 +16,7 @@ public enum PlayerState
 /// <summary>
 /// プレイヤーの移動、入力、状態遷移を管理するクラス
 /// </summary>
-public class PlayerController : MonoBehaviour
+public class PlayerController : NetworkBehaviour
 {
     [Header("Movement")]
     public float moveSpeed = 5f;
@@ -41,7 +41,9 @@ public class PlayerController : MonoBehaviour
     private PlayerState _currentState = PlayerState.Roaming;
     private Vector3Int _gridTargetPos;
     private Vector3Int _typingTargetPos; // タイピング対象のブロック座標
-    private Vector3Int _lastMoveDirection = Vector3Int.up; // デフォルト上向き
+    // [SyncVar]とhookを追加して、向き情報を同期させる
+    [SyncVar(hook = nameof(OnDirectionChanged))]
+    private Vector3Int _lastMoveDirection = Vector3Int.up;
 
     private NetworkPlayerInput _networkInput;
 
@@ -109,6 +111,14 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
+        // 最初にNetworkManagerの存在をチェックし、
+        // マルチプレイ中（isNetworkActiveがtrue）かつ、操作プレイヤーでない場合のみ処理を中断する
+        if (NetworkManager.singleton != null && NetworkManager.singleton.isNetworkActive && !isLocalPlayer)
+        {
+            return;
+        }
+        // シングルプレイの場合、またはマルチプレイ中の操作プレイヤーの場合は、以下の処理を続行する
+
         // スタン中はすべての入力を無効化
         if (_isStunned)
         {
@@ -118,7 +128,7 @@ public class PlayerController : MonoBehaviour
                 _isStunned = false;
             }
             // ここでUpdate内の入力処理を全てスキップ
-            return; 
+            return;
         }
 
         // 状態に応じて処理を分岐
@@ -142,7 +152,7 @@ public class PlayerController : MonoBehaviour
     /// Roaming（待機・自由移動）状態の処理
     /// </summary>
     private void HandleRoamingState()
-    {   
+    {
         // 入力待ち
         // SHIFTキーが押されているかチェック
         if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
@@ -150,7 +160,7 @@ public class PlayerController : MonoBehaviour
             Vector3Int moveVec = Vector3Int.zero;
 
             // WASDの長押しをチェックし、移動方向を決定
-            if (Input.GetKey(KeyCode.W))      moveVec = Vector3Int.up;
+            if (Input.GetKey(KeyCode.W)) moveVec = Vector3Int.up;
             else if (Input.GetKey(KeyCode.S)) moveVec = Vector3Int.down;
             else if (Input.GetKey(KeyCode.A)) moveVec = Vector3Int.left;
             else if (Input.GetKey(KeyCode.D)) moveVec = Vector3Int.right;
@@ -200,7 +210,7 @@ public class PlayerController : MonoBehaviour
         {
             animationManager.StopTypingEffect();
         }
-        
+
         if (wasSuccessful)
         {
             if (_networkInput != null)
@@ -253,14 +263,20 @@ public class PlayerController : MonoBehaviour
         // 向きの更新を先に行うように変更
         if (moveVec != Vector3Int.zero)
         {
-            _lastMoveDirection = moveVec;
-            // プレイヤーの向きが変わったら、スプライトの向きも更新
+            // 【修正点】ローカルでのスプライト更新をここで行う
+            // これにより、シングルプレイでも、マルチプレイの操作プレイヤーでも即座に向きが変わる
             if (animationManager != null)
             {
-                animationManager.UpdateSpriteDirection(_lastMoveDirection);
+                animationManager.UpdateSpriteDirection(moveVec);
+            }
+
+            // 【追加点】マルチプレイ時に、ローカルプレイヤーであればサーバーに向きを通知する
+            if (isLocalPlayer)
+            {
+                CmdUpdateDirection(moveVec);
             }
         }
-        
+
         Vector3Int nextGridPos = _gridTargetPos + moveVec;
 
         if (blockTilemap.HasTile(nextGridPos))
@@ -278,7 +294,7 @@ public class PlayerController : MonoBehaviour
             // タイピング状態になったので、AnimationManagerにエフェクト開始を依頼する
             if (animationManager != null)
             {
-                animationManager.StartTypingEffect(_lastMoveDirection);
+                animationManager.StartTypingEffect(moveVec);
             }
 
             // _networkInputがnull（シングルプレイ時）か、isLocalPlayerがtrueの場合のみ実行
@@ -303,19 +319,19 @@ public class PlayerController : MonoBehaviour
     private void PlayWalkSound()
     {
         if (walkSounds != null && walkSounds.Length > 0 && audioSource != null)
-    {
-        int index = Random.Range(0, walkSounds.Length);
-        audioSource.PlayOneShot(walkSounds[index]);
-    }
+        {
+            int index = Random.Range(0, walkSounds.Length);
+            audioSource.PlayOneShot(walkSounds[index]);
+        }
     }
 
     private IEnumerator WalkSoundLoop()
     {
         while (_currentState == PlayerState.Moving)
-    {
-        PlayWalkSound();
-        yield return new WaitForSeconds(walkSoundInterval);
-    }
+        {
+            PlayWalkSound();
+            yield return new WaitForSeconds(walkSoundInterval);
+        }
 
     }
     /// <summary>
@@ -328,11 +344,11 @@ public class PlayerController : MonoBehaviour
         _currentState = PlayerState.Moving;
 
         //移動音を再生
-         if (walkSoundCoroutine != null)
-    {
-        StopCoroutine(walkSoundCoroutine);
-    }
-    walkSoundCoroutine = StartCoroutine(WalkSoundLoop());
+        if (walkSoundCoroutine != null)
+        {
+            StopCoroutine(walkSoundCoroutine);
+        }
+        walkSoundCoroutine = StartCoroutine(WalkSoundLoop());
 
     }
 
@@ -345,7 +361,7 @@ public class PlayerController : MonoBehaviour
         if (itemTile != null && ItemManager.Instance != null)
         {
             if (levelManager != null && levelManager.unchiItemData != null && itemTile == levelManager.unchiItemData.unchiTile) return;
-            
+
             // マルチプレイ時(_networkInputが存在する)はサーバーに通知し、それ以外(シングルプレイ)は直接実行
             if (_networkInput != null)
             {
@@ -362,6 +378,39 @@ public class PlayerController : MonoBehaviour
     {
         return _lastMoveDirection;
     }
+    #endregion
+
+    #region Network Sync & Commands
+
+    /// <summary>
+    /// 【新規追加】サーバーに対し、プレイヤーの向きの変更を依頼するコマンド
+    /// </summary>
+    [Command]
+    private void CmdUpdateDirection(Vector3Int newDirection)
+    {
+        // サーバー上で向きを更新 -> この変更が[SyncVar]によって全クライアントに伝播する
+        _lastMoveDirection = newDirection;
+    }
+
+    /// <summary>
+    /// 【新規追加】_lastMoveDirectionがサーバーから同期されたときに、全クライアントで呼び出されるメソッド
+    /// </summary>
+    void OnDirectionChanged(Vector3Int oldDirection, Vector3Int newDirection)
+    {
+        // 【修正点】ローカルプレイヤーの場合は、何もしないで処理を抜ける
+        // 自分のスプライトはCheckAndMoveで更新済みのため
+        if (isLocalPlayer)
+        {
+            return;
+        }
+
+        // 他プレイヤーのスプライトを、同期された新しい向きで更新する
+        if (animationManager != null)
+        {
+            animationManager.UpdateSpriteDirection(newDirection);
+        }
+    }
+
     #endregion
 
     // スタンを付与するメソッド
