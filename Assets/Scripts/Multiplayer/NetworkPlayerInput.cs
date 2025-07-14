@@ -30,7 +30,7 @@ public class NetworkPlayerInput : NetworkBehaviour
 
     void Start()
     {
-        // GameManagerMultiから参照を取���
+        // GameManagerMultiから参照を取得
         GameManagerMulti gm = GameManagerMulti.Instance;
         if (gm == null)
         {
@@ -104,20 +104,35 @@ public class NetworkPlayerInput : NetworkBehaviour
         }
     }
 
-    // ★★★ ここから追加 ★★★
-    public override void OnStartServer()
-    {
-    }
-    // ★★★ ここまで追加 ★★★
-
-
     public override void OnStartLocalPlayer()
     {
-        // ★★★ ローカルプレイヤーのTypingManagerだけを有効にする ★★★
         _typingManager.enabled = true;
 
-        // サーバー側のシングルトンはSpawnerによって生成が保証されているため、直接コマンドを呼ぶ
+        // ★ プレイヤー名が取得できていればサーバーに送信
+        if (!string.IsNullOrEmpty(PlayFabAuthManager.MyDisplayName))
+        {
+            CmdSetPlayerName(PlayFabAuthManager.MyDisplayName);
+        }
+        else
+        {
+            // 念のため、取得できていない場合は少し待ってから再試行
+            Invoke(nameof(RetrySetPlayerName), 1.0f);
+        }
+
         CmdPlayerReady();
+    }
+
+    private void RetrySetPlayerName()
+    {
+        if (!string.IsNullOrEmpty(PlayFabAuthManager.MyDisplayName))
+        {
+            CmdSetPlayerName(PlayFabAuthManager.MyDisplayName);
+        }
+        else
+        {
+            Debug.LogWarning("プレイヤー名の取得に失敗したため、デフォルト名を使用します。");
+            CmdSetPlayerName("Player " + playerIndex);
+        }
     }
 
     [Command]
@@ -125,7 +140,6 @@ public class NetworkPlayerInput : NetworkBehaviour
     {
         if (GameDataSync.Instance == null)
         {
-            // このエラーは理論上発生しなくなるはず
             Debug.LogError("[CmdPlayerReady] GameDataSync.Instance is null on the server. Spawner pattern failed.");
             return;
         }
@@ -135,21 +149,10 @@ public class NetworkPlayerInput : NetworkBehaviour
 
     void Update()
     {
-        // ★★★ GameDataSyncが利用可能かチェック ★★★
         if (GameDataSync.Instance == null) return;
-
-        // ★★★ ゲームがプレイ中でなければ入力を受け付けない ★★★
         if (GameDataSync.Instance.currentState != GameState.Playing) return;
-
         if (!isLocalPlayer) return;
 
-        // Roaming状態のときだけ入力を受け付ける
-        // （PlayerControllerの内部状態を直接参照するのは設計上あまり良くないが、
-        //  不要なコマンド送信を防ぐための最適化として許容範囲）
-        // if (_playerController.CurrentState != PlayerState.Roaming) return;
-
-
-        // Shiftキーが押されているとき、WASD入力を検知する
         if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
         {
             Vector3Int moveVec = Vector3Int.zero;
@@ -160,8 +163,6 @@ public class NetworkPlayerInput : NetworkBehaviour
 
             if (moveVec != Vector3Int.zero)
             {
-                // ★★★ ここが重要 ★★★
-                // 入力を検知したら、サーバーにコマンドを送信する
                 CmdSendMoveInput(moveVec);
             }
         }
@@ -169,21 +170,24 @@ public class NetworkPlayerInput : NetworkBehaviour
 
     // --- サーバーへのコマンド送信 ---
 
-    /// <summary>
-    /// [Command]属性: ローカルプレイヤーからサーバーへメッセージを送信する
-    /// 移動入力をサーバーに伝える
-    /// </summary>
+    [Command]
+    private void CmdSetPlayerName(string name)
+    {
+        if (GameManagerMulti.Instance != null)
+        {
+            GameManagerMulti.Instance.ServerSetPlayerName(playerIndex, name);
+        }
+    }
+
     [Command]
     private void CmdSendMoveInput(Vector3Int moveVec)
     {
-        // サーバー側で受け取ったコマンドを、全てのクライアントに伝える
         RpcReceiveMoveInput(moveVec);
     }
 
     [Command]
     public void CmdDestroyBlock(Vector3Int gridPos)
     {
-        // サーバー側でLevelManagerの破壊処理を呼び出す
         if (_playerController != null && _playerController.levelManager != null)
         {
             _playerController.levelManager.DestroyConnectedBlocks(gridPos, this);
@@ -228,17 +232,11 @@ public class NetworkPlayerInput : NetworkBehaviour
 
     // --- 全クライアントへのRPC ---
 
-    /// <summary>
-    /// [ClientRpc]属性: サーバーから全てのクライアントへメッセージを送信する
-    /// 全てのクライアントでPlayerControllerの移動処理を呼び出す
-    /// </summary>
     [ClientRpc]
     private void RpcReceiveMoveInput(Vector3Int moveVec)
     {
-        // 全てのクライアント（自分自身も含む）で、PlayerControllerのメソッドを呼び出す
         _playerController.OnMoveInput(moveVec);
     }
-    // ★★★ ブロック破壊用のClientRpcは不要になったので削除 ★★★
 
     [Command]
     public void CmdAcquireItem(Vector3Int itemPosition)
@@ -246,7 +244,6 @@ public class NetworkPlayerInput : NetworkBehaviour
         TileBase itemTile = _playerController.itemTilemap.GetTile(itemPosition);
         if (itemTile != null && ItemManager.Instance != null)
         {
-            // サーバー側でアイテム処理を実行
             ItemManager.Instance.ServerHandleItemAcquisition(itemTile, itemPosition, _playerController);
         }
     }
@@ -264,7 +261,6 @@ public class NetworkPlayerInput : NetworkBehaviour
     [ClientRpc]
     public void RpcStunPlayer(float duration)
     {
-        // このRPCを受け取ったクライアントのプレイヤーをスタンさせる
         _playerController.Stun(duration);
     }
 
@@ -289,12 +285,10 @@ public class NetworkPlayerInput : NetworkBehaviour
         ItemData itemData = ItemManager.Instance.GetItemDataByType(effectType);
         if (itemData != null && EffectManager.Instance != null)
         {
-            // 追従エフェクトを再生
             if (itemData.followEffectPrefab != null)
             {
                 EffectManager.Instance.PlayFollowEffect(itemData.followEffectPrefab, itemData.followEffectDuration, _playerController.transform, _playerController.gameObject);
             }
-            // 通常のエフェクトを再生
             else if (itemData.acquisitionEffectPrefab != null)
             {
                 EffectManager.Instance.PlayItemAcquisitionEffect(itemData, _playerController.levelManager.itemTilemap.WorldToCell(_playerController.transform.position), _playerController.levelManager.itemTilemap, _playerController.gameObject);
@@ -316,7 +310,6 @@ public class NetworkPlayerInput : NetworkBehaviour
     [ClientRpc]
     public void RpcPlayRocketEffect(Vector3 startPosition, Vector3Int direction, GameObject targetPlayer)
     {
-        // ItemManagerからロケットのデータを取得してエフェクトを再生
         var rocketData = ItemManager.Instance.GetItemDataByType(ItemEffectType.Rocket) as RocketItemData;
         if (rocketData != null && EffectManager.Instance != null && rocketData.beamEffectPrefab != null)
         {
