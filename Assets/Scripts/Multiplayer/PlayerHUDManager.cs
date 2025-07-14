@@ -27,9 +27,9 @@ public class PlayerHUDManager : NetworkBehaviour
 
     [Header("In-Game HUD")]
     [SerializeField] private TextMeshProUGUI matchTimeText;
-    [SerializeField] private Slider myOxygenSlider;
+    [SerializeField] private Slider OxygenSliderP1;
     [SerializeField] private TextMeshProUGUI myOxygenText;
-    [SerializeField] private Slider opponentOxygenSlider;
+    [SerializeField] private Slider OxygenSliderP2;
     [SerializeField] private TextMeshProUGUI opponentOxygenText;
     [SerializeField] private TextMeshProUGUI playerLabelP1; // P1のラベルとして役割を明確化
     [SerializeField] private TextMeshProUGUI playerLabelP2; // P2のラベルとして役割を明確化
@@ -219,8 +219,12 @@ public class PlayerHUDManager : NetworkBehaviour
 
         // Player Data
         if (gm.playerData.Count < 2 || _myPlayerIndex == -1) return;
-        UpdateSinglePlayerUI(myOxygenSlider, myOxygenText, gm.playerData[_myPlayerIndex]);
-        UpdateSinglePlayerUI(opponentOxygenSlider, opponentOxygenText, gm.playerData[_opponentPlayerIndex]);
+
+        // P1のUIにP1(インデックス0)のデータを設定
+        UpdateSinglePlayerUI(OxygenSliderP1, myOxygenText, gm.playerData[0]);
+
+        // P2のUIにP2(インデックス1)のデータを設定
+        UpdateSinglePlayerUI(OxygenSliderP2, opponentOxygenText, gm.playerData[1]);
     }
 
     private void UpdateSinglePlayerUI(Slider slider, TextMeshProUGUI oxygenText, PlayerData data)
