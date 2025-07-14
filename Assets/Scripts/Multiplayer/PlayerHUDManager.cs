@@ -31,6 +31,8 @@ public class PlayerHUDManager : NetworkBehaviour
     [SerializeField] private TextMeshProUGUI myOxygenText;
     [SerializeField] private Slider opponentOxygenSlider;
     [SerializeField] private TextMeshProUGUI opponentOxygenText;
+    [SerializeField] private TextMeshProUGUI playerLabelP1; // P1のラベルとして役割を明確化
+    [SerializeField] private TextMeshProUGUI playerLabelP2; // P2のラベルとして役割を明確化
     
     [Header("Typing Panel")]
     [SerializeField] private GameObject TypingPanel_P1;
@@ -101,6 +103,9 @@ public class PlayerHUDManager : NetworkBehaviour
             {
                 _myPlayerIndex = _localPlayerInput.playerIndex - 1;
                 _opponentPlayerIndex = (_myPlayerIndex == 0) ? 1 : 0;
+
+                // プレイヤーインデックスが確定した時点でラベルを設定する
+                SetPlayerLabels();
             }
         }
 
@@ -174,6 +179,22 @@ public class PlayerHUDManager : NetworkBehaviour
     #endregion
 
     #region UI Content Updates
+
+    // プレイヤーの役割に応じてラベルを設定するメソッドを追加
+    private void SetPlayerLabels()
+    {
+        // _myPlayerIndex は 0 (P1) または 1 (P2)
+        if (_myPlayerIndex == 0) // 自分がP1の場合
+        {
+            if (playerLabelP1 != null) playerLabelP1.text = "あなた";
+            if (playerLabelP2 != null) playerLabelP2.text = "あいて";
+        }
+        else // 自分がP2の場合
+        {
+            if (playerLabelP1 != null) playerLabelP1.text = "あいて";
+            if (playerLabelP2 != null) playerLabelP2.text = "あなた";
+        }
+    }
 
     private void UpdateWaitingPanel()
     {
