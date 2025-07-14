@@ -437,7 +437,8 @@ namespace Models
                       currentChar == 't' && nextChar == 't' || currentChar == 'g' && nextChar == 'g' ||
                       currentChar == 'z' && nextChar == 'z' || currentChar == 'j' && nextChar == 'j' ||
                       currentChar == 'd' && nextChar == 'd' || currentChar == 'b' && nextChar == 'b' ||
-                      currentChar == 'p' && nextChar == 'p'))
+                      currentChar == 'p' && nextChar == 'p' || currentChar == 'f' && nextChar == 'f' ||
+                      currentChar == 'z' && nextChar == 'z'))
             {
                 newCharacters[currentCharactersIndex] = inputCharacter;
                 newCharacters.Insert(currentCharactersIndex + 1, 't');
@@ -491,6 +492,17 @@ namespace Models
                 newCharacters[currentCharactersIndex] = 'c';
                 newCharacters[currentCharactersIndex + 1] = 'c';
                 newCharacters.Insert(currentCharactersIndex + 2, 'h');
+                isCorrect = true;
+            }
+
+            //「っじ」の柔軟な入力
+            else if (
+                (inputCharacter == 'z' && currentChar == 'z' && nextChar == 'z' && nextChar2 == 'i') || // zzi
+                (inputCharacter == 'j' && currentChar == 'z' && nextChar == 'z' && nextChar2 == 'i')    // jji
+            )
+            {
+                newCharacters[currentCharactersIndex] = inputCharacter;
+                newCharacters[currentCharactersIndex + 1] = inputCharacter;
                 isCorrect = true;
             }
 

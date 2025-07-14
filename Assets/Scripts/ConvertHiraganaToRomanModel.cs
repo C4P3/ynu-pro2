@@ -1159,7 +1159,14 @@ namespace Models
                             }
                             case 'は' or 'ひ' or 'ふ' or 'へ' or 'ほ':
                             {
-                                roman.Add('h');
+                                if (nextHiragana is 'ふ')
+                                {
+                                    roman.Add('f');
+                                }
+                                else
+                                {
+                                    roman.Add('h');
+                                }
                                 break;
                             }
                             case 'ま' or 'み' or 'む' or 'め' or 'も':
