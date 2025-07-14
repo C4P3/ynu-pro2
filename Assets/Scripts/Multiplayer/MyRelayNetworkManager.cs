@@ -5,6 +5,31 @@ using Utp;
 
 public class MyRelayNetworkManager : RelayNetworkManager
 {
+    [Header("Singleton Prefabs")]
+    [Tooltip("サーバー起動時に自動で生成されるシングルトンオブジェクト")]
+    [SerializeField] private GameObject gameDataSyncPrefab;
+
+    /// <summary>
+    /// サーバーが正常に起動したときに呼び出される
+    /// </summary>
+    public override void OnStartServer()
+    {
+        base.OnStartServer();
+
+        // GameDataSyncシングルトンを生成する
+        if (gameDataSyncPrefab != null)
+        {
+            // 既にインスタンスが存在しないか念のため確認
+            if (GameDataSync.Instance == null)
+            {
+                Debug.Log("Spawning GameDataSync singleton on server start.");
+                GameObject singletonInstance = Instantiate(gameDataSyncPrefab);
+                NetworkServer.Spawn(singletonInstance);
+            }
+        }
+    }
+
+
     /// <summary>
     /// サーバーに新しいクライアントが接続し、プレイヤーが生成された時に呼び出される
     /// </summary>

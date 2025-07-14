@@ -116,13 +116,19 @@ public class NetworkPlayerInput : NetworkBehaviour
         // ★★★ ローカルプレイヤーのTypingManagerだけを有効にする ★★★
         _typingManager.enabled = true;
 
-        // サーバーに準備完了を通知
+        // サーバー側のシングルトンはSpawnerによって生成が保証されているため、直接コマンドを呼ぶ
         CmdPlayerReady();
     }
 
     [Command]
     void CmdPlayerReady()
     {
+        if (GameDataSync.Instance == null)
+        {
+            // このエラーは理論上発生しなくなるはず
+            Debug.LogError("[CmdPlayerReady] GameDataSync.Instance is null on the server. Spawner pattern failed.");
+            return;
+        }
         Debug.Log($"Player {playerIndex} is ready.");
         GameDataSync.Instance.PlayerReady();
     }
