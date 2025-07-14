@@ -19,7 +19,7 @@ public class StartSceneBGMManager : MonoBehaviour
         else
         {
             Destroy(gameObject);
-            return; // ★ Awake内でDestroyした後は、以降の処理をしないようにreturnする
+            return; // Awake内でDestroyした後は、以降の処理をしないようにreturnする
         }
 
         // ★ シーンがロードされた時のイベントにメソッドを登録

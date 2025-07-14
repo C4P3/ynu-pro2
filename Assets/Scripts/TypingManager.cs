@@ -11,7 +11,7 @@ public class TypingManager : MonoBehaviour
     public int playerIndex = 0; // NetworkPlayerInputから設定される
 
     // タイピング終了時のイベント
-    public event System.Action<bool> OnTypingEnded; 
+    public event System.Action<bool> OnTypingEnded;
     // UIの参照
     [Header("UI References")]
     public GameObject typingPanel;
@@ -29,6 +29,7 @@ public class TypingManager : MonoBehaviour
     [SerializeField] private AudioClip missSound;
 
     private AudioSource audioSource;
+    private bool _gameStarted = false; // ゲーム開始フラグ
 
     void Awake()
     {
@@ -37,8 +38,20 @@ public class TypingManager : MonoBehaviour
         _networkPlayerInput = GetComponent<NetworkPlayerInput>(); // 参照を取得
     }
 
+    void OnEnable()
+    {
+        // GameManagerのOnGameStartedイベントを購読
+        GameManager.OnGameStarted += OnGameStarted;
+    }
+
+    void OnDisable()
+    {
+        // GameManagerのOnGameStartedイベントの購読を解除
+        GameManager.OnGameStarted -= OnGameStarted;
+    }
+
     public void Initialize()
-    {   
+    {
         // パネルを非表示にしておく
         _typedText = typingPanel.GetComponentInChildren<TextMeshProUGUI>();
 
@@ -47,19 +60,19 @@ public class TypingManager : MonoBehaviour
         audioSource.playOnAwake = false;
 
         // OSを自動判定して設定
-        #if UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX
+#if UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX
             // Mac環境の場合
             _typingModel.SetOperatingSystemName(OperatingSystemName.Mac);
             Debug.Log("OS: Macに設定しました。");
-        #elif UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
-            // Windows環境の場合
-            _typingModel.SetOperatingSystemName(OperatingSystemName.Windows);
-            Debug.Log("OS: Windowsに設定しました。");
-        #else
+#elif UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
+        // Windows環境の場合
+        _typingModel.SetOperatingSystemName(OperatingSystemName.Windows);
+        Debug.Log("OS: Windowsに設定しました。");
+#else
             // その他の環境（Linuxなど）の場合、デフォルトとしてWindowsを設定
             _typingModel.SetOperatingSystemName(OperatingSystemName.Windows);
             Debug.Log("OS: その他（デフォルトでWindows）に設定しました。");
-        #endif
+#endif
     }
 
     // タイピン開始時の初期化処理
@@ -87,8 +100,8 @@ public class TypingManager : MonoBehaviour
 
     void Update()
     {
-        // パネルが非表示なら何も行わない
-        if (typingPanel == null || !typingPanel.activeSelf) return;
+        // ゲームが開始されていない、またはパネルが非表示なら何も行わない
+        if (!_gameStarted || typingPanel == null || !typingPanel.activeSelf) return;
         // シフト+移動キーでキャンセル
         if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
         {
@@ -185,8 +198,14 @@ public class TypingManager : MonoBehaviour
     {
         if (audioSource != null && clip != null)
         {
-            audioSource.PlayOneShot(clip); 
+            audioSource.PlayOneShot(clip);
 
-       }
+        }
+    }
+    
+    // GameManagerからゲーム開始を受け取るメソッド
+    private void OnGameStarted()
+    {
+        _gameStarted = true;
     }
 }

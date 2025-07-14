@@ -4,7 +4,6 @@ using UnityEngine.Tilemaps;
 using System.Collections.Generic;
 using System.Linq;
 using Mirror;
-using UnityEditor;
 
 /// <summary>
 /// ブロックの種類とその設定を管理するためのクラス
@@ -17,7 +16,6 @@ public class BlockType
     [Tooltip("このブロックの出現しやすさ。値が大きいほど優先して選ばれやすくなる。")]
     public float probabilityWeight = 1.0f;
 }
-
 /// <summary>
 /// ステージ（チャンク、ブロック、アイテム）の生成と管理を行うクラス
 /// </summary>
@@ -166,17 +164,29 @@ public class LevelManager : MonoBehaviour
             for (int y = startY; y < startY + chunkSize; y++)
             {
                 Vector3Int tilePos = new Vector3Int(x, y, 0);
+                // --- ここから修正部分 ---
+                // プレイヤーの初期スポーン位置からの相対距離を計算
+                int dx = Mathf.Abs(tilePos.x - _playerStartPosition.x);
+                int dy = Mathf.Abs(tilePos.y - _playerStartPosition.y);
 
-                // この場所がプレイヤーの初期位置の周囲1マス以内なら、何もせず次のループへ
-                if (Mathf.Abs(tilePos.x - _playerStartPosition.x) <= 1 &&
-                    Mathf.Abs(tilePos.y - _playerStartPosition.y) <= 1)
+                // プレイヤー自身のマスは常に空
+                if (tilePos == _playerStartPosition)
                 {
-                    continue;
+                    blockTilemap.SetTile(tilePos, null);
+                    itemTilemap.SetTile(tilePos, null); // アイテムも生成しない
+                    continue; // 次のマスへ
                 }
 
-                // 既存のタイルがあればスキップ
-                if (blockTilemap.HasTile(tilePos) || itemTilemap.HasTile(tilePos)) continue;
+                // プレイヤーの初期位置から1マス（3x3の範囲）以内か判定
+                // isWithinInitialPlayerAreaがtrueの場合、強制的にブロックを生成
+                bool isWithinInitialPlayerArea = (dx <= 1 && dy <= 1); // 3x3の範囲
 
+                // 既存のタイルがあればスキップ（ただし、今回は強制生成なので順序に注意）
+                // 強制生成したいのであれば、このHasTileチェックは、後回しか、不要になります。
+                // itemTilemap.HasTile(tilePos) はアイテムとブロックが重ならないようにするため、残します。
+                if (itemTilemap.HasTile(tilePos)) continue;
+
+                
                 // --- アイテム生成ロジック ---
                 if (_prng.NextDouble() < itemAreaChance)
                 {
@@ -192,30 +202,68 @@ public class LevelManager : MonoBehaviour
                     continue;
                 }
 
-                // --- ブロック生成ロジック ---
-                BlockType chosenBlock = null;
-                float maxNoiseValue = -1f;
-                for (int i = 0; i < blockTypes.Length; i++)
+                if (isWithinInitialPlayerArea)
                 {
-                    if (unchiItemData != null && blockTypes[i].tile == unchiItemData.unchiTile)
+                    // ★ プレイヤーの初期位置周辺のマスには強制的にブロックを生成 ★
+                    // ウンチブロック以外からランダムに選択
+                    BlockType selectedBlockType = GetRandomBlockTypeExcludingUnchi();
+                    if (selectedBlockType != null)
                     {
-                        continue; // ウンチお邪魔タイルは初期生成しない
+                        blockTilemap.SetTile(tilePos, selectedBlockType.tile);
+                    }
+                    itemTilemap.SetTile(tilePos, null); // 初期エリアにはアイテムを生成しない
+                }
+                else
+                {
+                    // それ以外のマスは既存のノイズ生成ロジックでブロックを生成
+                    BlockType chosenBlock = null;
+                    float maxNoiseValue = -1f;
+
+                    for (int i = 0; i < blockTypes.Length; i++)
+                    {
+                        // ウンチお邪魔タイルは通常生成しない（ゲームバランスによる）
+                        if (unchiItemData != null && blockTypes[i].tile == unchiItemData.unchiTile)
+                        {
+                            continue;
+                        }
+
+                        float noiseX = (x + noiseOffsets[i].x) * noiseScale;
+                        float noiseY = (y + noiseOffsets[i].y) * noiseScale;
+                        float currentNoise = Mathf.PerlinNoise(noiseX, noiseY) + blockTypes[i].probabilityWeight;
+
+                        if (currentNoise > maxNoiseValue)
+                        {
+                            maxNoiseValue = currentNoise;
+                            chosenBlock = blockTypes[i];
+                        }
                     }
 
-                    float noiseX = (x + noiseOffsets[i].x) * noiseScale;
-                    float noiseY = (y + noiseOffsets[i].y) * noiseScale;
-                    float currentNoise = Mathf.PerlinNoise(noiseX, noiseY) + blockTypes[i].probabilityWeight;
-                    if (currentNoise > maxNoiseValue)
+                    if (chosenBlock != null && maxNoiseValue > (blockThreshold + chosenBlock.probabilityWeight))
                     {
-                        maxNoiseValue = currentNoise;
-                        chosenBlock = blockTypes[i];
+                        blockTilemap.SetTile(tilePos, chosenBlock.tile);
+                    }
+                    else
+                    {
+                        blockTilemap.SetTile(tilePos, null); // ブロックを生成しない
+                    }
+
+                    // 通常のアイテム生成ロジック
+                    // ブロックが生成されなかったマスにのみアイテムを生成する
+                    if (blockTilemap.GetTile(tilePos) == null && _prng.NextDouble() < itemAreaChance)
+                    {
+                        if (ItemManager.Instance != null)
+                        {
+                            ItemData selectedItem = ItemManager.Instance.GetRandomItemToSpawn(_prng);
+                            if (selectedItem != null)
+                            {
+                                itemTilemap.SetTile(tilePos, selectedItem.itemTile);
+                            }
+                        }
                     }
                 }
-                if (chosenBlock != null && maxNoiseValue > (blockThreshold + chosenBlock.probabilityWeight))
-                {
-                    blockTilemap.SetTile(tilePos, chosenBlock.tile);
-                }
+
             }
+
         }
     }
 
@@ -248,7 +296,7 @@ public class LevelManager : MonoBehaviour
         {
             // 破壊対象のブロックがウンチならスキップ
             if (unchiItemData != null && blockTilemap.GetTile(pos) == unchiItemData.unchiTile) continue;
-            
+
             if (networkPlayerInput != null)
             {
                 // マルチプレイ時：クライアントにタイル削除を通知
@@ -364,5 +412,42 @@ public class LevelManager : MonoBehaviour
             }
         }
         return visited.Count;
+    }
+    
+    /// <summary>
+    /// ウンチブロック以外のランダムなブロックタイプを取得する
+    /// </summary>
+    private BlockType GetRandomBlockTypeExcludingUnchi()
+    {
+        // ウンチブロックを除外したリストを作成
+        List<BlockType> availableBlockTypes = new List<BlockType>();
+        foreach (var blockType in blockTypes)
+        {
+            if (unchiItemData == null || blockType.tile != unchiItemData.unchiTile)
+            {
+                availableBlockTypes.Add(blockType);
+            }
+        }
+
+        if (availableBlockTypes.Count == 0)
+        {
+            Debug.LogWarning("ウンチブロック以外のブロックタイプが設定されていません。");
+            return null;
+        }
+
+        // 重みに基づいてランダムに選択
+        float totalWeight = availableBlockTypes.Sum(b => b.probabilityWeight);
+        float randomValue = (float)_prng.NextDouble() * totalWeight; // System.Randomを使用
+        float currentWeight = 0;
+
+        foreach (var blockType in availableBlockTypes)
+        {
+            currentWeight += blockType.probabilityWeight;
+            if (randomValue < currentWeight)
+            {
+                return blockType;
+            }
+        }
+        return availableBlockTypes[0]; // 万が一のためのフォールバック
     }
 }
