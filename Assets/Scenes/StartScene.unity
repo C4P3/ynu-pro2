@@ -276,7 +276,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1573856558}
   m_HandleRect: {fileID: 1573856557}
   m_Direction: 2
-  m_Value: 0
+  m_Value: 1
   m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:
@@ -6125,7 +6125,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 600084138}
   m_HandleRect: {fileID: 600084137}
   m_Direction: 0
-  m_Value: 1
+  m_Value: 0
   m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:
@@ -9304,7 +9304,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   audioSource: {fileID: 1760316037}
-  menuBGM: {fileID: 8300000, guid: a05396e5e47ba764cb99139dd3f9cd08, type: 3}
+  menuBGM: {fileID: 8300000, guid: 8af84a259c5b28a419756cd20d6d2f5e, type: 3}
   taisenBGM: {fileID: 8300000, guid: 03c10d05dcf2c814bbbb3898da13a629, type: 3}
 --- !u!1 &1774276655
 GameObject:
