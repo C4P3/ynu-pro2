@@ -337,6 +337,14 @@ PrefabInstance:
       propertyPath: sceneId
       value: 1508010040
       objectReference: {fileID: 0}
+    - target: {fileID: 2778088452009075781, guid: 6e700e24619e532429cc155198fa21de, type: 3}
+      propertyPath: m_fontSize
+      value: 36
+      objectReference: {fileID: 0}
+    - target: {fileID: 2778088452009075781, guid: 6e700e24619e532429cc155198fa21de, type: 3}
+      propertyPath: m_fontSizeBase
+      value: 36
+      objectReference: {fileID: 0}
     - target: {fileID: 5662466696960242349, guid: 6e700e24619e532429cc155198fa21de, type: 3}
       propertyPath: m_Name
       value: CanvasMulti
@@ -420,6 +428,14 @@ PrefabInstance:
     - target: {fileID: 7752802797856193810, guid: 6e700e24619e532429cc155198fa21de, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8036635548624076210, guid: 6e700e24619e532429cc155198fa21de, type: 3}
+      propertyPath: m_fontSize
+      value: 36
+      objectReference: {fileID: 0}
+    - target: {fileID: 8036635548624076210, guid: 6e700e24619e532429cc155198fa21de, type: 3}
+      propertyPath: m_fontSizeBase
+      value: 36
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -956,6 +972,7 @@ MonoBehaviour:
   vcamP2: {fileID: 2052136735}
   typingPanelP1: {fileID: 200274087}
   typingPanelP2: {fileID: 200274086}
+  gameSceneBGMManagerPrefab: {fileID: 3755926942798260898, guid: a5f5458e8a350e545bfd907f8d5269a2, type: 3}
 --- !u!4 &1016113164
 Transform:
   m_ObjectHideFlags: 0

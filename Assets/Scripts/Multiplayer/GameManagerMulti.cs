@@ -55,6 +55,10 @@ public class GameManagerMulti : NetworkBehaviour
     [Tooltip("Player2のタイピングパネル")]
     public GameObject typingPanelP2;
 
+    [Header("Prefabs")]
+    [Tooltip("シーンにGameSceneBGMManagerが存在しない場合に生成するプレハブ")]
+    public GameObject gameSceneBGMManagerPrefab;
+
     private Coroutine _endGameCoroutine;
     private bool _isGamePlaying = false; // GameDataSyncの状態をローカルで保持
 
@@ -80,6 +84,12 @@ public class GameManagerMulti : NetworkBehaviour
     public override void OnStartServer()
     {
         base.OnStartServer();
+        // BGMマネージャーがシーンになければ生成する
+        if (GameSceneBGMManager.Instance == null && gameSceneBGMManagerPrefab != null)
+        {
+            GameObject bgmManager = Instantiate(gameSceneBGMManagerPrefab);
+            NetworkServer.Spawn(bgmManager);
+        }
         InitializeGame();
     }
     
@@ -117,6 +127,7 @@ public class GameManagerMulti : NetworkBehaviour
     [Server]
     private void UpdatePlayersOxygen()
     {
+        bool needsWinnerCheck = false;
         for (int i = 0; i < playerData.Count; i++)
         {
             if (playerData[i].isGameOver) continue;
@@ -132,12 +143,15 @@ public class GameManagerMulti : NetworkBehaviour
             if (data.currentOxygen <= 0)
             {
                 data.isGameOver = true;
-                playerData[i] = data; // isGameOverの変更をSyncListに反映
-                CheckForWinner();
-                return; // 勝者判定ロジックに任せる
+                needsWinnerCheck = true;
             }
             
-            playerData[i] = data; // 酸素量の変更をSyncListに反映
+            playerData[i] = data; // 酸素量とゲームオーバー状態の変更をSyncListに反映
+        }
+
+        if (needsWinnerCheck)
+        {
+            CheckForWinner();
         }
     }
 
@@ -179,6 +193,27 @@ public class GameManagerMulti : NetworkBehaviour
     {
         // サーバーとクライアントの両方でフラグを更新
         _isGamePlaying = (newState == GameState.Playing);
+
+        // BGMの制御
+        if (GameSceneBGMManager.Instance != null)
+        {
+            if (newState == GameState.Playing)
+            {
+                // gameBGMが設定されているか確認してから再生
+                if (GameSceneBGMManager.Instance.gameBGM != null)
+                {
+                    GameSceneBGMManager.Instance.PlayBGM(GameSceneBGMManager.Instance.gameBGM);
+                }
+                else
+                {
+                    Debug.LogWarning("GameSceneBGMManagerにgameBGMが設定されていません。");
+                }
+            }
+            else if (newState == GameState.PostGame)
+            {
+                GameSceneBGMManager.Instance.StopBGM();
+            }
+        }
 
         if (isServer)
         {

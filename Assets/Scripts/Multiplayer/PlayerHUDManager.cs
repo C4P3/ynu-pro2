@@ -61,9 +61,7 @@ public class PlayerHUDManager : NetworkBehaviour
     [SerializeField] private Color lowOxygenColor = Color.yellow;
     [SerializeField] private Color criticalOxygenColor = Color.red;
 
-    [Header("Self Identifier")]
-    [Tooltip("自分の情報であることを示すためにプレイヤー名に付与する接尾辞")]
-    [SerializeField] private string selfSuffix = " (あなた)";
+    
 
     private NetworkPlayerInput _localPlayerInput;
     private int _myPlayerIndex = -1;
@@ -210,12 +208,7 @@ public class PlayerHUDManager : NetworkBehaviour
     {
         if (nameLabel != null)
         {
-            string displayName = data.playerName ?? "";
-            // 自分のプレイヤーインデックスと一致する場合、接尾辞を追加
-            if (playerIndex == _myPlayerIndex)
-            {
-                displayName += selfSuffix;
-            }
+            string displayName = "P" + (playerIndex + 1);
             nameLabel.text = displayName;
         }
 
@@ -254,9 +247,18 @@ public class PlayerHUDManager : NetworkBehaviour
 
         if (resultText != null)
         {
-            if (gm.winnerIndex == _myPlayerIndex) resultText.text = "WIN!";
-            else if (gm.winnerIndex == -2) resultText.text = "DRAW";
-            else resultText.text = "LOSE...";
+            if (gm.winnerIndex == -2)
+            {
+                resultText.text = "DRAW";
+            }
+            else if (gm.winnerIndex != -1)
+            {
+                resultText.text = $"Winner P{gm.winnerIndex + 1}";
+            }
+            else
+            {
+                resultText.text = "RESULT"; // 想定外のケース
+            }
         }
 
         if (finalMatchTimeText != null)
@@ -280,12 +282,7 @@ public class PlayerHUDManager : NetworkBehaviour
 
         if (nameLabel != null)
         {
-            string displayName = data.playerName ?? "";
-            // 自分のプレイヤーインデックスと一致する場合、接尾辞を追加
-            if (playerIndex == _myPlayerIndex)
-            {
-                displayName += selfSuffix;
-            }
+            string displayName = "P" + (playerIndex + 1);
             nameLabel.text = displayName;
         }
 

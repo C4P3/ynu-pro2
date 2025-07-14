@@ -1,6 +1,7 @@
 // Multiplayer/MyNetworkManager.cs
 using Mirror;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using Utp;
 
 public class MyRelayNetworkManager : RelayNetworkManager
@@ -68,4 +69,28 @@ public class MyRelayNetworkManager : RelayNetworkManager
         }
     }
 
+    /// <summary>
+    /// サーバーからクライアントが切断されたときにサーバー側で呼び出される
+    /// </summary>
+    public override void OnServerDisconnect(NetworkConnectionToClient conn)
+    {
+        Debug.Log("A client disconnected from the server.");
+        // 他のプレイヤーに通知するなどの処理をここに追加できる
+        base.OnServerDisconnect(conn);
+    }
+
+    /// <summary>
+    /// サーバーへの接続が切断されたときにクライアント側で呼び出される
+    /// </summary>
+    public override void OnClientDisconnect()
+    {
+        base.OnClientDisconnect();
+        Debug.Log("Disconnected from server. Returning to StartScene.");
+        
+        // Time.timeScaleを元に戻す
+        Time.timeScale = 1f;
+        
+        // シンプルにStartSceneをロードするだけ
+        SceneManager.LoadScene("StartScene");
+    }
 }
