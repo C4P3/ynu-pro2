@@ -7,14 +7,16 @@ using System.Collections.Generic; // SyncListのために追加
 [System.Serializable]
 public struct PlayerData
 {
+    public string playerName; // ★ プレイヤー名を追加
     public float currentOxygen;
     public int blocksDestroyed;
     public int missTypes;
     public bool isGameOver;
     public bool isOxygenInvincible;
 
-    public PlayerData(float maxOxygen)
+    public PlayerData(float maxOxygen, string name = "Player") // ★ コンストラクタを更新
     {
+        playerName = name;
         currentOxygen = maxOxygen;
         blocksDestroyed = 0;
         missTypes = 0;
@@ -30,10 +32,6 @@ public class GameManagerMulti : NetworkBehaviour
     [Header("Game Settings")]
     public float maxOxygen = 100f;
     public float oxygenDecreaseRate = 0.5f;
-
-    // --- 同期されるゲーム状態 ---
-    // [SyncVar(hook = nameof(OnMatchStateChanged))]
-    // public MatchState currentMatchState = MatchState.WaitingForPlayers; // GameDataSyncに移行するためコメントアウト
 
     [SyncVar]
     public float matchTime;
@@ -56,6 +54,10 @@ public class GameManagerMulti : NetworkBehaviour
     public GameObject typingPanelP1;
     [Tooltip("Player2のタイピングパネル")]
     public GameObject typingPanelP2;
+
+    [Header("Prefabs")]
+    [Tooltip("シーンにGameSceneBGMManagerが存在しない場合に生成するプレハブ")]
+    public GameObject gameSceneBGMManagerPrefab;
 
     private Coroutine _endGameCoroutine;
     private bool _isGamePlaying = false; // GameDataSyncの状態をローカルで保持
@@ -82,6 +84,12 @@ public class GameManagerMulti : NetworkBehaviour
     public override void OnStartServer()
     {
         base.OnStartServer();
+        // BGMマネージャーがシーンになければ生成する
+        if (GameSceneBGMManager.Instance == null && gameSceneBGMManagerPrefab != null)
+        {
+            GameObject bgmManager = Instantiate(gameSceneBGMManagerPrefab);
+            NetworkServer.Spawn(bgmManager);
+        }
         InitializeGame();
     }
     
@@ -102,8 +110,9 @@ public class GameManagerMulti : NetworkBehaviour
     private void InitializeGame()
     {
         playerData.Clear();
-        playerData.Add(new PlayerData(maxOxygen));
-        playerData.Add(new PlayerData(maxOxygen));
+        // ★ 初期プレイヤー名を指定して追加
+        playerData.Add(new PlayerData(maxOxygen, "Player 1"));
+        playerData.Add(new PlayerData(maxOxygen, "Player 2"));
         matchTime = 0f;
         winnerIndex = -1;
         _isGamePlaying = false; // 初期状態ではプレイ中ではない
@@ -118,6 +127,7 @@ public class GameManagerMulti : NetworkBehaviour
     [Server]
     private void UpdatePlayersOxygen()
     {
+        bool needsWinnerCheck = false;
         for (int i = 0; i < playerData.Count; i++)
         {
             if (playerData[i].isGameOver) continue;
@@ -133,12 +143,15 @@ public class GameManagerMulti : NetworkBehaviour
             if (data.currentOxygen <= 0)
             {
                 data.isGameOver = true;
-                playerData[i] = data; // isGameOverの変更をSyncListに反映
-                CheckForWinner();
-                return; // 勝者判定ロジックに任せる
+                needsWinnerCheck = true;
             }
             
-            playerData[i] = data; // 酸素量の変更をSyncListに反映
+            playerData[i] = data; // 酸素量とゲームオーバー状態の変更をSyncListに反映
+        }
+
+        if (needsWinnerCheck)
+        {
+            CheckForWinner();
         }
     }
 
@@ -175,11 +188,32 @@ public class GameManagerMulti : NetworkBehaviour
 
     #region Client-side Hooks
 
-    // GameDataSyncからのグロ���バルなゲームステート変更をハンドル
+    // GameDataSyncからのグローバルなゲームステート変更をハンドル
     private void HandleGameSystemStateChanged(GameState newState)
     {
         // サーバーとクライアントの両方でフラグを更新
         _isGamePlaying = (newState == GameState.Playing);
+
+        // BGMの制御
+        if (GameSceneBGMManager.Instance != null)
+        {
+            if (newState == GameState.Playing)
+            {
+                // gameBGMが設定されているか確認してから再生
+                if (GameSceneBGMManager.Instance.gameBGM != null)
+                {
+                    GameSceneBGMManager.Instance.PlayBGM(GameSceneBGMManager.Instance.gameBGM);
+                }
+                else
+                {
+                    Debug.LogWarning("GameSceneBGMManagerにgameBGMが設定されていません。");
+                }
+            }
+            else if (newState == GameState.PostGame)
+            {
+                GameSceneBGMManager.Instance.StopBGM();
+            }
+        }
 
         if (isServer)
         {
@@ -194,6 +228,19 @@ public class GameManagerMulti : NetworkBehaviour
     #endregion
 
     #region Public Server Methods (called via Commands from player)
+
+    // ★ プレイヤー名を設定するサーバーメソッド
+    [Server]
+    public void ServerSetPlayerName(int playerIndex, string name)
+    {
+        int index = playerIndex - 1;
+        if (index < 0 || index >= playerData.Count) return;
+
+        PlayerData data = playerData[index];
+        data.playerName = name;
+        playerData[index] = data;
+        Debug.Log($"Player {playerIndex}'s name set to {name}");
+    }
 
     [Server]
     public void ServerRecoverOxygen(int playerIndex, float amount)
