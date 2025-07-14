@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   itemName: UnchiItem
   effectType: 4
-  itemTile: {fileID: 11400000, guid: dd3dffa1ff0e43a469001cde90de6c63, type: 2}
+  itemTile: {fileID: 11400000, guid: 424f31f5c9ec822488e3d720c009477d, type: 2}
   acquisitionEffectPrefab: {fileID: 0}
   followEffectPrefab: {fileID: 2022857801286226451, guid: 4090e78128eddeb4ba8f8cd9d80e56a4, type: 3}
   followEffectDuration: 1.5
