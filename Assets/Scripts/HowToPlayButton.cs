@@ -10,6 +10,7 @@ public class HowtoPlayButton : IButton
     public override void OnPointerClick()
     {
         base.OnPointerClick();
+        SceneManager.LoadScene("TutorialScene");
     }
     public override void OnPointerEnter()
     {
