@@ -4,6 +4,7 @@ using UnityEngine.Tilemaps;
 using System.Collections.Generic;
 using System.Linq;
 using Mirror;
+using UnityEditor;
 
 /// <summary>
 /// ブロックの種類とその設定を管理するためのクラス
@@ -186,7 +187,7 @@ public class LevelManager : MonoBehaviour
                 // itemTilemap.HasTile(tilePos) はアイテムとブロックが重ならないようにするため、残します。
                 if (itemTilemap.HasTile(tilePos)) continue;
 
-                
+
                 // --- アイテム生成ロジック ---
                 if (_prng.NextDouble() < itemAreaChance)
                 {
