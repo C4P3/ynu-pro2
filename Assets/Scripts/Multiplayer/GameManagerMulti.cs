@@ -7,14 +7,16 @@ using System.Collections.Generic; // SyncListのために追加
 [System.Serializable]
 public struct PlayerData
 {
+    public string playerName; // ★ プレイヤー名を追加
     public float currentOxygen;
     public int blocksDestroyed;
     public int missTypes;
     public bool isGameOver;
     public bool isOxygenInvincible;
 
-    public PlayerData(float maxOxygen)
+    public PlayerData(float maxOxygen, string name = "Player") // ★ コンストラクタを更新
     {
+        playerName = name;
         currentOxygen = maxOxygen;
         blocksDestroyed = 0;
         missTypes = 0;
@@ -31,10 +33,6 @@ public class GameManagerMulti : NetworkBehaviour
     public float maxOxygen = 100f;
     public float oxygenDecreaseRate = 0.5f;
 
-    // --- 同期されるゲーム状態 ---
-    // [SyncVar(hook = nameof(OnMatchStateChanged))]
-    // public MatchState currentMatchState = MatchState.WaitingForPlayers; // GameDataSyncに移行するためコメントアウト
-
     [SyncVar]
     public float matchTime;
 
@@ -42,6 +40,24 @@ public class GameManagerMulti : NetworkBehaviour
     public int winnerIndex = -1; // -1:未定, 0:P1, 1:P2, -2:引き分け
 
     public readonly SyncList<PlayerData> playerData = new SyncList<PlayerData>();
+
+    [Header("Scene References")]
+    [Tooltip("Player1のLevelManager")]
+    public LevelManager levelManagerP1;
+    [Tooltip("Player2のLevelManager")]
+    public LevelManager levelManagerP2;
+    [Tooltip("Player1の仮想カメラ")]
+    public Unity.Cinemachine.CinemachineCamera vcamP1;
+    [Tooltip("Player2の仮想カメラ")]
+    public Unity.Cinemachine.CinemachineCamera vcamP2;
+    [Tooltip("Player1のタイピングパネル")]
+    public GameObject typingPanelP1;
+    [Tooltip("Player2のタイピングパネル")]
+    public GameObject typingPanelP2;
+
+    [Header("Prefabs")]
+    [Tooltip("シーンにGameSceneBGMManagerが存在しない場合に生成するプレハブ")]
+    public GameObject gameSceneBGMManagerPrefab;
 
     private Coroutine _endGameCoroutine;
     private bool _isGamePlaying = false; // GameDataSyncの状態をローカルで保持
@@ -68,6 +84,12 @@ public class GameManagerMulti : NetworkBehaviour
     public override void OnStartServer()
     {
         base.OnStartServer();
+        // BGMマネージャーがシーンになければ生成する
+        if (GameSceneBGMManager.Instance == null && gameSceneBGMManagerPrefab != null)
+        {
+            GameObject bgmManager = Instantiate(gameSceneBGMManagerPrefab);
+            NetworkServer.Spawn(bgmManager);
+        }
         InitializeGame();
     }
     
@@ -88,8 +110,9 @@ public class GameManagerMulti : NetworkBehaviour
     private void InitializeGame()
     {
         playerData.Clear();
-        playerData.Add(new PlayerData(maxOxygen));
-        playerData.Add(new PlayerData(maxOxygen));
+        // ★ 初期プレイヤー名を指定して追加
+        playerData.Add(new PlayerData(maxOxygen, "Player 1"));
+        playerData.Add(new PlayerData(maxOxygen, "Player 2"));
         matchTime = 0f;
         winnerIndex = -1;
         _isGamePlaying = false; // 初期状態ではプレイ中ではない
@@ -104,6 +127,7 @@ public class GameManagerMulti : NetworkBehaviour
     [Server]
     private void UpdatePlayersOxygen()
     {
+        bool needsWinnerCheck = false;
         for (int i = 0; i < playerData.Count; i++)
         {
             if (playerData[i].isGameOver) continue;
@@ -119,12 +143,15 @@ public class GameManagerMulti : NetworkBehaviour
             if (data.currentOxygen <= 0)
             {
                 data.isGameOver = true;
-                playerData[i] = data; // isGameOverの変更をSyncListに反映
-                CheckForWinner();
-                return; // 勝者判定ロジックに任せる
+                needsWinnerCheck = true;
             }
             
-            playerData[i] = data; // 酸素量の変更をSyncListに反映
+            playerData[i] = data; // 酸素量とゲームオーバー状態の変更をSyncListに反映
+        }
+
+        if (needsWinnerCheck)
+        {
+            CheckForWinner();
         }
     }
 
@@ -167,6 +194,27 @@ public class GameManagerMulti : NetworkBehaviour
         // サーバーとクライアントの両方でフラグを更新
         _isGamePlaying = (newState == GameState.Playing);
 
+        // BGMの制御
+        if (GameSceneBGMManager.Instance != null)
+        {
+            if (newState == GameState.Playing)
+            {
+                // gameBGMが設定されているか確認してから再生
+                if (GameSceneBGMManager.Instance.gameBGM != null)
+                {
+                    GameSceneBGMManager.Instance.PlayBGM(GameSceneBGMManager.Instance.gameBGM);
+                }
+                else
+                {
+                    Debug.LogWarning("GameSceneBGMManagerにgameBGMが設定されていません。");
+                }
+            }
+            else if (newState == GameState.PostGame)
+            {
+                GameSceneBGMManager.Instance.StopBGM();
+            }
+        }
+
         if (isServer)
         {
             Debug.Log($"Server detected GameState change to {newState}. _isGamePlaying is now {_isGamePlaying}");
@@ -180,6 +228,19 @@ public class GameManagerMulti : NetworkBehaviour
     #endregion
 
     #region Public Server Methods (called via Commands from player)
+
+    // ★ プレイヤー名を設定するサーバーメソッド
+    [Server]
+    public void ServerSetPlayerName(int playerIndex, string name)
+    {
+        int index = playerIndex - 1;
+        if (index < 0 || index >= playerData.Count) return;
+
+        PlayerData data = playerData[index];
+        data.playerName = name;
+        playerData[index] = data;
+        Debug.Log($"Player {playerIndex}'s name set to {name}");
+    }
 
     [Server]
     public void ServerRecoverOxygen(int playerIndex, float amount)
@@ -221,6 +282,43 @@ public class GameManagerMulti : NetworkBehaviour
     }
 
     [Server]
+    public void ServerApplyPoisonToOpponent(int attackerPlayerIndex, float amount)
+    {
+        NetworkPlayerInput opponentNPI = GetOpponentNPI(attackerPlayerIndex);
+        if (opponentNPI == null) return;
+
+        int targetIndex = opponentNPI.playerIndex - 1;
+        if (targetIndex < 0 || targetIndex >= playerData.Count || playerData[targetIndex].isGameOver) return;
+
+        PlayerData data = playerData[targetIndex];
+        data.currentOxygen = Mathf.Max(0, data.currentOxygen - Mathf.Abs(amount));
+        playerData[targetIndex] = data;
+
+        // 相手のクライアントで毒エフェクトを再生
+        opponentNPI.RpcPlayDebuffEffect(ItemEffectType.Poison);
+    }
+
+    [Server]
+    public void ServerStunOpponent(int attackerPlayerIndex, float duration)
+    {
+        NetworkPlayerInput opponentNPI = GetOpponentNPI(attackerPlayerIndex);
+        if (opponentNPI == null) return;
+
+        // 相手をスタンさせ、クライアントでエフェクトを再生
+        opponentNPI.RpcStunPlayer(duration);
+        opponentNPI.RpcPlayDebuffEffect(ItemEffectType.Thunder);
+    }
+
+    [Server]
+    public void ServerPlaceUnchiOnOpponent(int attackerPlayerIndex)
+    {
+        NetworkPlayerInput opponentNPI = GetOpponentNPI(attackerPlayerIndex);
+        if (opponentNPI == null) return;
+
+        opponentNPI.RpcPlaceUnchiTile();
+    }
+
+    [Server]
     private IEnumerator TemporaryOxygenInvincibilityCoroutine(int playerIndex, float duration)
     {
         int index = playerIndex - 1;
@@ -239,6 +337,26 @@ public class GameManagerMulti : NetworkBehaviour
             data.isOxygenInvincible = false;
             playerData[index] = data;
         }
+    }
+
+    #endregion
+
+    #region Helper Methods
+
+    [Server]
+    private NetworkPlayerInput GetOpponentNPI(int attackerPlayerIndex)
+    {
+        int targetPlayerIndex = (attackerPlayerIndex == 1) ? 2 : 1;
+
+        foreach (var conn in NetworkServer.connections.Values)
+        {
+            NetworkPlayerInput npi = conn.identity.GetComponent<NetworkPlayerInput>();
+            if (npi != null && npi.playerIndex == targetPlayerIndex)
+            {
+                return npi;
+            }
+        }
+        return null;
     }
 
     #endregion

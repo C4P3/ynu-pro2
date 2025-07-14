@@ -37,14 +37,12 @@ namespace Models
                             case 'ぃ':
                             {
                                 roman.Add('w');
-                                roman.Add('h');
                                 roman.Add('i');
                                 break;
                             }
                             case 'ぇ':
                             {
                                 roman.Add('w');
-                                roman.Add('h');
                                 roman.Add('e');
                                 break;
                             }
@@ -87,7 +85,7 @@ namespace Models
                             {
                                 roman.Add('k');
                                 roman.Add('y');
-                                roman.Add('o');
+                                roman.Add('a');
                                 break;
                             }
                             case 'ゅ':
@@ -1161,7 +1159,14 @@ namespace Models
                             }
                             case 'は' or 'ひ' or 'ふ' or 'へ' or 'ほ':
                             {
-                                roman.Add('h');
+                                if (nextHiragana is 'ふ')
+                                {
+                                    roman.Add('f');
+                                }
+                                else
+                                {
+                                    roman.Add('h');
+                                }
                                 break;
                             }
                             case 'ま' or 'み' or 'む' or 'め' or 'も':

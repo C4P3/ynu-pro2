@@ -3,6 +3,9 @@ using UnityEngine.UI;
 using TMPro;
 using System;
 using System.Collections;
+using System.Collections.Generic;
+using PlayFab;
+using PlayFab.ClientModels;
 
 public class GameManager : MonoBehaviour
 {
@@ -13,18 +16,27 @@ public class GameManager : MonoBehaviour
     /// 引数: (現在の酸素量, 最大酸素量)
     /// </summary>
     public static event Action<float, float> OnOxygenChanged;
+    
+    [Header("PlayFab")]
+    private const string LeaderboardName = "SinglePlayerScore"; // PlayFabでのリーダーボード名
+    public int PlayerRank { get; private set; }
+    public int PlayerBestScore { get; private set; }
+
+    [Header("GameUI")]
+    public GameObject UIPanel;
 
     [Header("Oxygen")]
     public float maxOxygen = 100f;              // 最大酸素量
     public float oxygenDecreaseRate = 0.5f;       // 1秒あたりに減る酸素量
     public Slider oxygenSlider;                 // 酸素ゲージUI
     public TextMeshProUGUI oxygenText;
+    public RectTransform fillRectTransform; // 【追加】InspectorでFillオブジェクトのRectTransformをアタッチ
 
     [Header("Oxygen Bar Colors")]
     public Color fullOxygenColor = Color.green;     // 満タン時の色 (黄緑)
     public Color lowOxygenColor = Color.yellow;     // 30%以下になった時の色
     public Color criticalOxygenColor = Color.red;   // 10%以下になった時の色
-    private Image fillImage;                        // ゲージの色を変更するためのImageコンポーネント
+    public Image fillImage;                        // ゲージの色を変更するためのImageコンポーネント
 
     [Header("UI References")]
     public TextMeshProUGUI survivalTimeDisplay;    // 生存時間をリアルタイムで表示するTextMeshProUGUI
@@ -49,9 +61,12 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI finalSurvivalTimeText;
     public TextMeshProUGUI finalBlocksDestroyedText;
     public TextMeshProUGUI finalMissTypesText;
+    public TextMeshProUGUI bestScoreText; // 自己ベストスコア表示用
+    public TextMeshProUGUI rankText;      // 順位表示用
 
     // ゲーム開始時にカウントダウンを表示するためのパネル
     [Header("Countdown UI")]
+    public GameObject countdownPanel;
     public TextMeshProUGUI countdownText; // ← カウントダウン用テキスト
 
     void Awake()
@@ -137,10 +152,11 @@ public class GameManager : MonoBehaviour
     {
         string[] countdownWords = { "3", "2", "1", "START" };
 
-        if (countdownText != null)
+        if (countdownPanel != null)
         {
-            countdownText.gameObject.SetActive(true);
+            countdownPanel.SetActive(true);
         }
+
         for (int i = 0; i < countdownWords.Length; i++)
         {
             if (countdownText != null)
@@ -152,8 +168,10 @@ public class GameManager : MonoBehaviour
             yield return new WaitForSecondsRealtime(1f);
         }
 
-        if (countdownText != null)
-            countdownText.gameObject.SetActive(false);
+        if (countdownPanel != null)
+        {
+            countdownPanel.SetActive(false);
+        }
 
         Time.timeScale = 1f; // ゲームスタート！
     }
@@ -180,6 +198,17 @@ public class GameManager : MonoBehaviour
         Time.timeScale = 0f; // ゲームを一時停止
         GameSceneBGMManager.Instance.StopBGM(); // BGMを停止
         SoundManager.Instance.PlaySound(SoundManager.Instance.gameoversound); // ゲームオーバー音を再生
+        
+        // ゲームオーバー時に不要なUI��非表示にする
+        if (UIPanel != null)
+        {
+            UIPanel.SetActive(false);
+        }
+        if (countdownPanel != null)
+        {
+            countdownPanel.SetActive(false);
+        }
+
         Debug.Log("Game Over!");
         Debug.Log($"Final Survival Time: {_survivalTime} seconds");
         Debug.Log($"Blocks Destroyed: {_blocksDestroyed}");
@@ -228,8 +257,81 @@ public class GameManager : MonoBehaviour
 
             if (finalMissTypesText != null)
                 finalMissTypesText.text = $"ミスタイプ数: {_missTypes}";
+            
+            // PlayFabにスコアを送信
+            SubmitScoreToPlayFab(score);
         }
     }
+
+    // PlayFabにスコアを送信し、順位とベストスコアを取得する
+    private void SubmitScoreToPlayFab(int score)
+    {
+        // ローディング表示などをここに入れると親切
+        if (bestScoreText) bestScoreText.text = "自己ベスト: ---";
+        if (rankText) rankText.text = "順位: ---";
+
+        var request = new UpdatePlayerStatisticsRequest
+        {
+            Statistics = new List<StatisticUpdate>
+            {
+                new StatisticUpdate
+                {
+                    StatisticName = LeaderboardName,
+                    Value = score
+                }
+            }
+        };
+
+        PlayFabClientAPI.UpdatePlayerStatistics(request, OnUpdateStatisticsSuccess, OnError);
+    }
+
+    private void OnUpdateStatisticsSuccess(UpdatePlayerStatisticsResult result)
+    {
+        Debug.Log("Successfully submitted score to PlayFab.");
+        // スコア送信に成功したら、リーダーボードから自分の順位を取得
+        FetchPlayerLeaderboardRank();
+    }
+
+    private void FetchPlayerLeaderboardRank()
+    {
+        var request = new GetLeaderboardAroundPlayerRequest
+        {
+            StatisticName = LeaderboardName,
+            MaxResultsCount = 1 // 自分のデータだけ取得
+        };
+
+        PlayFabClientAPI.GetLeaderboardAroundPlayer(request, OnGetLeaderboardAroundPlayerSuccess, OnError);
+    }
+
+    private void OnGetLeaderboardAroundPlayerSuccess(GetLeaderboardAroundPlayerResult result)
+    {
+        if (result.Leaderboard.Count > 0)
+        {
+            var playerEntry = result.Leaderboard[0];
+            PlayerRank = playerEntry.Position + 1; // Positionは0ベースなので+1する
+            PlayerBestScore = playerEntry.StatValue;
+
+            Debug.Log($"Player Rank: {PlayerRank}, Best Score: {PlayerBestScore}");
+
+            // UIを更新
+            if (bestScoreText) bestScoreText.text = $"自己ベスト: {PlayerBestScore}";
+            if (rankText) rankText.text = $"順位: {PlayerRank}位";
+        }
+        else
+        {
+            Debug.LogWarning("Could not find player on the leaderboard.");
+            if (bestScoreText) bestScoreText.text = "自己ベスト: N/A";
+            if (rankText) rankText.text = "順位: N/A";
+        }
+    }
+
+    private void OnError(PlayFabError error)
+    {
+        Debug.LogError("PlayFab API call failed: " + error.GenerateErrorReport());
+        if (bestScoreText) bestScoreText.text = "自己ベスト: 取得失敗";
+        if (rankText) rankText.text = "順位: 取得失敗";
+    }
+
 
     // 酸素を回復する（アイテム取得時に呼ばれる）
     public void RecoverOxygen(float amount)
@@ -254,11 +356,22 @@ public class GameManager : MonoBehaviour
             oxygenText.text = $"酸素: {Mathf.CeilToInt(_currentOxygen)}";
         }
 
+        float oxygenPercentage = _currentOxygen / maxOxygen;
+
+        // 【追加】fillRectTransformが設定されていれば、PosXを動かす処理を行う
+        if (fillRectTransform != null)
+        {
+            // Lerpを使って割合をPosXの範囲(0 ~ -840)に変換
+            // oxygenPercentageが1のとき0、0のとき-840になる
+            float newPosX = Mathf.Lerp(-840f, 0f, oxygenPercentage);
+
+            // RectTransformのX座標を更新（Y座標は元の値を維持）
+            fillRectTransform.anchoredPosition = new Vector2(newPosX, fillRectTransform.anchoredPosition.y);
+        }
+
         // 酸素残量に応じて色を変化
         if (fillImage != null)
         {
-            float oxygenPercentage = _currentOxygen / maxOxygen;
-
             if (oxygenPercentage <= 0.10f) // 10%以下
             {
                 fillImage.color = criticalOxygenColor;

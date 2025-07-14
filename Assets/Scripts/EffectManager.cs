@@ -25,8 +25,9 @@ public class EffectManager : MonoBehaviour
     /// <summary>
     /// アイテムデータとグリッド座標から、アイテム取得エフェクトを再生する
     /// </summary>
-    /// <param name="referenceTilemap">座標変換の基準となるタイルマップ</param>  // ★★★ 引数を追加 ★★★
-    public void PlayItemAcquisitionEffect(ItemData itemData, Vector3Int gridPosition, Tilemap referenceTilemap)
+    /// <param name="referenceTilemap">座標変換の基準となるタイルマップ</param>
+    /// <param name="targetPlayer">エフェクトを表示する対象プレイヤー</param>
+    public void PlayItemAcquisitionEffect(ItemData itemData, Vector3Int gridPosition, Tilemap referenceTilemap, GameObject targetPlayer)
     {
         if (itemData == null || itemData.acquisitionEffectPrefab == null) return;
 
@@ -39,7 +40,8 @@ public class EffectManager : MonoBehaviour
         }
 
         Vector3 worldPosition = referenceTilemap.GetCellCenterWorld(gridPosition);
-        PlayEffect(itemData.acquisitionEffectPrefab, worldPosition);
+        GameObject effectInstance = PlayEffect(itemData.acquisitionEffectPrefab, worldPosition);
+        SetEffectLayer(effectInstance, targetPlayer);
     }
 
     /// <summary>
@@ -47,12 +49,12 @@ public class EffectManager : MonoBehaviour
     /// </summary>
     /// <param name="effectPrefab">再生するエフェクトのGameObjectプレハブ</param>
     /// <param name="position">エフェクトを再生するワールド座標</param>
-    public void PlayEffect(GameObject effectPrefab, Vector3 position)
+    public GameObject PlayEffect(GameObject effectPrefab, Vector3 position)
     {
         if (effectPrefab == null)
         {
             Debug.LogWarning("PlayEffect was called with a null prefab.");
-            return;
+            return null;
         }
 
         // 生成したエフェクトのインスタンスを保持する
@@ -75,13 +77,15 @@ public class EffectManager : MonoBehaviour
             Destroy(effectInstance, 5f);
             Debug.LogWarning($"The effect '{effectInstance.name}' does not have a ParticleSystem component. It will be destroyed in 5 seconds.");
         }
+        return effectInstance;
     }
 
     /// <summary>
     /// 指定された対象に追従するエフェクトを一定時間再生します。
     /// </summary>
-    /// <param name="followTarget">エフェクトが追従する対象</param> // ★★★ 引数を追加 ★★★
-    public void PlayFollowEffect(GameObject effectPrefab, float duration, Transform followTarget)
+    /// <param name="followTarget">エフェクトが追従する対象</param>
+    /// <param name="targetPlayer">エフェクトを表示する対象プレイヤー</param>
+    public void PlayFollowEffect(GameObject effectPrefab, float duration, Transform followTarget, GameObject targetPlayer)
     {
         if (effectPrefab == null) return;
         
@@ -92,7 +96,7 @@ public class EffectManager : MonoBehaviour
             return;
         }
 
-        StartCoroutine(FollowAndDestroyCoroutine(effectPrefab, duration, followTarget));
+        StartCoroutine(FollowAndDestroyCoroutine(effectPrefab, duration, followTarget, targetPlayer));
     }
 
     /// <summary>
@@ -101,7 +105,8 @@ public class EffectManager : MonoBehaviour
     /// <param name="effectPrefab">再生するエフェクトのプレハブ</param>
     /// <param name="position">再生するワールド座標</param>
     /// <param name="direction">エフェクトの向きを示すVector3Int (例: Vector3Int.right)</param>
-    public void PlayDirectionalEffect(GameObject effectPrefab, Vector3 position, Vector3Int direction)
+    /// <param name="targetPlayer">エフェクトを表示する対象プレイヤー</param>
+    public void PlayDirectionalEffect(GameObject effectPrefab, Vector3 position, Vector3Int direction, GameObject targetPlayer)
     {
         if (effectPrefab == null)
         {
@@ -115,6 +120,7 @@ public class EffectManager : MonoBehaviour
 
         // エフェクトを生成し、計算した回転を適用します。
         GameObject effectInstance = Instantiate(effectPrefab, position, rotation);
+        SetEffectLayer(effectInstance, targetPlayer);
 
         // GetComponent を GetComponentInChildren に変更します。
         // これにより、プレハブのルートだけでなく、その子オブジェクトも検索して
@@ -135,13 +141,29 @@ public class EffectManager : MonoBehaviour
     /// <summary>
     /// エフェクトを追従させ、指定時間後に破棄するコルーチン
     /// </summary>
-    private IEnumerator FollowAndDestroyCoroutine(GameObject effectPrefab, float duration, Transform followTarget)
+    private IEnumerator FollowAndDestroyCoroutine(GameObject effectPrefab, float duration, Transform followTarget, GameObject targetPlayer)
     {
         GameObject effectInstance = Instantiate(effectPrefab, followTarget.position, Quaternion.identity, followTarget);
+        SetEffectLayer(effectInstance, targetPlayer);
         yield return new WaitForSeconds(duration);
         if (effectInstance != null)
         {
             Destroy(effectInstance);
+        }
+    }
+
+    /// <summary>
+    /// エフェクトのレイヤーをターゲットプレイヤーに合わせる
+    /// </summary>
+    private void SetEffectLayer(GameObject effectInstance, GameObject targetPlayer)
+    {
+        if (targetPlayer == null) return;
+        
+        int layer = targetPlayer.layer;
+        effectInstance.layer = layer;
+        foreach (Transform child in effectInstance.transform)
+        {
+            child.gameObject.layer = layer;
         }
     }
 }

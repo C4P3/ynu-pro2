@@ -4,7 +4,7 @@ using UnityEngine;
 public class StarItemData : ItemData
 {
     [Tooltip("無敵時間（秒）")]
-    public float invincibleDuration = 5f;
+    public float invincibleDuration = 10f;
 
     private void OnValidate()
     {

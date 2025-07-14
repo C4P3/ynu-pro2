@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Tilemaps;
 using Mirror;
 using TMPro;
 
@@ -29,18 +30,17 @@ public class NetworkPlayerInput : NetworkBehaviour
 
     void Start()
     {
-        // --- LevelManagerの検索 ---
-        LevelManager levelManager = null;
-        GameObject gridObject = GameObject.Find((playerIndex == 1) ? "Grid_P1" : "Grid_P2");
-        if (gridObject != null)
+        // GameManagerMultiから参照を取得
+        GameManagerMulti gm = GameManagerMulti.Instance;
+        if (gm == null)
         {
-            levelManager = gridObject.GetComponent<LevelManager>();
-        }
-        else
-        {
-            Debug.LogError($"Could not find Grid GameObject for Player {playerIndex}!", gameObject);
+            Debug.LogError("GameManagerMulti instance not found!");
+            return;
         }
 
+        // --- LevelManagerの取得 ---
+        LevelManager levelManager = (playerIndex == 1) ? gm.levelManagerP1 : gm.levelManagerP2;
+        
         // --- 参照の受け渡し ---
         if (levelManager != null)
         {
@@ -55,18 +55,18 @@ public class NetworkPlayerInput : NetworkBehaviour
         }
         else
         {
-            Debug.LogError($"Player {playerIndex} のLevelManagerが見つかりません！");
+            Debug.LogError($"Player {playerIndex} のLevelManagerが見つかりません！ GameManagerMultiのインスペクターで設定されているか確認してください。");
         }
 
         // --- TypingPanelの設定 ---
-        GameObject typingPanelObject = PlayerHUDManager.Instance.GetTypingPanel((playerIndex == 1) ? "TypingPanel_P1" : "TypingPanel_P2");
+        GameObject typingPanelObject = (playerIndex == 1) ? gm.typingPanelP1 : gm.typingPanelP2;
         if (typingPanelObject != null)
         {
             _typingManager.typingPanel = typingPanelObject;
         }
         else
         {
-            Debug.LogError($"Player {playerIndex} のTypingPanelが見つかりません！");
+            Debug.LogError($"Player {playerIndex} のTypingPanelが見つかりません！ GameManagerMultiのインスペクターで設定されているか確認してください。");
         }
         _typingManager.Initialize();
 
@@ -77,13 +77,15 @@ public class NetworkPlayerInput : NetworkBehaviour
         {
             case 1:
                 SetLayerRecursively(gameObject, LayerMask.NameToLayer("Player1"));
-                var vcam1 = GameObject.Find("VCam1")?.GetComponent<Unity.Cinemachine.CinemachineCamera>();
+                var vcam1 = gm.vcamP1;
                 if (vcam1 != null) vcam1.Follow = transform;
+                else Debug.LogError("VCam1がGameManagerMultiに設定されていません。");
                 break;
             case 2:
                 SetLayerRecursively(gameObject, LayerMask.NameToLayer("Player2"));
-                var vcam2 = GameObject.Find("VCam2")?.GetComponent<Unity.Cinemachine.CinemachineCamera>();
+                var vcam2 = gm.vcamP2;
                 if (vcam2 != null) vcam2.Follow = transform;
+                else Debug.LogError("VCam2がGameManagerMultiに設定されていません。");
                 break;
         }
     }
@@ -102,33 +104,55 @@ public class NetworkPlayerInput : NetworkBehaviour
         }
     }
 
-    // ★★★ ここから追加 ★★★
-    public override void OnStartServer()
-    {
-    }
-    // ★★★ ここまで追加 ★★★
-
-
     public override void OnStartLocalPlayer()
     {
-        // ★★★ ローカルプレイヤーのTypingManagerだけを有効にする ★★★
         _typingManager.enabled = true;
+
+        // ★ プレイヤー名が取得できていればサーバーに送信
+        if (!string.IsNullOrEmpty(PlayFabAuthManager.MyDisplayName))
+        {
+            CmdSetPlayerName(PlayFabAuthManager.MyDisplayName);
+        }
+        else
+        {
+            // 念のため、取得できていない場合は少し待ってから再試行
+            Invoke(nameof(RetrySetPlayerName), 1.0f);
+        }
+
+        CmdPlayerReady();
+    }
+
+    private void RetrySetPlayerName()
+    {
+        if (!string.IsNullOrEmpty(PlayFabAuthManager.MyDisplayName))
+        {
+            CmdSetPlayerName(PlayFabAuthManager.MyDisplayName);
+        }
+        else
+        {
+            Debug.LogWarning("プレイヤー名の取得に失敗したため、デフォルト名を使用します。");
+            CmdSetPlayerName("Player " + playerIndex);
+        }
+    }
+
+    [Command]
+    void CmdPlayerReady()
+    {
+        if (GameDataSync.Instance == null)
+        {
+            Debug.LogError("[CmdPlayerReady] GameDataSync.Instance is null on the server. Spawner pattern failed.");
+            return;
+        }
+        Debug.Log($"Player {playerIndex} is ready.");
+        GameDataSync.Instance.PlayerReady();
     }
 
     void Update()
     {
-        // ★★★ ゲームがプレイ中でなければ入力を受け付けない ★★★
+        if (GameDataSync.Instance == null) return;
         if (GameDataSync.Instance.currentState != GameState.Playing) return;
-
         if (!isLocalPlayer) return;
 
-        // Roaming状態のときだけ入力を受け付ける
-        // （PlayerControllerの内部状態を直接参照するのは設計上あまり良くないが、
-        //  不要なコマンド送信を防ぐための最適化として許容範囲）
-        // if (_playerController.CurrentState != PlayerState.Roaming) return;
-
-
-        // Shiftキーが押されているとき、WASD入力を検知する
         if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
         {
             Vector3Int moveVec = Vector3Int.zero;
@@ -139,8 +163,6 @@ public class NetworkPlayerInput : NetworkBehaviour
 
             if (moveVec != Vector3Int.zero)
             {
-                // ★★★ ここが重要 ★★★
-                // 入力を検知したら、サーバーにコマンドを送信する
                 CmdSendMoveInput(moveVec);
             }
         }
@@ -148,22 +170,28 @@ public class NetworkPlayerInput : NetworkBehaviour
 
     // --- サーバーへのコマンド送信 ---
 
-    /// <summary>
-    /// [Command]属性: ローカルプレイヤーからサーバーへメッセージを送信する
-    /// 移動入力をサーバーに伝える
-    /// </summary>
+    [Command]
+    private void CmdSetPlayerName(string name)
+    {
+        if (GameManagerMulti.Instance != null)
+        {
+            GameManagerMulti.Instance.ServerSetPlayerName(playerIndex, name);
+        }
+    }
+
     [Command]
     private void CmdSendMoveInput(Vector3Int moveVec)
     {
-        // サーバー側で受け取ったコマンドを、全てのクライアントに伝える
         RpcReceiveMoveInput(moveVec);
     }
 
     [Command]
     public void CmdDestroyBlock(Vector3Int gridPos)
     {
-        // サーバーが受け取ったら、全クライアントに破壊を命令するRPCを呼び出す
-        RpcDestroyBlock(gridPos);
+        if (_playerController != null && _playerController.levelManager != null)
+        {
+            _playerController.levelManager.DestroyConnectedBlocks(gridPos, this);
+        }
     }
 
     [Command]
@@ -204,25 +232,88 @@ public class NetworkPlayerInput : NetworkBehaviour
 
     // --- 全クライアントへのRPC ---
 
-    /// <summary>
-    /// [ClientRpc]属性: サーバーから全てのクライアントへメッセージを送信する
-    /// 全てのクライアントでPlayerControllerの移動処理を呼び出す
-    /// </summary>
     [ClientRpc]
     private void RpcReceiveMoveInput(Vector3Int moveVec)
     {
-        // 全てのクライアント（自分自身も含む）で、PlayerControllerのメソッドを呼び出す
         _playerController.OnMoveInput(moveVec);
     }
-    // ★★★ ブロック破壊用のClientRpcを追加 ★★★
-    [ClientRpc]
-    private void RpcDestroyBlock(Vector3Int gridPos)
+
+    [Command]
+    public void CmdAcquireItem(Vector3Int itemPosition)
     {
-        // このRPCは、このコンポーネントがアタッチされているプレイヤーオブジェクトに対して実行される
-        // そのため、各クライアントで、対応するプレイヤーのLevelManagerが正しく呼ばれる
-        if (_playerController != null && _playerController.levelManager != null)
+        TileBase itemTile = _playerController.itemTilemap.GetTile(itemPosition);
+        if (itemTile != null && ItemManager.Instance != null)
         {
-            _playerController.levelManager.DestroyConnectedBlocks(gridPos);
+            ItemManager.Instance.ServerHandleItemAcquisition(itemTile, itemPosition, _playerController);
+        }
+    }
+
+    [ClientRpc]
+    public void RpcPlayItemAcquisitionEffects(int itemID, Vector3Int itemPosition)
+    {
+        ItemData itemData = ItemManager.Instance.GetItemDataByID(itemID);
+        if (itemData != null)
+        {
+            ItemManager.Instance.PlayItemAcquisitionEffectsOnClient(itemData, itemPosition, _playerController);
+        }
+    }
+
+    [ClientRpc]
+    public void RpcStunPlayer(float duration)
+    {
+        _playerController.Stun(duration);
+    }
+
+    [ClientRpc]
+    public void RpcRemoveTile(Vector3Int position, bool isBlock)
+    {
+        if (_playerController == null || _playerController.levelManager == null) return;
+
+        if (isBlock)
+        {
+            _playerController.levelManager.blockTilemap.SetTile(position, null);
+        }
+        else
+        {
+            _playerController.levelManager.itemTilemap.SetTile(position, null);
+        }
+    }
+
+    [ClientRpc]
+    public void RpcPlayDebuffEffect(ItemEffectType effectType)
+    {
+        ItemData itemData = ItemManager.Instance.GetItemDataByType(effectType);
+        if (itemData != null && EffectManager.Instance != null)
+        {
+            if (itemData.followEffectPrefab != null)
+            {
+                EffectManager.Instance.PlayFollowEffect(itemData.followEffectPrefab, itemData.followEffectDuration, _playerController.transform, _playerController.gameObject);
+            }
+            else if (itemData.acquisitionEffectPrefab != null)
+            {
+                EffectManager.Instance.PlayItemAcquisitionEffect(itemData, _playerController.levelManager.itemTilemap.WorldToCell(_playerController.transform.position), _playerController.levelManager.itemTilemap, _playerController.gameObject);
+            }
+        }
+    }
+
+    [ClientRpc]
+    public void RpcPlaceUnchiTile()
+    {
+        var unchiData = ItemManager.Instance.GetItemDataByType(ItemEffectType.Unchi) as UnchiItemData;
+        if (unchiData != null && _playerController != null && _playerController.levelManager != null)
+        {
+            Vector3Int playerGridCenter = _playerController.levelManager.itemTilemap.WorldToCell(_playerController.transform.position);
+            unchiData.Activate(playerGridCenter, _playerController.levelManager.blockTilemap, _playerController.levelManager.itemTilemap);
+        }
+    }
+
+    [ClientRpc]
+    public void RpcPlayRocketEffect(Vector3 startPosition, Vector3Int direction, GameObject targetPlayer)
+    {
+        var rocketData = ItemManager.Instance.GetItemDataByType(ItemEffectType.Rocket) as RocketItemData;
+        if (rocketData != null && EffectManager.Instance != null && rocketData.beamEffectPrefab != null)
+        {
+            EffectManager.Instance.PlayDirectionalEffect(rocketData.beamEffectPrefab, startPosition, direction, targetPlayer);
         }
     }
 }

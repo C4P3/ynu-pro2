@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   itemName: PoisonItem
   effectType: 5
-  itemTile: {fileID: 11400000, guid: e1de616e630f4784eb6ca045a6cc37cb, type: 2}
+  itemTile: {fileID: 11400000, guid: 09f4bb2ce4843e54790ef4b9c1901a55, type: 2}
   acquisitionEffectPrefab: {fileID: 0}
   followEffectPrefab: {fileID: 2022857801286226451, guid: 717329a8bd195b44eb6a276920a0acfe, type: 3}
   followEffectDuration: 3

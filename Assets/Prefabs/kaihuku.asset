@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   itemName: kaihuku
   effectType: 0
-  itemTile: {fileID: 11400000, guid: eb8857c93922a934eae091b577b3711d, type: 2}
+  itemTile: {fileID: 11400000, guid: 1e7b13c6a2c295449af0be89cee8c705, type: 2}
   acquisitionEffectPrefab: {fileID: 0}
   followEffectPrefab: {fileID: 170940224733326813, guid: 4aa93f882d5d86244ae2b8d556e767be, type: 3}
   followEffectDuration: 1.5

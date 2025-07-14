@@ -14,6 +14,10 @@ public class PlayFabAuthManager : MonoBehaviour
 
     public static PlayFabAuthManager Instance { get; private set; }
     public static EntityKey MyEntity { get; private set; }
+    public static string MyDisplayName { get; private set; } // ★ 表示名を保持する
+
+    // ★ ログイン状態を外部から確認できるようにするプロパティ
+    public bool IsLoggedIn => PlayFabClientAPI.IsClientLoggedIn();
 
     void Awake()
     {
@@ -62,21 +66,21 @@ public class PlayFabAuthManager : MonoBehaviour
 
     void OnLoginSuccess(LoginResult result)
     {
-        // ★★★ ログイン成功時にEntityKeyを保存 ★★★
         MyEntity = result.EntityToken.Entity;
+        
+        // ★ プロフィール（表示名）を取得
+        GetPlayerProfile();
 
         SetUI(loadingUI, 0, false, false);
 
         if (result.NewlyCreated)
         {
             Debug.Log("初回ログイン（新規アカウント作成）！");
-            // 初回ログイン専用処理（例：ニックネーム設定画面へ遷移）
             SetUI(loginUI, 1, true, true);
         }
         else
         {
             Debug.Log("既存アカウントでログイン成功！");
-            // 通常のホーム画面へ遷移など
             SetUI(loginUI, 0, false, false);
             SetUI(tittleUI, 1, true, true);
         }
@@ -86,6 +90,31 @@ public class PlayFabAuthManager : MonoBehaviour
     {
         Debug.LogError("ログイン失敗: " + error.GenerateErrorReport());
     }
+
+    // ★ プレイヤーのプロフィール情報を取得する
+    private void GetPlayerProfile()
+    {
+        var request = new GetPlayerProfileRequest
+        {
+            ProfileConstraints = new PlayerProfileViewConstraints
+            {
+                ShowDisplayName = true
+            }
+        };
+        PlayFabClientAPI.GetPlayerProfile(request, OnGetProfileSuccess, OnGetProfileFailure);
+    }
+
+    private void OnGetProfileSuccess(GetPlayerProfileResult result)
+    {
+        MyDisplayName = result.PlayerProfile.DisplayName;
+        Debug.Log($"表示名を取得しました: {MyDisplayName}");
+    }
+
+    private void OnGetProfileFailure(PlayFabError error)
+    {
+        Debug.LogError("プロフィール情報の取得に失敗: " + error.GenerateErrorReport());
+    }
+
 
     // ユーザーがニックネームを入力した時に呼び出す
     public void SetDisplayName(string nickname)
@@ -100,6 +129,7 @@ public class PlayFabAuthManager : MonoBehaviour
 
     void OnDisplayNameSet(UpdateUserTitleDisplayNameResult result)
     {
+        MyDisplayName = result.DisplayName; // ★ 設定成功時にローカルの表示名も更新
         Debug.Log("ニックネーム設定成功: " + result.DisplayName);
         SetUI(loginUI, 0, false, false);
         SetUI(tittleUI, 1, true, true);
