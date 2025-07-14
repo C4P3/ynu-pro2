@@ -208,10 +208,31 @@ public class PlayerHUDManager : NetworkBehaviour
         {
             float maxOxygen = GameManagerMulti.Instance.maxOxygen;
             slider.value = data.currentOxygen / maxOxygen;
-            Image fillImage = slider.fillRect.GetComponent<Image>();
+            // sliderオブジェクトを起点に、子の階層から"Fill"という名前のTransformを探す
+            Transform fillTransform = slider.transform.Find("Fill Area/Fill");
+            if (fillTransform == null)
+            {
+                // 指定された階層にFillオブジェクトが見つからない場合、エラーを出力して処理を中断
+                Debug.LogError($"Fill object could not be found under '{slider.name}'. Please check the hierarchy.", slider.gameObject);
+                return;
+            }
+
+            // TransformをRectTransformにキャスト
+            RectTransform fillRect = fillTransform as RectTransform;
+            if (fillRect == null) return;
+
+            float oxygenPercentage = data.currentOxygen / maxOxygen;
+
+            // Lerpを使って割合をPosXの範囲(0 ~ -460)に変換
+            // oxygenPercentageが1のとき0、0のとき-460になるように設定
+            float newPosX = Mathf.Lerp(-460f, 0f, oxygenPercentage);
+
+            // RectTransformのX座標を更新（Y座標は元の値を維持）
+            fillRect.anchoredPosition = new Vector2(newPosX, fillRect.anchoredPosition.y);
+
+            Image fillImage = fillTransform.GetComponent<Image>();
             if (fillImage != null)
             {
-                float oxygenPercentage = data.currentOxygen / maxOxygen;
                 if (oxygenPercentage <= 0.10f) fillImage.color = criticalOxygenColor;
                 else if (oxygenPercentage <= 0.30f) fillImage.color = lowOxygenColor;
                 else fillImage.color = fullOxygenColor;
