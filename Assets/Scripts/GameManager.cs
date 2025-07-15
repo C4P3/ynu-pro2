@@ -16,8 +16,6 @@ public class GameManager : MonoBehaviour
     /// 引数: (現在の酸素量, 最大酸素量)
     /// </summary>
     public static event Action<float, float> OnOxygenChanged;
-    // ゲーム開始時に呼び出されるイベント
-    public static event Action OnGameStarted;
     
     [Header("PlayFab")]
     private const string LeaderboardName = "SinglePlayerScore"; // PlayFabでのリーダーボード名
@@ -32,7 +30,7 @@ public class GameManager : MonoBehaviour
     public float oxygenDecreaseRate = 0.5f;       // 1秒あたりに減る酸素量
     public Slider oxygenSlider;                 // 酸素ゲージUI
     public TextMeshProUGUI oxygenText;
-    public RectTransform fillRectTransform; // InspectorでFillオブジェクトのRectTransformをアタッチ
+    public RectTransform fillRectTransform; // 【追加】InspectorでFillオブジェクトのRectTransformをアタッチ
 
     [Header("Oxygen Bar Colors")]
     public Color fullOxygenColor = Color.green;     // 満タン時の色 (黄緑)
@@ -165,7 +163,8 @@ public class GameManager : MonoBehaviour
                 countdownText.text = countdownWords[i];
 
             // 音を再生
-            SoundManager.Instance.PlaySound(startsound);
+            if (i != null)
+                SoundManager.Instance.PlaySound(startsound);
             yield return new WaitForSecondsRealtime(1f);
         }
 
@@ -175,7 +174,6 @@ public class GameManager : MonoBehaviour
         }
 
         Time.timeScale = 1f; // ゲームスタート！
-        OnGameStarted?.Invoke(); // ゲーム開始イベントを通知
     }
 
 
