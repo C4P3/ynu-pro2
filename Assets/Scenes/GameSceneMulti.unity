@@ -1380,7 +1380,19 @@ MonoBehaviour:
   - name: 4
     tile: {fileID: 11400000, guid: b68c430b9a40747029451d1e0d01fe88, type: 2}
     probabilityWeight: 0.1
-  noiseScale: 0.1
+  - name: 5
+    tile: {fileID: 11400000, guid: dd6a166fec79b464eb7aac0f901fce1b, type: 2}
+    probabilityWeight: 0.1
+  - name: 6
+    tile: {fileID: 11400000, guid: fa791cc9833aa458cb77093386ea3fec, type: 2}
+    probabilityWeight: 0.1
+  - name: 7
+    tile: {fileID: 11400000, guid: 511668c2d34e341ce9e7260f7f41fb24, type: 2}
+    probabilityWeight: 0.1
+  - name: 8
+    tile: {fileID: 11400000, guid: abcafb59ab0604d6282698bb0cb02067, type: 2}
+    probabilityWeight: 0.1
+  noiseScale: 0.4
   blockThreshold: 0.4
   itemAreaChance: 0.02
   chunkSize: 16
@@ -1601,7 +1613,19 @@ MonoBehaviour:
   - name: 4
     tile: {fileID: 11400000, guid: b68c430b9a40747029451d1e0d01fe88, type: 2}
     probabilityWeight: 0.1
-  noiseScale: 0.1
+  - name: 5
+    tile: {fileID: 11400000, guid: dd6a166fec79b464eb7aac0f901fce1b, type: 2}
+    probabilityWeight: 0.1
+  - name: 6
+    tile: {fileID: 11400000, guid: fa791cc9833aa458cb77093386ea3fec, type: 2}
+    probabilityWeight: 0.1
+  - name: 7
+    tile: {fileID: 11400000, guid: 511668c2d34e341ce9e7260f7f41fb24, type: 2}
+    probabilityWeight: 0.1
+  - name: 8
+    tile: {fileID: 11400000, guid: abcafb59ab0604d6282698bb0cb02067, type: 2}
+    probabilityWeight: 0.1
+  noiseScale: 0.4
   blockThreshold: 0.4
   itemAreaChance: 0.02
   chunkSize: 16
