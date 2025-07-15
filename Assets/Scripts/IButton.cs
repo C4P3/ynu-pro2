@@ -36,7 +36,7 @@ public class IButton : MonoBehaviour
 
     public virtual void OnPointerClick()
     {
-        if (clickSound != null)
+        if (clickSound != null && audioSource != null)
         {
             audioSource.PlayOneShot(clickSound);
         }
