@@ -110,7 +110,7 @@ MonoBehaviour:
   itemTilemap: {fileID: 0}
   typingManager: {fileID: 0}
   levelManager: {fileID: 0}
-  animationManager: {fileID: 0}
+  animationManager: {fileID: 6404153460404493974}
   playerIndex: 0
   walkSounds: []
   walkSoundInterval: 0.4
