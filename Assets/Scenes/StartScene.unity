@@ -5340,7 +5340,7 @@ MonoBehaviour:
   clickSound: {fileID: 8300000, guid: 9d9889ef0c51f17418d2af0a6a5ee366, type: 3}
   audioSource: {fileID: 1532488429}
   beforeUI: {fileID: 862735196}
-  afterUI: {fileID: 0}
+  afterUI: {fileID: 570686682}
 --- !u!1 &758663864
 GameObject:
   m_ObjectHideFlags: 0
@@ -6692,7 +6692,7 @@ MonoBehaviour:
   clickSound: {fileID: 8300000, guid: 9d9889ef0c51f17418d2af0a6a5ee366, type: 3}
   audioSource: {fileID: 1532488429}
   beforeUI: {fileID: 322335554}
-  afterUI: {fileID: 835071669}
+  afterUI: {fileID: 0}
 --- !u!61 &1176520643
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -7119,7 +7119,7 @@ MonoBehaviour:
   clickSound: {fileID: 8300000, guid: 9d9889ef0c51f17418d2af0a6a5ee366, type: 3}
   audioSource: {fileID: 1532488429}
   beforeUI: {fileID: 1085955684}
-  afterUI: {fileID: 0}
+  afterUI: {fileID: 570686682}
 --- !u!114 &1324044537
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11406,7 +11406,7 @@ MonoBehaviour:
   clickSound: {fileID: 8300000, guid: 9d9889ef0c51f17418d2af0a6a5ee366, type: 3}
   audioSource: {fileID: 1532488429}
   beforeUI: {fileID: 835071669}
-  afterUI: {fileID: 0}
+  afterUI: {fileID: 570686682}
 --- !u!1 &2121266102
 GameObject:
   m_ObjectHideFlags: 0
