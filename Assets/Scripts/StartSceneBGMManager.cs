@@ -7,7 +7,7 @@ public class StartSceneBGMManager : MonoBehaviour
 
     public AudioSource audioSource;
     public AudioClip menuBGM;
-    public AudioClip taisenBGM;
+    public AudioClip titleBGM;
    
     void Awake()
     {
@@ -32,7 +32,7 @@ public class StartSceneBGMManager : MonoBehaviour
         if (scene.name == "StartScene")
         {
             // StartSceneならmenuBGMを再生
-            PlayBGM(menuBGM);
+            PlayBGM(titleBGM);
         }
         else
         {
