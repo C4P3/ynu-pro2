@@ -16,7 +16,7 @@ public class GameManager : MonoBehaviour
     /// 引数: (現在の酸素量, 最大酸素量)
     /// </summary>
     public static event Action<float, float> OnOxygenChanged;
-    
+
     [Header("PlayFab")]
     private const string LeaderboardName = "SinglePlayerScore"; // PlayFabでのリーダーボード名
     public int PlayerRank { get; private set; }
@@ -86,7 +86,7 @@ public class GameManager : MonoBehaviour
     {
         Time.timeScale = 0f;
         StartCoroutine(StartCountdownAndGame());
-    
+
         // ゲーム開始時に酸素を最大値に設定
         _currentOxygen = maxOxygen;
         // 酸素ゲージの初期化
@@ -120,7 +120,7 @@ public class GameManager : MonoBehaviour
             }
         }
 
-    } 
+    }
 
     void Update()
     {
@@ -129,7 +129,9 @@ public class GameManager : MonoBehaviour
             // 酸素量の減少
             if (!_isOxygenInvincible)
             {
-                _currentOxygen -= oxygenDecreaseRate * Time.deltaTime;
+                // 生存時間に応じて酸素減少速度を加速
+                float dynamicRate = oxygenDecreaseRate * (1f + _survivalTime / 600f);
+                _currentOxygen -= dynamicRate * Time.deltaTime;
                 _currentOxygen = Mathf.Max(0, _currentOxygen); // 0未満にならないようにする
                 UpdateOxygenUI();
 
@@ -198,7 +200,7 @@ public class GameManager : MonoBehaviour
         Time.timeScale = 0f; // ゲームを一時停止
         GameSceneBGMManager.Instance.StopBGM(); // BGMを停止
         SoundManager.Instance.PlaySound(SoundManager.Instance.gameoversound); // ゲームオーバー音を再生
-        
+
         // ゲームオーバー時に不要なUI��非表示にする
         if (UIPanel != null)
         {
@@ -257,7 +259,7 @@ public class GameManager : MonoBehaviour
 
             if (finalMissTypesText != null)
                 finalMissTypesText.text = $"ミスタイプ数: {_missTypes}";
-            
+
             // PlayFabにスコアを送信
             SubmitScoreToPlayFab(score);
         }
