@@ -9494,7 +9494,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   audioSource: {fileID: 1760316037}
   menuBGM: {fileID: 8300000, guid: 8af84a259c5b28a419756cd20d6d2f5e, type: 3}
-  taisenBGM: {fileID: 8300000, guid: 03c10d05dcf2c814bbbb3898da13a629, type: 3}
+  titleBGM: {fileID: 8300000, guid: 615df5c96111e7445a0dcbf83572f5af, type: 3}
 --- !u!1 &1774276655
 GameObject:
   m_ObjectHideFlags: 0
