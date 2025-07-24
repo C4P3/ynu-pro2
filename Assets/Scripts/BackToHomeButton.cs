@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class Back2HomeButton : IButton
+public class BackToHomeButton : IButton
 {
     public override void OnPointerClick()
     {
@@ -10,7 +10,7 @@ public class Back2HomeButton : IButton
         // Time.timeScaleを元に戻す
         Time.timeScale = 1f;
         
-        // シンプルにStartSceneをロードするだけ
+        // StartSceneをロード
         SceneManager.LoadScene("StartScene");
     }
 

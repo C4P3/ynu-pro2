@@ -3,7 +3,6 @@ using UnityEngine;
 using UnityEngine.Tilemaps;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq;
 
 /// <summary>
 /// アイテムの出現設定（データと出現確率）を管理するためのクラス
@@ -61,10 +60,10 @@ public class ItemManager : MonoBehaviour
     }
 
     /// <summary>
-    /// LevelManagerが呼び出すための公開メソッド。
-    /// 重み付きランダムで配置すべきアイテムを1つ選んで返す。
+    /// LevelManagerが呼び出すための公開メソッド
+    /// 重み付きランダムで配置すべきアイテムを1つ選んで返す
     /// </summary>
-    /// <param name="prng">使用する疑似乱数生成器</param> // ★★★ 引数を追加 ★★★
+    /// <param name="prng">使用する疑似乱数生成器</param>
     public ItemData GetRandomItemToSpawn(System.Random prng)
     {
         if (_itemSpawnSettings.Count == 0) return null;
@@ -128,7 +127,7 @@ public class ItemManager : MonoBehaviour
     }
 
     /// <summary>
-    /// [Server-side] アイテム取得処理の本体。サーバーでのみ実行される。
+    /// [Server-side] アイテム取得処理の本体。サーバーでのみ実行される
     /// </summary>
     public void ServerHandleItemAcquisition(TileBase itemTile, Vector3Int itemPosition, PlayerController playerController)
     {
@@ -136,7 +135,7 @@ public class ItemManager : MonoBehaviour
 
         Debug.Log($"[Server] Player {playerController.playerIndex} acquired: {data.itemName}");
 
-        // 1. タイルマップからアイテムを削除
+        // タイルマップからアイテムを削除
         var networkInput = playerController.GetComponent<NetworkPlayerInput>();
         if (networkInput != null)
         {
@@ -144,11 +143,11 @@ public class ItemManager : MonoBehaviour
         }
         playerController.levelManager.itemTilemap.SetTile(itemPosition, null); // サーバー側でも削除
 
-        // 2. アイテムの効果をサーバー側で適用
+        // アイテムの効果をサーバー側で適用
         ApplyItemEffectOnServer(data, itemPosition, playerController);
 
-        // 3. 全クライアントにエフェクト再生を通知
-        //    ただし、相手に効果を及ぼすアイテムの場合は、汎用の取得エフェクトは再生しない
+        // 全クライアントにエフェクト再生を通知
+        // ただし、相手に効果を及ぼすアイテムの場合は、汎用の取得エフェクトは再生しない
         if (data.effectType != ItemEffectType.Thunder && 
             data.effectType != ItemEffectType.Poison && 
             data.effectType != ItemEffectType.Unchi)
@@ -266,10 +265,6 @@ public class ItemManager : MonoBehaviour
     /// <summary>
     /// プレイヤーがアイテムを取得した時に呼ばれるメソッド
     /// </summary>
-    /// <param name="itemTile">取得したアイテムのタイル</param>
-    /// <param name="itemPosition">取得したアイテムのタイルマップ座標</param>
-    /// <param name="levelManager">アイテムを取得したプレイヤーが所属するLevelManager</param> // 引数を追加
-    // 引数に GameManagerMulti を追加
     public void AcquireItem(TileBase itemTile, Vector3Int itemPosition, LevelManager levelManager, Transform playerTransform, NetworkPlayerInput networkPlayerInput = null)
     {
         if (!_itemDatabase.TryGetValue(itemTile, out ItemData data)) return;
