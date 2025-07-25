@@ -3,7 +3,7 @@ using UnityEngine;
 using PlayFab;
 using PlayFab.ClientModels;
 using TMPro;
-using System.Linq; // ★ LINQを使うために追加
+using System.Linq;
 
 public class PlayFabLeaderboardManager : MonoBehaviour
 {
@@ -13,13 +13,13 @@ public class PlayFabLeaderboardManager : MonoBehaviour
     private const string LeaderboardName = "SinglePlayerScore";
 
     [Header("UI Prefab & Parent")]
-    public GameObject rankingEntryPrefab; // ★ ランキング1行分のプレハブ
-    public Transform rankingsParent;      // ★ 統一されたランキングの親(Content)
+    public GameObject rankingEntryPrefab; // ランキングのプレハブ
+    public Transform rankingsParent;      // 統一されたランキングの親(Content)
 
     [Header("UI Feedback")]
     public TextMeshProUGUI statusText;
 
-    // ★ APIの結果を一時的に保持するリスト
+    // APIの結果を一時的に保持するリスト
     private List<PlayerLeaderboardEntry> _topPlayersResult;
     private List<PlayerLeaderboardEntry> _aroundPlayerResult;
     private int _pendingApiCallbacks;
@@ -41,7 +41,7 @@ public class PlayFabLeaderboardManager : MonoBehaviour
     {
         if (statusText != null) statusText.text = "ランキングを取得中...";
 
-        // ★ 処理開始前にリセット
+        // 処理開始前にリセット
         _topPlayersResult = null;
         _aroundPlayerResult = null;
         _pendingApiCallbacks = 2; // 2つのAPI呼び出しを待つ
@@ -82,7 +82,7 @@ public class PlayFabLeaderboardManager : MonoBehaviour
         if (_pendingApiCallbacks == 0) ProcessCombinedLeaderboard();
     }
 
-    // ★ 2つのAPI呼び出しが完了した後に実行される
+    // 2つのAPI呼び出しが完了した後に実行される
     private void ProcessCombinedLeaderboard()
     {
         if (statusText != null) statusText.text = ""; // ロード表示を消す
@@ -93,7 +93,7 @@ public class PlayFabLeaderboardManager : MonoBehaviour
             return;
         }
 
-        // 1. 2つのリストを合体させ、PlayFabIdをキーにして重複を排除する
+        // 2つのリストを合体させ、PlayFabIdをキーにして重複を排除する
         var combined = new Dictionary<string, PlayerLeaderboardEntry>();
         foreach (var entry in _topPlayersResult)
         {
@@ -104,10 +104,10 @@ public class PlayFabLeaderboardManager : MonoBehaviour
             combined[entry.PlayFabId] = entry;
         }
 
-        // 2. 順位で並び替える
+        // 順位で並び替える
         List<PlayerLeaderboardEntry> sortedList = combined.Values.OrderBy(e => e.Position).ToList();
 
-        // 3. 上位10件（もしくはそれ以下）をUIに表示する
+        // 上位10件（もしくはそれ以下）をUIに表示する
         UpdateLeaderboardUI(sortedList);
     }
 

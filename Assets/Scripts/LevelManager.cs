@@ -341,7 +341,7 @@ public class LevelManager : MonoBehaviour
 
     public int GetConnectedBlockCount(Vector3Int startPos)
     {
-        // 例: 幅優先探索で連結ブロック数をカウント
+        // 幅優先探索で連結ブロック数をカウント
         var visited = new HashSet<Vector3Int>();
         var queue = new Queue<Vector3Int>();
         TileBase targetTile = blockTilemap.GetTile(startPos);

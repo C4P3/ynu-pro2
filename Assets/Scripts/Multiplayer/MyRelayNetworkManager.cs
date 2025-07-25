@@ -47,7 +47,7 @@ public class MyRelayNetworkManager : RelayNetworkManager
             player.playerIndex = numPlayers;
         }
         Debug.Log(numPlayers);
-        // ★★★ プレイヤーが2人になったらゲーム開始のRPCを呼び出す ★★★
+        // プレイヤーが2人になったらゲーム開始のRPCを呼び出す
         if (numPlayers == 2)
         {
             // 0.5秒待ってからゲーム開始シーケンスを呼び出す
@@ -58,7 +58,7 @@ public class MyRelayNetworkManager : RelayNetworkManager
 
     private void StartGame()
     {
-        // ★★★ GameDataSyncの開始シーケンスを呼び出す ★★★
+        // GameDataSyncの開始シーケンスを呼び出す
         if (GameDataSync.Instance != null)
         {
             GameDataSync.Instance.StartGameSequence();

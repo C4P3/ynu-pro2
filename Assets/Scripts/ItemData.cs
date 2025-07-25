@@ -1,23 +1,21 @@
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
-// アイテムの種類を判別しやすくするためのenum（列挙型）
+// アイテムの種類を判別しやすくするためのenum
 public enum ItemEffectType
 {
+    // シングルプレイ用アイテム
     OxygenRecovery,
     Bomb,
     Star,
     Rocket,
+
+    // マルチプレイ用アイテム
     Unchi,
     Poison,
     Thunder
-
-    // 将来のマルチプレイ用
-    // OpponentDebuff _LockBlocks,
-    // OpponentDebuff _NarrowVision
 }
 
-// [CreateAssetMenu] を使うと、Unityエディタの右クリックメニューからこのデータアセットを作成できるようになる
 [CreateAssetMenu(fileName = "NewItemData", menuName = "TypingDriller/Item Data")]
 public class ItemData : ScriptableObject
 {

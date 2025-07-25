@@ -10,7 +10,7 @@ public class IButton : MonoBehaviour
     [SerializeField] protected CanvasGroup afterUI;
     protected AudioClip mouseOverSound;
     protected Color hoverColor = new Color(1, 1, 0, 1);
-    protected Color normalColor = new Color(1, 1, 1, 1); // 透明
+    protected Color normalColor = new Color(1, 1, 1, 1);
     protected Material matInstance;
     protected Vector3 originalScale;
 
@@ -76,8 +76,8 @@ public class IButton : MonoBehaviour
     }
 
     public void ChangeUI(CanvasGroup canvasGroup, int alfha, bool interactable, bool blocksRaycasts){//UIの表示非表示
-        canvasGroup.alpha = alfha;//透明度
-        canvasGroup.interactable = interactable;//
+        canvasGroup.alpha = alfha;
+        canvasGroup.interactable = interactable;
         canvasGroup.blocksRaycasts = blocksRaycasts;
     }
 }

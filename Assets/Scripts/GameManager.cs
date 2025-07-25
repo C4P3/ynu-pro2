@@ -27,16 +27,16 @@ public class GameManager : MonoBehaviour
 
     [Header("Oxygen")]
     public float maxOxygen = 100f;              // 最大酸素量
-    public float oxygenDecreaseRate = 0.5f;       // 1秒あたりに減る酸素量
+    public float oxygenDecreaseRate = 0.5f;     // 1秒あたりに減る酸素量
     public Slider oxygenSlider;                 // 酸素ゲージUI
     public TextMeshProUGUI oxygenText;
-    public RectTransform fillRectTransform; // 【追加】InspectorでFillオブジェクトのRectTransformをアタッチ
+    public RectTransform fillRectTransform;     // InspectorでFillオブジェクトのRectTransformをアタッチ
 
     [Header("Oxygen Bar Colors")]
     public Color fullOxygenColor = Color.green;     // 満タン時の色 (黄緑)
     public Color lowOxygenColor = Color.yellow;     // 30%以下になった時の色
     public Color criticalOxygenColor = Color.red;   // 10%以下になった時の色
-    public Image fillImage;                        // ゲージの色を変更するためのImageコンポーネント
+    public Image fillImage;                         // ゲージの色を変更するためのImageコンポーネント
 
     [Header("UI References")]
     public TextMeshProUGUI survivalTimeDisplay;    // 生存時間をリアルタイムで表示するTextMeshProUGUI
@@ -165,8 +165,7 @@ public class GameManager : MonoBehaviour
                 countdownText.text = countdownWords[i];
 
             // 音を再生
-            if (i != null)
-                SoundManager.Instance.PlaySound(startsound);
+            SoundManager.Instance.PlaySound(startsound);
             yield return new WaitForSecondsRealtime(1f);
         }
 
@@ -175,11 +174,11 @@ public class GameManager : MonoBehaviour
             countdownPanel.SetActive(false);
         }
 
-        Time.timeScale = 1f; // ゲームスタート！
+        Time.timeScale = 1f;
     }
 
 
-    // 生存時間UIをリアルタイムで更新するメソッド (メソッド名を変更しました)
+    // 生存時間UIをリアルタイムで更新するメソッド
     private void UpdateSurvivalTimeDisplay()
     {
         if (survivalTimeDisplay != null)
@@ -201,7 +200,7 @@ public class GameManager : MonoBehaviour
         GameSceneBGMManager.Instance.StopBGM(); // BGMを停止
         SoundManager.Instance.PlaySound(SoundManager.Instance.gameoversound); // ゲームオーバー音を再生
 
-        // ゲームオーバー時に不要なUI��非表示にする
+        // ゲームオーバー時に不要なUIを非表示にする
         if (UIPanel != null)
         {
             UIPanel.SetActive(false);
@@ -360,7 +359,7 @@ public class GameManager : MonoBehaviour
 
         float oxygenPercentage = _currentOxygen / maxOxygen;
 
-        // 【追加】fillRectTransformが設定されていれば、PosXを動かす処理を行う
+        // fillRectTransformが設定されていれば、PosXを動かす処理を行う
         if (fillRectTransform != null)
         {
             // Lerpを使って割合をPosXの範囲(0 ~ -840)に変換

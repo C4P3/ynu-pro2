@@ -14,9 +14,9 @@ public class PlayFabAuthManager : MonoBehaviour
 
     public static PlayFabAuthManager Instance { get; private set; }
     public static EntityKey MyEntity { get; private set; }
-    public static string MyDisplayName { get; private set; } // ★ 表示名を保持する
+    public static string MyDisplayName { get; private set; } // 表示名を保持する
 
-    // ★ ログイン状態を外部から確認できるようにするプロパティ
+    // ログイン状態を外部から確認できるようにするプロパティ
     public bool IsLoggedIn => PlayFabClientAPI.IsClientLoggedIn();
 
     void Awake()
@@ -68,19 +68,19 @@ public class PlayFabAuthManager : MonoBehaviour
     {
         MyEntity = result.EntityToken.Entity;
         
-        // ★ プロフィール（表示名）を取得
+        // プロフィール（表示名）を取得
         GetPlayerProfile();
 
         SetUI(loadingUI, 0, false, false);
 
         if (result.NewlyCreated)
         {
-            Debug.Log("初回ログイン（新規アカウント作成）！");
+            Debug.Log("初回ログイン（新規アカウント作成）成功");
             SetUI(loginUI, 1, true, true);
         }
         else
         {
-            Debug.Log("既存アカウントでログイン成功！");
+            Debug.Log("既存アカウントでログイン成功");
             SetUI(loginUI, 0, false, false);
             SetUI(tittleUI, 1, true, true);
         }
@@ -91,7 +91,7 @@ public class PlayFabAuthManager : MonoBehaviour
         Debug.LogError("ログイン失敗: " + error.GenerateErrorReport());
     }
 
-    // ★ プレイヤーのプロフィール情報を取得する
+    // プレイヤーのプロフィール情報を取得する
     private void GetPlayerProfile()
     {
         var request = new GetPlayerProfileRequest
@@ -129,7 +129,7 @@ public class PlayFabAuthManager : MonoBehaviour
 
     void OnDisplayNameSet(UpdateUserTitleDisplayNameResult result)
     {
-        MyDisplayName = result.DisplayName; // ★ 設定成功時にローカルの表示名も更新
+        MyDisplayName = result.DisplayName; // 設定成功時にローカルの表示名も更新
         Debug.Log("ニックネーム設定成功: " + result.DisplayName);
         SetUI(loginUI, 0, false, false);
         SetUI(tittleUI, 1, true, true);

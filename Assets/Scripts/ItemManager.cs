@@ -269,6 +269,7 @@ public class ItemManager : MonoBehaviour
     {
         if (!_itemDatabase.TryGetValue(itemTile, out ItemData data)) return;
 
+        // アイテムの正常取得を確認
         Debug.Log($"Acquired: {data.itemName}");
 
         levelManager.itemTilemap.SetTile(itemPosition, null);

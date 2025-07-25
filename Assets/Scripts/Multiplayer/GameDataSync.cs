@@ -3,7 +3,7 @@
 using Mirror;
 using UnityEngine;
 using System.Collections;
-using System; // Actionのために追加
+using System;
 
 public enum GameState
 {
@@ -23,7 +23,6 @@ public class GameDataSync : NetworkBehaviour
     [SyncVar(hook = nameof(OnGameStateChanged_Hook))]
     public GameState currentState = GameState.WaitingForPlayers;
 
-    // ★★★ クライアント側で状態変化を購読するためのイベントを追加 ★★★
     public static event Action<GameState> OnGameStateChanged_Client;
 
     void Awake()
@@ -70,14 +69,14 @@ public class GameDataSync : NetworkBehaviour
 
     private IEnumerator GameSequenceCoroutine()
     {
-        // 1. カウントダウン状態に移行
+        // カウントダウン状態に移行
         currentState = GameState.Countdown;
         Debug.Log("Game state: Countdown");
 
-        // 2. 3秒待機
+        // 3秒待機
         yield return new WaitForSeconds(3f);
 
-        // 3. プレイ中状態に移行
+        // プレイ中状態に移行
         currentState = GameState.Playing;
         Debug.Log("Game state: Playing");
     }
@@ -87,7 +86,7 @@ public class GameDataSync : NetworkBehaviour
     {
         Debug.Log($"Game state changed from {oldState} to {newState}");
 
-        // ★★★ 全クライアントでイベントを発行 ★★★
+        // 全クライアントでイベントを発行
         OnGameStateChanged_Client?.Invoke(newState);
 
         // Countdownになったらマップ生成を開始するロジックはそのまま

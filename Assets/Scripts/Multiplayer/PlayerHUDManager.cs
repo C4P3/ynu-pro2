@@ -6,8 +6,8 @@ using System;
 using System.Collections;
 
 /// <summary>
-/// マルチプレイヤー時のHUD、カウントダウン、リザルトUIを管理するクラス。
-/// P1/P2のUIにそれぞれのプレイヤーの情報を表示し、自分がどちらかを(あなた)で示す。
+/// マルチプレイヤー時のHUD、カウントダウン、リザルトUIを管理するクラス
+/// P1/P2のUIにそれぞれのプレイヤーの情報を表示し、自分がどちらかを(あなた)で示す
 /// </summary>
 public class PlayerHUDManager : NetworkBehaviour
 {
@@ -43,7 +43,7 @@ public class PlayerHUDManager : NetworkBehaviour
     [SerializeField] private GameObject TypingPanel_P2;
 
     [Header("Result Panel")]
-    [SerializeField] private TextMeshProUGUI resultText; // WIN, LOSE, DRAW
+    [SerializeField] private TextMeshProUGUI resultText;
     [SerializeField] private TextMeshProUGUI finalMatchTimeText;
     [Header("Result Panel - P1")]
     [SerializeField] private TextMeshProUGUI resultPlayerLabelP1;

@@ -13,7 +13,7 @@ public class UIController : MonoBehaviour
     [SerializeField] CanvasGroup multiplayUI;
     [SerializeField] CanvasGroup roomRuleSelectUI;
     [SerializeField] CanvasGroup roomIDInputUI;
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    
     public void ShowInitialUI()
     {
         //初期のUIの表示非表示
@@ -55,7 +55,6 @@ public class UIController : MonoBehaviour
         }
     }
 
-    // Update is called once per frame
     void Update()
     {
         

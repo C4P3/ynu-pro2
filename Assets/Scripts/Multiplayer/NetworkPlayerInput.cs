@@ -15,13 +15,12 @@ public class NetworkPlayerInput : NetworkBehaviour
     [SyncVar]
     public int playerIndex = 0;
 
-    // --- Private References ---
     private PlayerController _playerController;
     private TypingManager _typingManager;
 
     void Awake()
     {
-        // --- 参照をまとめて取得 ---
+        // 参照をまとめて取得
         _playerController = GetComponent<PlayerController>();
         _typingManager = GetComponent<TypingManager>();
 
@@ -38,10 +37,10 @@ public class NetworkPlayerInput : NetworkBehaviour
             return;
         }
 
-        // --- LevelManagerの取得 ---
+        // LevelManagerの取得
         LevelManager levelManager = (playerIndex == 1) ? gm.levelManagerP1 : gm.levelManagerP2;
         
-        // --- 参照の受け渡し ---
+        // 参照の受け渡し
         if (levelManager != null)
         {
             levelManager.playerTransform = this.transform;
@@ -58,7 +57,7 @@ public class NetworkPlayerInput : NetworkBehaviour
             Debug.LogError($"Player {playerIndex} のLevelManagerが見つかりません！ GameManagerMultiのインスペクターで設定されているか確認してください。");
         }
 
-        // --- TypingPanelの設定 ---
+        // TypingPanelの設定
         GameObject typingPanelObject = (playerIndex == 1) ? gm.typingPanelP1 : gm.typingPanelP2;
         if (typingPanelObject != null)
         {
@@ -72,7 +71,7 @@ public class NetworkPlayerInput : NetworkBehaviour
 
         _playerController.Initialize();
 
-        // --- レイヤーとカメラの設定 ---
+        // レイヤーとカメラの設定
         switch (playerIndex)
         {
             case 1:
@@ -90,7 +89,7 @@ public class NetworkPlayerInput : NetworkBehaviour
         }
     }
 
-    // ★★★ 階層下のオブジェクトも含めてレイヤーを再帰的に設定するヘルパー関数 ★★★
+    // 階層下のオブジェクトも含めてレイヤーを再帰的に設定するヘルパー関数
     void SetLayerRecursively(GameObject obj, int newLayer)
     {
         if (obj == null) return;
@@ -108,7 +107,7 @@ public class NetworkPlayerInput : NetworkBehaviour
     {
         _typingManager.enabled = true;
 
-        // ★ プレイヤー名が取得できていればサーバーに送信
+        // プレイヤー名が取得できていればサーバーに送信
         if (!string.IsNullOrEmpty(PlayFabAuthManager.MyDisplayName))
         {
             CmdSetPlayerName(PlayFabAuthManager.MyDisplayName);
@@ -168,8 +167,7 @@ public class NetworkPlayerInput : NetworkBehaviour
         }
     }
 
-    // --- サーバーへのコマンド送信 ---
-
+    // サーバーへのコマンド送信
     [Command]
     private void CmdSetPlayerName(string name)
     {
@@ -230,7 +228,7 @@ public class NetworkPlayerInput : NetworkBehaviour
         }
     }
 
-    // --- 全クライアントへのRPC ---
+    // 全クライアントへのRPC
 
     [ClientRpc]
     private void RpcReceiveMoveInput(Vector3Int moveVec)

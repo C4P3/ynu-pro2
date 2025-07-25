@@ -13,9 +13,6 @@ public class RocketItemData : ItemData
     /// <summary>
     /// ロケットアイテムの効果を発動する
     /// </summary>
-    /// <param name="player">プレイヤーのTransform</param>
-    /// <param name="direction">プレイヤーの向き（Vector3Int）</param>
-    /// <param name="blockTilemap">ブロックのTilemap</param>
     public void Activate(Transform player, Vector3Int direction, Tilemap blockTilemap)
     {
         // プレイヤーの現在位置をグリッド座標に変換
