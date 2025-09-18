@@ -1,11 +1,1 @@
-# ynu-pro2
-
-テスト
-
-テストbySanada
-
-テストbyTsuchido
-aaa
-テストbyKato
-
-
+2025/09/18 かなりバグが多くなっているため再設計を行っていく。
