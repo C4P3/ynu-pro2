@@ -337,6 +337,10 @@ PrefabInstance:
       propertyPath: sceneId
       value: 1508010040
       objectReference: {fileID: 0}
+    - target: {fileID: 901184690012426950, guid: 6e700e24619e532429cc155198fa21de, type: 3}
+      propertyPath: audioSource
+      value: 
+      objectReference: {fileID: 593750923}
     - target: {fileID: 2417206162529998841, guid: 6e700e24619e532429cc155198fa21de, type: 3}
       propertyPath: audioSource
       value: 

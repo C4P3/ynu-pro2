@@ -20,6 +20,7 @@ public class PlayerHUDManager : NetworkBehaviour
 
     [Header("Waiting UI")]
     [SerializeField] private TMP_InputField roomIdInputField;
+    [SerializeField] private TextMeshProUGUI hostName;
 
     [Header("Countdown UI")]
     [SerializeField] private GameObject countdownPanel;
@@ -118,7 +119,7 @@ public class PlayerHUDManager : NetworkBehaviour
         if (waitingForPlayerPanel.activeSelf && PlayFabMatchmakingManager.Instance != null)
         {
             if (!string.IsNullOrEmpty(PlayFabMatchmakingManager.Instance.roomId) && 
-                roomIdInputField.text != $"Room ID: {PlayFabMatchmakingManager.Instance.roomId}")
+                roomIdInputField.text != $"Room ID: {PlayFabMatchmakingManager.Instance.roomId} [コピー]")
             {
                 UpdateWaitingPanel();
             }
@@ -181,7 +182,11 @@ public class PlayerHUDManager : NetworkBehaviour
     {
         if (roomIdInputField != null && PlayFabMatchmakingManager.Instance != null)
         {
-            roomIdInputField.text = $"Room ID: {PlayFabMatchmakingManager.Instance.roomId}";
+            roomIdInputField.text = $"Room ID: {PlayFabMatchmakingManager.Instance.roomId} [コピー]";
+        }
+        if (hostName != null && PlayFabAuthManager.MyDisplayName != null)
+        {
+            hostName.text = PlayFabAuthManager.MyDisplayName;
         }
     }
 
