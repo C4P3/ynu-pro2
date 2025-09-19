@@ -92,13 +92,12 @@ public class MyRelayNetworkManager : RelayNetworkManager
     /// </summary>
     public override void OnClientDisconnect()
     {
-        base.OnClientDisconnect();
         Debug.Log("Disconnected from server. Returning to StartScene.");
-        
+
         // Time.timeScaleを元に戻す
         Time.timeScale = 1f;
-        
-        // シンプルにStartSceneをロードするだけ
+
         GameAppManager.Instance.LoadScene("StartScene");
+        base.OnClientDisconnect();
     }
 }
