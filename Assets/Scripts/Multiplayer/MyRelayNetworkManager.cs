@@ -10,6 +10,7 @@ public class MyRelayNetworkManager : RelayNetworkManager
     [Tooltip("サーバー起動時に自動で生成されるシングルトンオブジェクト")]
     [SerializeField] private GameObject gameDataSyncPrefab;
     public static MyRelayNetworkManager Instance { get; private set; }
+    [SerializeField] private UtpTransport utpTransport;
 
     public override void Awake()
     {
@@ -99,5 +100,38 @@ public class MyRelayNetworkManager : RelayNetworkManager
 
         GameAppManager.Instance.LoadScene("StartScene");
         base.OnClientDisconnect();
+    }
+    
+    // ホストを停止した時にMirrorから自動的に呼ばれる
+    public override void OnStopHost()
+    {
+        base.OnStopHost();
+        ResetRelayData();
+        Debug.Log("ホストを停止し、Relayデータをリセットしました。");
+    }
+
+    // クライアントを停止した時にMirrorから自動的に呼ばれる
+    public override void OnStopClient()
+    {
+        base.OnStopClient();
+        ResetRelayData();
+        Debug.Log("クライアントを停止し、Relayデータをリセットしました。");
+    }
+
+    /// <summary>
+    /// Relay関連の情報を強制的にリセットする
+    /// </summary>
+    private void ResetRelayData()
+    {
+        if (utpTransport != null)
+        {
+            // UtpTransportが保持しているRelayManagerのインスタンスを取得
+            var relayManager = utpTransport.GetComponent<IRelayManager>();
+            if (relayManager != null)
+            {
+                // ここが最重要！古いアロケーション情報をクリアする
+                relayManager.ResetRelayData();
+            }
+        }
     }
 }

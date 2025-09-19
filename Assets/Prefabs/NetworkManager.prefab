@@ -81,6 +81,7 @@ MonoBehaviour:
   timeInterpolationGui: 0
   relayJoinCode: 
   gameDataSyncPrefab: {fileID: 9028585289407717735, guid: 4fc6a9cc63467fc4fa6730a8a9943790, type: 3}
+  utpTransport: {fileID: 6988311822261730794}
 --- !u!114 &6988311822261730794
 MonoBehaviour:
   m_ObjectHideFlags: 0
