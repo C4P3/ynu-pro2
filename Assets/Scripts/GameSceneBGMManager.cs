@@ -14,7 +14,6 @@ public class GameSceneBGMManager : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
-            DontDestroyOnLoad(gameObject); // シーンをまたいでも破棄されないように
         }
         else
         {
