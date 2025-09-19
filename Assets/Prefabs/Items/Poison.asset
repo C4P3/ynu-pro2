@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 78f7497f25cd6f44b87a28ca20c41a45, type: 3}
+  m_Name: Poison
+  m_EditorClassIdentifier: 
+  itemName: PoisonItem
+  effectType: 5
+  itemTile: {fileID: 11400000, guid: 09f4bb2ce4843e54790ef4b9c1901a55, type: 2}
+  acquisitionEffectPrefab: {fileID: 0}
+  followEffectPrefab: {fileID: 2022857801286226451, guid: 717329a8bd195b44eb6a276920a0acfe, type: 3}
+  followEffectDuration: 3
+  useSound: {fileID: 8300000, guid: cb6c23c7c2131c246b5d938baefd956e, type: 3}
+  poisonAmount: 20

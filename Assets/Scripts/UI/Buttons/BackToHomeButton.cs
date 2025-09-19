@@ -11,7 +11,7 @@ public class BackToHomeButton : IButton
         Time.timeScale = 1f;
         
         // StartSceneをロード
-        SceneManager.LoadScene("StartScene");
+        GameAppManager.Instance.LoadScene("StartScene");
     }
 
     public override void OnPointerEnter()

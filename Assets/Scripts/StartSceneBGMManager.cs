@@ -14,7 +14,6 @@ public class StartSceneBGMManager : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
-            DontDestroyOnLoad(gameObject);
         }
         else
         {

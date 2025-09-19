@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 22c06e442ab6e52408595106362f2a2e, type: 3}
+  m_Name: Unchi
+  m_EditorClassIdentifier: 
+  itemName: UnchiItem
+  effectType: 4
+  itemTile: {fileID: 11400000, guid: 424f31f5c9ec822488e3d720c009477d, type: 2}
+  acquisitionEffectPrefab: {fileID: 0}
+  followEffectPrefab: {fileID: 2022857801286226451, guid: 4090e78128eddeb4ba8f8cd9d80e56a4, type: 3}
+  followEffectDuration: 1.5
+  useSound: {fileID: 8300000, guid: 79d58d1d6a9fda743ac12213a8582b4e, type: 3}
+  unchiTile: {fileID: 11400000, guid: 0391580d28d72674994c520da464c81d, type: 2}

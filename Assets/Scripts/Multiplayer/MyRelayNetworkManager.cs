@@ -9,6 +9,14 @@ public class MyRelayNetworkManager : RelayNetworkManager
     [Header("Singleton Prefabs")]
     [Tooltip("サーバー起動時に自動で生成されるシングルトンオブジェクト")]
     [SerializeField] private GameObject gameDataSyncPrefab;
+    public static MyRelayNetworkManager Instance { get; private set; }
+
+    public override void Awake()
+    {
+        if (Instance == null) { Instance = this; DontDestroyOnLoad(gameObject); }
+        else { Destroy(gameObject); }
+        base.Awake();
+    }
 
     /// <summary>
     /// サーバーが正常に起動したときに呼び出される

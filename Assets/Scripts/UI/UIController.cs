@@ -1,18 +1,23 @@
 using UnityEngine;
+using TMPro;
 
 public class UIController : MonoBehaviour
 {
-    [SerializeField] CanvasGroup loadingUI;
-    [SerializeField] CanvasGroup loginUI;
-    [SerializeField] CanvasGroup tittleUI;
-    [SerializeField] CanvasGroup homeUI;
-    [SerializeField] CanvasGroup ruleSelectUI;
-    [SerializeField] CanvasGroup recordUI;
-    [SerializeField] CanvasGroup rankingUI;
-    [SerializeField] CanvasGroup configUI;
-    [SerializeField] CanvasGroup multiplayUI;
-    [SerializeField] CanvasGroup roomRuleSelectUI;
-    [SerializeField] CanvasGroup roomIDInputUI;
+    public static UIController Instance { get; private set; }
+
+    [SerializeField] public  CanvasGroup loadingUI;
+    [SerializeField] public  CanvasGroup loginUI;
+    [SerializeField] public  CanvasGroup tittleUI;
+    [SerializeField] public  CanvasGroup homeUI;
+    [SerializeField] public  CanvasGroup ruleSelectUI;
+    [SerializeField] public  CanvasGroup recordUI;
+    [SerializeField] public  CanvasGroup rankingUI;
+    [SerializeField] public  CanvasGroup configUI;
+    [SerializeField] public  CanvasGroup multiplayUI;
+    [SerializeField] public  CanvasGroup roomRuleSelectUI;
+    [SerializeField] public  CanvasGroup roomIDInputUI;
+    [SerializeField] public TMP_InputField roomIdInput;
+    [SerializeField] public TextMeshProUGUI statusText;
     
     public void ShowInitialUI()
     {
@@ -28,6 +33,11 @@ public class UIController : MonoBehaviour
         SetUI(multiplayUI, 0, false, false);
         SetUI(roomRuleSelectUI, 0, false, false);
         SetUI(roomIDInputUI, 0, false, false);
+    }
+
+    void Awake()
+    {
+        if (Instance == null) { Instance = this; }
     }
 
     void Start()
@@ -53,6 +63,8 @@ public class UIController : MonoBehaviour
             SetUI(roomRuleSelectUI, 0, false, false);
             SetUI(roomIDInputUI, 0, false, false);
         }
+
+        PlayFabAuthManager.Instance.InitializeAndLogin();
     }
 
     void Update()

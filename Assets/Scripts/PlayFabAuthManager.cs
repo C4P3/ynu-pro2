@@ -7,9 +7,6 @@ using Unity.Services.Authentication;
 
 public class PlayFabAuthManager : MonoBehaviour
 {
-    [SerializeField] CanvasGroup loadingUI;
-    [SerializeField] CanvasGroup loginUI;
-    [SerializeField] CanvasGroup tittleUI;
     [SerializeField] string customIdPepper = "";
 
     public static PlayFabAuthManager Instance { get; private set; }
@@ -26,7 +23,7 @@ public class PlayFabAuthManager : MonoBehaviour
     }
 
     // 初回起動時にCustom ID（端末ID）で匿名ログインする
-    async void Start()
+    public async void InitializeAndLogin()
     {
         await InitializeUnityServices();
         LoginWithCustomID();
@@ -71,18 +68,18 @@ public class PlayFabAuthManager : MonoBehaviour
         // プロフィール（表示名）を取得
         GetPlayerProfile();
 
-        SetUI(loadingUI, 0, false, false);
+        UIController.Instance.SetUI(UIController.Instance.loadingUI, 0, false, false);
 
         if (result.NewlyCreated)
         {
             Debug.Log("初回ログイン（新規アカウント作成）成功");
-            SetUI(loginUI, 1, true, true);
+            UIController.Instance.SetUI(UIController.Instance.loginUI, 1, true, true);
         }
         else
         {
             Debug.Log("既存アカウントでログイン成功");
-            SetUI(loginUI, 0, false, false);
-            SetUI(tittleUI, 1, true, true);
+            UIController.Instance.SetUI(UIController.Instance.loginUI, 0, false, false);
+            UIController.Instance.SetUI(UIController.Instance.tittleUI, 1, true, true);
         }
     }
 
@@ -131,18 +128,12 @@ public class PlayFabAuthManager : MonoBehaviour
     {
         MyDisplayName = result.DisplayName; // 設定成功時にローカルの表示名も更新
         Debug.Log("ニックネーム設定成功: " + result.DisplayName);
-        SetUI(loginUI, 0, false, false);
-        SetUI(tittleUI, 1, true, true);
+        UIController.Instance.SetUI(UIController.Instance.loginUI, 0, false, false);
+        UIController.Instance.SetUI(UIController.Instance.tittleUI, 1, true, true);
     }
 
     void OnDisplayNameSetFailure(PlayFabError error)
     {
         Debug.LogError("ニックネーム設定失敗: " + error.GenerateErrorReport());
-    }
-
-    public void SetUI(CanvasGroup canvasGroup, int alfha, bool interactable, bool blocksRaycasts){
-        canvasGroup.alpha = alfha;
-        canvasGroup.interactable = interactable;
-        canvasGroup.blocksRaycasts = blocksRaycasts;
     }
 }
