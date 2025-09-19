@@ -337,14 +337,6 @@ PrefabInstance:
       propertyPath: sceneId
       value: 1508010040
       objectReference: {fileID: 0}
-    - target: {fileID: 2778088452009075781, guid: 6e700e24619e532429cc155198fa21de, type: 3}
-      propertyPath: m_fontSize
-      value: 50
-      objectReference: {fileID: 0}
-    - target: {fileID: 2778088452009075781, guid: 6e700e24619e532429cc155198fa21de, type: 3}
-      propertyPath: m_fontSizeBase
-      value: 50
-      objectReference: {fileID: 0}
     - target: {fileID: 5662466696960242349, guid: 6e700e24619e532429cc155198fa21de, type: 3}
       propertyPath: m_Name
       value: CanvasMulti
@@ -428,14 +420,6 @@ PrefabInstance:
     - target: {fileID: 7752802797856193810, guid: 6e700e24619e532429cc155198fa21de, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8036635548624076210, guid: 6e700e24619e532429cc155198fa21de, type: 3}
-      propertyPath: m_fontSize
-      value: 50
-      objectReference: {fileID: 0}
-    - target: {fileID: 8036635548624076210, guid: 6e700e24619e532429cc155198fa21de, type: 3}
-      propertyPath: m_fontSizeBase
-      value: 50
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1200,7 +1184,7 @@ AudioSource:
   m_Enabled: 1
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 8300000, guid: 22f8e5375b9eb63408bf8ea2e5aa413d, type: 3}
+  m_audioClip: {fileID: 0}
   m_Resource: {fileID: 8300000, guid: 22f8e5375b9eb63408bf8ea2e5aa413d, type: 3}
   m_PlayOnAwake: 1
   m_Volume: 0

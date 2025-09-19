@@ -13,8 +13,9 @@ public class IButton : MonoBehaviour
     protected Color normalColor = new Color(1, 1, 1, 1);
     protected Material matInstance;
     protected Vector3 originalScale;
+    private bool isSelected = false; // 選択状態を保持するフラグ
 
-    protected void Start()
+    protected void Awake()
     {
         originalScale = transform.localScale;
         if (buttonImage == null)
@@ -34,6 +35,20 @@ public class IButton : MonoBehaviour
         mouseOverSound = Resources.Load<AudioClip>("選択音");
     }
 
+    public void Select()
+    {
+        isSelected = true;
+        matInstance.SetFloat("_IsHover", 1f);
+        transform.localScale = originalScale * 1.05f;
+    }
+
+    public void Deselect()
+    {
+        isSelected = false;
+        matInstance.SetFloat("_IsHover", 0f);
+        transform.localScale = originalScale;
+    }
+
     public virtual void OnPointerClick()
     {
         if (clickSound != null && audioSource != null)
@@ -51,6 +66,9 @@ public class IButton : MonoBehaviour
 
     public virtual void OnPointerExit()
     {
+        // 既に選択されている場合は何もしない
+        if (isSelected) return;
+
         matInstance.SetFloat("_IsHover", 0f);
         transform.localScale = originalScale;
     }
