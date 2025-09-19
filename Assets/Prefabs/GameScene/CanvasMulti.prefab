@@ -148,7 +148,7 @@ GameObject:
   - component: {fileID: 8361907973591822079}
   - component: {fileID: 8293283372501419362}
   m_Layer: 5
-  m_Name: FinalMatchTimeText (1)
+  m_Name: FinalMatchTimeText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -284,7 +284,7 @@ GameObject:
   - component: {fileID: 599848472949043762}
   - component: {fileID: 2194753850089196586}
   m_Layer: 5
-  m_Name: Result (1)
+  m_Name: Result
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -556,7 +556,7 @@ GameObject:
   - component: {fileID: 8092814622862632260}
   - component: {fileID: 8745322439956053189}
   m_Layer: 5
-  m_Name: MyName
+  m_Name: P1Name
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1512,7 +1512,7 @@ GameObject:
   - component: {fileID: 1587679841191954761}
   - component: {fileID: 1486635612463562344}
   m_Layer: 5
-  m_Name: OppMissTypesText (2)
+  m_Name: P2MissTypesText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2338,7 +2338,7 @@ GameObject:
   - component: {fileID: 714347121572101385}
   - component: {fileID: 5306762411492192456}
   m_Layer: 5
-  m_Name: OppName
+  m_Name: P2Name
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2685,7 +2685,7 @@ GameObject:
   - component: {fileID: 8182170301540101521}
   - component: {fileID: 2495078901087178384}
   m_Layer: 5
-  m_Name: MyScoreText (1)
+  m_Name: P1ScoreText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3273,7 +3273,7 @@ GameObject:
   - component: {fileID: 1885266431146824192}
   - component: {fileID: 7712753047333042867}
   m_Layer: 5
-  m_Name: OppScoreText (2)
+  m_Name: P2ScoreText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4619,7 +4619,7 @@ GameObject:
   - component: {fileID: 8691571585146031600}
   - component: {fileID: 6076974002999385552}
   m_Layer: 5
-  m_Name: OppBlocksDestoryedText (2)
+  m_Name: P2BlocksDestoryedText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4755,7 +4755,7 @@ GameObject:
   - component: {fileID: 4463977691185901690}
   - component: {fileID: 6694297311141482365}
   m_Layer: 5
-  m_Name: MyMissTypesText (1)
+  m_Name: P1MissTypesText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5510,7 +5510,7 @@ GameObject:
   - component: {fileID: 722681070000874343}
   - component: {fileID: 7708606790976553025}
   m_Layer: 5
-  m_Name: MyBlocksDestoryedText (1)
+  m_Name: P1BlocksDestoryedText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
