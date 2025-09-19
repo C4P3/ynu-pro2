@@ -3908,7 +3908,7 @@ MonoBehaviour:
   inGameHUDPanel: {fileID: 8619165815500024575}
   resultPanel: {fileID: 1064363599798643415}
   roomIdInputField: {fileID: 1725266002956208175}
-  hostName: {fileID: 0}
+  hostName: {fileID: 496887721453871768}
   countdownPanel: {fileID: 3609902925499378622}
   countdownText: {fileID: 2431103366554452632}
   playerLabelP1: {fileID: 8036635548624076210}

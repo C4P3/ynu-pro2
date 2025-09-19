@@ -99,6 +99,6 @@ public class MyRelayNetworkManager : RelayNetworkManager
         Time.timeScale = 1f;
         
         // シンプルにStartSceneをロードするだけ
-        SceneManager.LoadScene("StartScene");
+        GameAppManager.Instance.LoadScene("StartScene");
     }
 }
