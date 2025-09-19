@@ -38,6 +38,8 @@ public class GameAppManager : MonoBehaviour
                 Debug.Log("サーバーを停止します。");
                 MyRelayNetworkManager.singleton.StopServer();
             }
+            NetworkServer.Shutdown();
+            NetworkClient.Shutdown();
         }
         SceneManager.LoadScene(sceneName);
     }
