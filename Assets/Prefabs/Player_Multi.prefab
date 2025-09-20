@@ -212,8 +212,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   spriteUp: {fileID: -9066679038493711350, guid: be5259ead4b6e564f9dd2e88f5f12962, type: 3}
   spriteDown: {fileID: 7197677887435696444, guid: be5259ead4b6e564f9dd2e88f5f12962, type: 3}
-  spriteLeft: {fileID: 2674309918979029221, guid: be5259ead4b6e564f9dd2e88f5f12962, type: 3}
-  spriteRight: {fileID: -7902434387478092304, guid: be5259ead4b6e564f9dd2e88f5f12962, type: 3}
-  typingEffectPrefab: {fileID: 0}
-  typingEffectPrefab_Back: {fileID: 0}
-  typingEffectOffset: 0.5
+  spriteLeft: {fileID: -7902434387478092304, guid: be5259ead4b6e564f9dd2e88f5f12962, type: 3}
+  spriteRight: {fileID: 2674309918979029221, guid: be5259ead4b6e564f9dd2e88f5f12962, type: 3}
+  typingEffectPrefab: {fileID: 4034161697179714381, guid: a7ecb40c7ee83384aa96d135261e7bd8, type: 3}
+  typingEffectPrefab_Back: {fileID: 2739803343189961253, guid: 49a4794dcb3546d43a1ec376846b9ec1, type: 3}
+  typingEffectOffset: 0.7
