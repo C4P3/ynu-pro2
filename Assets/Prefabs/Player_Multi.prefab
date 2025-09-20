@@ -108,11 +108,15 @@ MonoBehaviour:
   moveSpeed: 5
   blockTilemap: {fileID: 0}
   itemTilemap: {fileID: 0}
-  typingManager: {fileID: 0}
+  typingManager: {fileID: 5650656906944751110}
   levelManager: {fileID: 0}
-  animationManager: {fileID: 0}
+  animationManager: {fileID: 6404153460404493974}
   playerIndex: 0
-  walkSounds: []
+  walkSounds:
+  - {fileID: 8300000, guid: 494b85bd7d6b7b24aba95edcab4c5183, type: 3}
+  - {fileID: 8300000, guid: 6648ab327008be04b860029adccccf7e, type: 3}
+  - {fileID: 8300000, guid: b9410ec0ed694e647b61db1d4d3f0479, type: 3}
+  - {fileID: 8300000, guid: 707df71af87fdda48a404d97c51623f0, type: 3}
   walkSoundInterval: 0.4
 --- !u!114 &-8588379201524178913
 MonoBehaviour:
