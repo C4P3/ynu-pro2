@@ -64,7 +64,7 @@ public class PlayFabAuthManager : MonoBehaviour
     void OnLoginSuccess(LoginResult result)
     {
         MyEntity = result.EntityToken.Entity;
-        
+
         // プロフィール（表示名）を取得
         GetPlayerProfile();
 
@@ -81,6 +81,9 @@ public class PlayFabAuthManager : MonoBehaviour
             UIController.Instance.SetUI(UIController.Instance.loginUI, 0, false, false);
             UIController.Instance.SetUI(UIController.Instance.tittleUI, 1, true, true);
         }
+
+        // 前回までのマッチングセッションがあれば削除
+        PlayFabMatchmakingManager.Instance.CancelActiveMatchmakingTickets();
     }
 
     void OnLoginFailure(PlayFabError error)

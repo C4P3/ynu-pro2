@@ -173,6 +173,96 @@ public class PlayFabMatchmakingManager : MonoBehaviour
     }
 
     // ===============================================================
+    // 前回までのマッチングキューなどのごみの処理
+    // ===============================================================
+    public void CancelActiveMatchmakingTickets()
+    {
+        var myEntityKey = new PlayFab.MultiplayerModels.EntityKey { Id = PlayFabSettings.staticPlayer.EntityId, Type = PlayFabSettings.staticPlayer.EntityType };
+        
+        // "1vs1RandomMatch"キューに参加しているチケットを検索
+        var request = new ListMatchmakingTicketsForPlayerRequest
+        {
+            Entity = myEntityKey,
+            QueueName = "1vs1RandomMatch"
+        };
+
+        PlayFabMultiplayerAPI.ListMatchmakingTicketsForPlayer(request,
+            (result) =>
+            {
+                // 見つかったチケットを全てキャンセル
+                foreach (var ticketId in result.TicketIds)
+                {
+                    Debug.Log($"古いマッチングチケットを発見: {ticketId}。キャンセルします。");
+                    PlayFabMultiplayerAPI.CancelMatchmakingTicket(
+                        new CancelMatchmakingTicketRequest { TicketId = ticketId, QueueName = "1vs1RandomMatch" },
+                        (cancelResult) => {},
+                        (error) => {} // エラーでも次の処理に進む
+                    );
+                }
+                
+                // チケットの処理が終わったら、グループのクリーンアップに進む
+                LeaveOrDeleteOldGroups();
+            },
+            (error) =>
+            {
+                Debug.LogWarning("チケットの検索中にエラーが発生しましたが、処理を続行します。");
+                // エラーが発生しても、グループのチェックは試みる
+                LeaveOrDeleteOldGroups();
+            }
+        );
+    }
+    /// <summary>
+    /// プレイヤーが所属している古いマッチング用グループから脱退、またはグループを削除する
+    /// </summary>
+    private void LeaveOrDeleteOldGroups()
+    {
+        // 自分が所属しているグループの一覧を取得
+        PlayFabGroupsAPI.ListMembership(new ListMembershipRequest(), 
+            (result) =>
+            {
+                foreach (var groupInfo in result.Groups)
+                {
+                    // "Match-"で始まる名前のグループのみを対象とする
+                    if (groupInfo.GroupName.StartsWith("Match-"))
+                    {
+                        Debug.Log($"古いグループを発見: {groupInfo.GroupName}。処理します。");
+
+                        // さらに、そのグループのメンバーリストを取得
+                        PlayFabGroupsAPI.ListGroupMembers(new ListGroupMembersRequest { Group = groupInfo.Group }, 
+                            (membersResult) => 
+                            {
+                                // もしグループのメンバーが自分一人だけなら、グループごと削除する
+                                if (membersResult.Members.Count == 1 && membersResult.Members[0].Key.Id == PlayFabSettings.staticPlayer.EntityId)
+                                {
+                                    Debug.Log("自分が最後のメンバーなので、グループを削除します。");
+                                    PlayFabGroupsAPI.DeleteGroup(new DeleteGroupRequest { Group = groupInfo.Group }, null, null);
+                                }
+                                // 他にメンバーがいる場合は、自分だけがグループから脱退する
+                                else
+                                {
+                                    Debug.Log("グループから脱退します。");
+                                    var myEntityKey = new PlayFab.GroupsModels.EntityKey { Id = PlayFabSettings.staticPlayer.EntityId, Type = PlayFabSettings.staticPlayer.EntityType };
+                                    PlayFabGroupsAPI.RemoveMembers(
+                                        new RemoveMembersRequest 
+                                        { 
+                                            Group = groupInfo.Group, 
+                                            Members = new List<PlayFab.GroupsModels.EntityKey> { myEntityKey } 
+                                        }, 
+                                        null, null
+                                    );
+                                }
+                            }, 
+                            null
+                        );
+                    }
+                }
+                Debug.Log("クリーンアップ処理が完了しました。");
+            },
+            OnPlayFabError
+        );
+    }
+
+    // ===============================================================
     // ホスト側の処理
     // ===============================================================
     private void StartHostFlow(string matchId, List<MatchmakingPlayerWithTeamAssignment> members)
@@ -339,6 +429,7 @@ public class PlayFabMatchmakingManager : MonoBehaviour
             StopCoroutine(_pollTicketCoroutine);
             _pollTicketCoroutine = null;
         }
+        CancelActiveMatchmakingTickets();
     }
 
     private PlayFab.GroupsModels.EntityKey currentGroupKey;
