@@ -22,7 +22,7 @@ public class PlayFabMatchmakingManager : MonoBehaviour
     // 「ホストになる」ボタンから呼び出す
     public void CreateRoom()
     {
-        PlayerHUDManager.Instance.statusText.text = "ホストを作成中...";
+        UIController.Instance.statusText.text = "ホストを作成中...";
         MyRelayNetworkManager.Instance.StartRelayHost(1); // relayManagerの最大プレイヤー数はホスト以外の人数
         StartCoroutine(ShowJoinCodeCoroutine());
     }
@@ -30,7 +30,10 @@ public class PlayFabMatchmakingManager : MonoBehaviour
     // Join Codeが生成されるのを待ってUIに表示する
     private IEnumerator ShowJoinCodeCoroutine()
     {
-        PlayerHUDManager.Instance.statusText.text = "Join Codeを生成中...";
+        if (PlayerHUDManager.Instance?.statusText != null)
+        {
+            PlayerHUDManager.Instance.statusText.text = "Join Codeを生成中...";
+        }
         // relayJoinCodeが空でなくなるまで毎フレーム待つ
         while (string.IsNullOrEmpty(MyRelayNetworkManager.Instance.relayJoinCode))
         {
@@ -39,22 +42,25 @@ public class PlayFabMatchmakingManager : MonoBehaviour
 
         // Join Codeの表示
         roomId = MyRelayNetworkManager.Instance.relayJoinCode;
-        PlayerHUDManager.Instance.statusText.text = "コードを相手に伝えてください";
+        if (PlayerHUDManager.Instance?.statusText != null)
+        {
+            PlayerHUDManager.Instance.statusText.text = "コードを相手に伝えてください";
+            PlayerHUDManager.Instance.UpdateWaitingPanel();
+        }
         Debug.Log("Join Code is: " + MyRelayNetworkManager.Instance.relayJoinCode);
-        PlayerHUDManager.Instance.UpdateWaitingPanel();
     }
 
     // 「参加する」ボタンから呼び出す
     public void JoinRoom()
     {
-        string joinCode = PlayerHUDManager.Instance.roomIdInputField.text;
+        string joinCode = UIController.Instance.roomIdInput.text;
         if (string.IsNullOrEmpty(joinCode))
         {
-            PlayerHUDManager.Instance.statusText.text = "Join Codeを入力してください";
+            UIController.Instance.statusText.text = "Join Codeを入力してください";
             return;
         }
 
-        PlayerHUDManager.Instance.statusText.text = $"コード '{joinCode}' で参加中...";
+        UIController.Instance.statusText.text = $"コード '{joinCode}' で参加中...";
         MyRelayNetworkManager.Instance.relayJoinCode = joinCode;
         MyRelayNetworkManager.Instance.JoinRelayServer();
     }
@@ -68,7 +74,7 @@ public class PlayFabMatchmakingManager : MonoBehaviour
     /// </summary>
     public void StartRandomMatchmaking()
     {
-        PlayerHUDManager.Instance.statusText.text = "対戦相手を探しています...";
+        UIController.Instance.statusText.text = "対戦相手を探しています...";
         Debug.Log("マッチメイキングチケットを作成します...");
 
         // 自身のEntity情報を取得（PlayFabにログイン済みであること）
@@ -122,7 +128,7 @@ public class PlayFabMatchmakingManager : MonoBehaviour
                 StopCoroutine(_pollTicketCoroutine);
                 _pollTicketCoroutine = null;
                 Debug.Log($"マッチング成功！ MatchId: {result.MatchId}");
-                PlayerHUDManager.Instance.statusText.text = "対戦相手が見つかりました！";
+                UIController.Instance.statusText.text = "対戦相手が見つかりました！";
                 GetMatchDetails(result.MatchId, result.QueueName);
                 break;
             case "Canceled":
@@ -130,7 +136,7 @@ public class PlayFabMatchmakingManager : MonoBehaviour
                 StopCoroutine(_pollTicketCoroutine);
                 _pollTicketCoroutine = null;
                 Debug.LogWarning("チケットはキャンセルされました。");
-                PlayerHUDManager.Instance.statusText.text = "対戦相手が見つかりませんでした。";
+                UIController.Instance.statusText.text = "対戦相手が見つかりませんでした。";
                 break;
             case "WaitingForPlayers":
             case "WaitingForMatch":
@@ -176,7 +182,7 @@ public class PlayFabMatchmakingManager : MonoBehaviour
     private IEnumerator HostFlow(string matchId)
     {
         // 1. Relayホストを開始
-        PlayerHUDManager.Instance.statusText.text = "ホストを作成中...";
+        UIController.Instance.statusText.text = "ホストを作成中...";
         MyRelayNetworkManager.Instance.StartRelayHost(1);
 
         // 2. Join Codeが生成されるのを待つ
@@ -188,7 +194,11 @@ public class PlayFabMatchmakingManager : MonoBehaviour
         Debug.Log($"Join Code生成完了: {joinCode}");
 
         // 3. Join CodeをPlayFabのEntity Objectに書き込む
-        PlayerHUDManager.Instance.statusText.text = "接続情報を共有中...";
+        if (PlayerHUDManager.Instance?.statusText != null)
+        {
+            PlayerHUDManager.Instance.statusText.text = "マッチング完了！相手を待っています...";
+            PlayerHUDManager.Instance.roomIdInputField.text = "接続情報を共有中...";
+        }
         ShareJoinCodeOnPlayFab(matchId, joinCode);
     }
 
@@ -213,13 +223,16 @@ public class PlayFabMatchmakingManager : MonoBehaviour
     private void OnSetJoinCodeSuccess(SetObjectsResponse response)
     {
         Debug.Log("Join Codeの共有に成功しました。");
-        PlayerHUDManager.Instance.statusText.text = "相手の参加を待っています...";
+        if (PlayerHUDManager.Instance?.statusText != null)
+        {
+            PlayerHUDManager.Instance.statusText.text = "相手の参加を待っています...";
+        }
         // ここで待機画面などを表示
     }
 
     private IEnumerator ClientFlow(string matchId)
     {
-        PlayerHUDManager.Instance.statusText.text = "ホストの情報を待っています...";
+        UIController.Instance.statusText.text = "ホストの情報を待っています...";
         string joinCode = null;
         float timeout = 30f; // 30秒でタイムアウト
 
@@ -254,14 +267,14 @@ public class PlayFabMatchmakingManager : MonoBehaviour
         if (!string.IsNullOrEmpty(joinCode))
         {
             Debug.Log($"Join Code '{joinCode}' を取得しました。Relayに参加します。");
-            PlayerHUDManager.Instance.statusText.text = $"コード '{joinCode}' で参加中...";
+            UIController.Instance.statusText.text = $"コード '{joinCode}' で参加中...";
             MyRelayNetworkManager.Instance.relayJoinCode = joinCode;
             MyRelayNetworkManager.Instance.JoinRelayServer();
         }
         else
         {
             Debug.LogError("Join Codeの取得に失敗しました（タイムアウト）。");
-            PlayerHUDManager.Instance.statusText.text = "エラー: 参加に失敗しました。";
+            UIController.Instance.statusText.text = "エラー: 参加に失敗しました。";
         }
     }
 
