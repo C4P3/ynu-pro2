@@ -235,14 +235,14 @@ public class PlayFabMatchmakingManager : MonoBehaviour
     {
         UIController.Instance.statusText.text = "ホストの情報を待っています...";
         string joinCode = null;
-        float timeout = 30f; // 30秒でタイムアウト
+        float timeout = 60f; // 30秒でタイムアウト
         bool isJoinCodeFound = false;
 
         while (timeout > 0 && !isJoinCodeFound)
         {
-            // 2秒ごとにJoin Codeをポーリング
-            yield return new WaitForSeconds(2f);
-            timeout -= 2f;
+            // 6秒ごとにJoin Codeをポーリング
+            yield return new WaitForSeconds(6f);
+            timeout -= 6f;
 
             // Title Entity 上のオブジェクトを取得するリクエスト
             var request = new GetObjectsRequest { Entity = new PlayFab.DataModels.EntityKey { Id = PlayFabSettings.TitleId, Type = "title" } };
@@ -260,6 +260,7 @@ public class PlayFabMatchmakingManager : MonoBehaviour
                         {
                             joinCode = code.ToString();
                             isJoinCodeFound = true; // 見つかったフラグを立てる
+                            Debug.Log("なんか見つかってね？" + joinCode);
                         }
                     }
                 },
