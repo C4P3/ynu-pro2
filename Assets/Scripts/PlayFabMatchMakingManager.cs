@@ -22,7 +22,7 @@ public class PlayFabMatchmakingManager : MonoBehaviour
     // 「ホストになる」ボタンから呼び出す
     public void CreateRoom()
     {
-        UIController.Instance.statusText.text = "ホストを作成中...";
+        Debug.Log("ホストを作成中...");
         MyRelayNetworkManager.Instance.StartRelayHost(1); // relayManagerの最大プレイヤー数はホスト以外の人数
         StartCoroutine(ShowJoinCodeCoroutine());
     }
@@ -60,7 +60,7 @@ public class PlayFabMatchmakingManager : MonoBehaviour
             return;
         }
 
-        UIController.Instance.statusText.text = $"コード '{joinCode}' で参加中...";
+        Debug.Log($"コード '{joinCode}' で参加中...");
         MyRelayNetworkManager.Instance.relayJoinCode = joinCode;
         MyRelayNetworkManager.Instance.JoinRelayServer();
     }
@@ -74,7 +74,7 @@ public class PlayFabMatchmakingManager : MonoBehaviour
     /// </summary>
     public void StartRandomMatchmaking()
     {
-        UIController.Instance.statusText.text = "対戦相手を探しています...";
+        Debug.Log("対戦相手を探しています...");
         Debug.Log("マッチメイキングチケットを作成します...");
 
         // 自身のEntity情報を取得（PlayFabにログイン済みであること）
@@ -128,7 +128,7 @@ public class PlayFabMatchmakingManager : MonoBehaviour
                 StopCoroutine(_pollTicketCoroutine);
                 _pollTicketCoroutine = null;
                 Debug.Log($"マッチング成功！ MatchId: {result.MatchId}");
-                UIController.Instance.statusText.text = "対戦相手が見つかりました！";
+                Debug.Log("対戦相手が見つかりました！");
                 GetMatchDetails(result.MatchId, result.QueueName);
                 break;
             case "Canceled":
@@ -136,7 +136,7 @@ public class PlayFabMatchmakingManager : MonoBehaviour
                 StopCoroutine(_pollTicketCoroutine);
                 _pollTicketCoroutine = null;
                 Debug.LogWarning("チケットはキャンセルされました。");
-                UIController.Instance.statusText.text = "対戦相手が見つかりませんでした。";
+                Debug.Log("対戦相手が見つかりませんでした。");
                 break;
             case "WaitingForPlayers":
             case "WaitingForMatch":
@@ -182,7 +182,7 @@ public class PlayFabMatchmakingManager : MonoBehaviour
     private IEnumerator HostFlow(string matchId)
     {
         // 1. Relayホストを開始
-        UIController.Instance.statusText.text = "ホストを作成中...";
+        Debug.Log( "ホストを作成中...");
         MyRelayNetworkManager.Instance.StartRelayHost(1);
 
         // 2. Join Codeが生成されるのを待つ
@@ -233,7 +233,7 @@ public class PlayFabMatchmakingManager : MonoBehaviour
 
     private IEnumerator ClientFlow(string matchId)
     {
-        UIController.Instance.statusText.text = "ホストの情報を待っています...";
+        Debug.Log("ホストの情報を待っています...");
         string joinCode = null;
         float timeout = 60f; // 30秒でタイムアウト
         bool isJoinCodeFound = false;
@@ -278,14 +278,14 @@ public class PlayFabMatchmakingManager : MonoBehaviour
         if (!string.IsNullOrEmpty(joinCode))
         {
             Debug.Log($"Join Code '{joinCode}' を取得しました。Relayに参加します。");
-            UIController.Instance.statusText.text = $"コード '{joinCode}' で参加中...";
+            Debug.Log( $"コード '{joinCode}' で参加中...");
             MyRelayNetworkManager.Instance.relayJoinCode = joinCode;
             MyRelayNetworkManager.Instance.JoinRelayServer();
         }
         else
         {
             Debug.LogError("Join Codeの取得に失敗しました（タイムアウト）。");
-            UIController.Instance.statusText.text = "エラー: 参加に失敗しました。";
+            Debug.Log("エラー: 参加に失敗しました。");
         }
     }
     #endregion
@@ -299,7 +299,7 @@ public class PlayFabMatchmakingManager : MonoBehaviour
     private void OnPlayFabError(PlayFabError error)
     {
         Debug.LogError("PlayFab API Error: " + error.GenerateErrorReport());
-        UIController.Instance.statusText.text = "エラーが発生しました";
+        Debug.Log("エラーが発生しました");
         // 実行中のコルーチンがあれば停止する
         if (_pollTicketCoroutine != null)
         {
