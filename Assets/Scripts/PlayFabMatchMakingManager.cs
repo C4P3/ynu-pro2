@@ -2,17 +2,32 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using PlayFab;
+using PlayFab.Json; // PlayFabSimpleJsonのために必要
+using PlayFab.ClientModels; // ClientModels.EntityKeyのために必要
 using PlayFab.MultiplayerModels;
+using PlayFab.GroupsModels;
 using PlayFab.DataModels;
-using PlayFab.Json;
+using System.Linq;
 
 public class PlayFabMatchmakingManager : MonoBehaviour
 {
     public static PlayFabMatchmakingManager Instance { get; private set; }
 
     private string ticketId;
-    private string myEntityId;
     private Coroutine _pollTicketCoroutine;
+
+    // マッチングした相手の情報を保持
+    private string hostEntityId;
+    private PlayFab.MultiplayerModels.EntityKey hostMultiplayerEntityKey;
+    private PlayFab.MultiplayerModels.EntityKey clientMultiplayerEntityKey;
+
+    // ### このスクリプト内で使用するヘルパークラス ###
+    [System.Serializable]
+    private class JoinCodeData
+    {
+        public string JoinCode;
+    }
+
 
     #region  手動接続（ルームマッチ）
     // 自動マッチングでは使用しない
@@ -75,13 +90,9 @@ public class PlayFabMatchmakingManager : MonoBehaviour
     public void StartRandomMatchmaking()
     {
         Debug.Log("対戦相手を探しています...");
-        Debug.Log("マッチメイキングチケットを作成します...");
-
-        // 自身のEntity情報を取得（PlayFabにログイン済みであること）
-        myEntityId = PlayFabSettings.staticPlayer.EntityId;
         var entityKey = new PlayFab.MultiplayerModels.EntityKey
         {
-            Id = myEntityId,
+            Id = PlayFabSettings.staticPlayer.EntityId,
             Type = PlayFabSettings.staticPlayer.EntityType
         };
 
@@ -91,16 +102,12 @@ public class PlayFabMatchmakingManager : MonoBehaviour
             GiveUpAfterSeconds = 30,
             QueueName = "1vs1RandomMatch"
         };
-
         PlayFabMultiplayerAPI.CreateMatchmakingTicket(request, OnCreateTicketSuccess, OnPlayFabError);
     }
 
     private void OnCreateTicketSuccess(CreateMatchmakingTicketResult result)
     {
         ticketId = result.TicketId;
-        Debug.Log($"チケット作成成功: {ticketId}");
-
-        // チケットの状態をポーリングするコルーチンを開始
         _pollTicketCoroutine = StartCoroutine(PollTicketStatusCoroutine(result.TicketId, "1vs1RandomMatch"));
     }
 
@@ -108,13 +115,11 @@ public class PlayFabMatchmakingManager : MonoBehaviour
     {
         while (true)
         {
-            Debug.Log("チケットの状態を確認中...");
             PlayFabMultiplayerAPI.GetMatchmakingTicket(
                 new GetMatchmakingTicketRequest { TicketId = tId, QueueName = queueName },
                 OnGetTicketStatusSuccess,
                 OnPlayFabError
             );
-            // 推奨される6秒間隔（1分に10回まで。）でポーリング
             yield return new WaitForSeconds(6f);
         }
     }
@@ -124,22 +129,16 @@ public class PlayFabMatchmakingManager : MonoBehaviour
         switch (result.Status)
         {
             case "Matched":
-                // マッチング成功！ポーリングを停止し、マッチ情報を取得する
                 StopCoroutine(_pollTicketCoroutine);
                 _pollTicketCoroutine = null;
                 Debug.Log($"マッチング成功！ MatchId: {result.MatchId}");
-                Debug.Log("対戦相手が見つかりました！");
                 GetMatchDetails(result.MatchId, result.QueueName);
                 break;
             case "Canceled":
-                // チケットがキャンセルされた（タイムアウトなど）
                 StopCoroutine(_pollTicketCoroutine);
                 _pollTicketCoroutine = null;
                 Debug.LogWarning("チケットはキャンセルされました。");
-                Debug.Log("対戦相手が見つかりませんでした。");
                 break;
-            case "WaitingForPlayers":
-            case "WaitingForMatch":
             default:
                 Debug.Log("対戦相手を待っています...");
                 break;
@@ -148,7 +147,6 @@ public class PlayFabMatchmakingManager : MonoBehaviour
 
     private void GetMatchDetails(string matchId, string queueName)
     {
-        Debug.Log("マッチの詳細情報を取得します...");
         PlayFabMultiplayerAPI.GetMatch(
             new GetMatchRequest { MatchId = matchId, QueueName = queueName },
             OnGetMatchSuccess,
@@ -158,137 +156,145 @@ public class PlayFabMatchmakingManager : MonoBehaviour
 
     private void OnGetMatchSuccess(GetMatchResult result)
     {
-        Debug.Log("マッチ情報の取得に成功。メンバー:");
-        foreach (var member in result.Members)
+        // メンバーリストの0番目をホストとする
+        if (result.Members[0].Entity.Id == PlayFabSettings.staticPlayer.EntityId)
         {
-            Debug.Log($"- Entity ID: {member.Entity.Id}");
-        }
-
-        // メンバーリストの最初のプレイヤーをホストとする
-        string hostEntityId = result.Members[0].Entity.Id;
-
-        if (hostEntityId == myEntityId)
-        {
-            Debug.Log("自分がホストです。Relayサーバーを開始します。");
-            StartCoroutine(HostFlow(result.MatchId));
+            Debug.Log("自分がホストです。");
+            StartHostFlow(result.MatchId, result.Members);
         }
         else
         {
-            Debug.Log("自分はクライアントです。ホストのJoin Codeを待ちます。");
-            StartCoroutine(ClientFlow(result.MatchId));
+            Debug.Log("自分はクライアントです。");
+            StartClientFlow(result.Members);
         }
     }
 
-    private IEnumerator HostFlow(string matchId)
+    // ===============================================================
+    // ホスト側の処理
+    // ===============================================================
+    private void StartHostFlow(string matchId, List<MatchmakingPlayerWithTeamAssignment> members)
     {
-        // 1. Relayホストを開始
-        Debug.Log( "ホストを作成中...");
-        MyRelayNetworkManager.Instance.StartRelayHost(1);
+        hostMultiplayerEntityKey = members[0].Entity;
+        clientMultiplayerEntityKey = members[1].Entity;
 
-        // 2. Join Codeが生成されるのを待つ
-        while (string.IsNullOrEmpty(MyRelayNetworkManager.Instance.relayJoinCode))
-        {
-            yield return null;
-        }
-        string joinCode = MyRelayNetworkManager.Instance.relayJoinCode;
-        Debug.Log($"Join Code生成完了: {joinCode}");
-
-        // 3. Join CodeをPlayFabのEntity Objectに書き込む
-        if (PlayerHUDManager.Instance?.statusText != null)
-        {
-            PlayerHUDManager.Instance.statusText.text = "マッチング完了！相手を待っています...";
-            PlayerHUDManager.Instance.roomIdInputField.text = "接続情報を共有中...";
-        }
-        ShareJoinCodeOnPlayFab(matchId, joinCode);
+        var createGroupRequest = new CreateGroupRequest { GroupName = $"Match-{matchId}" };
+        PlayFabGroupsAPI.CreateGroup(createGroupRequest, OnCreateGroupSuccess, OnPlayFabError);
     }
 
-    private void ShareJoinCodeOnPlayFab(string matchId, string joinCode)
+    private void OnCreateGroupSuccess(CreateGroupResponse response)
     {
-        var request = new SetObjectsRequest
+        var groupEntityKey = response.Group;
+        var inviteRequest = new InviteToGroupRequest
         {
-            // Title Entity を使用する (ゲーム全体で共有されるデータ領域)
-            Entity = new PlayFab.DataModels.EntityKey { Id = PlayFabSettings.TitleId, Type = "title" },
-            Objects = new List<SetObject>
-            {
-                new SetObject
-                {
-                    // ObjectName に MatchId を使用して、このマッチ専用のデータとする
-                    ObjectName = matchId,
-                    DataObject = new { JoinCode = joinCode } // 匿名型でJSONオブジェクトを作成
+            Group = groupEntityKey,
+            Entity = new PlayFab.GroupsModels.EntityKey { Id = clientMultiplayerEntityKey.Id, Type = clientMultiplayerEntityKey.Type }
+        };
+        PlayFabGroupsAPI.InviteToGroup(inviteRequest, (inviteResponse) => {
+            Debug.Log("クライアントをグループに招待しました。");
+            StartCoroutine(HostRelayAndShareJoinCode(groupEntityKey));
+        }, OnPlayFabError);
+    }
+
+    private IEnumerator HostRelayAndShareJoinCode(PlayFab.GroupsModels.EntityKey groupEntityKey)
+    {
+        // MyRelayNetworkManager.Instance.StartRelayHost(1); // 実際にはこちらを使用
+        yield return new WaitForSeconds(1); // Relay起動のダミー待機
+        string joinCode = "DUMMY_JOIN_CODE"; // MyRelayNetworkManager.Instance.relayJoinCode;
+        Debug.Log($"Join Code生成: {joinCode}");
+
+        var setObjectsRequest = new SetObjectsRequest
+        {
+            Entity = new PlayFab.DataModels.EntityKey { Id = groupEntityKey.Id, Type = groupEntityKey.Type },
+            Objects = new List<SetObject> {
+                new SetObject {
+                    ObjectName = "ConnectionInfo",
+                    DataObject = new { JoinCode = joinCode }
                 }
             }
         };
-        PlayFabDataAPI.SetObjects(request, OnSetJoinCodeSuccess, OnPlayFabError);
+        PlayFabDataAPI.SetObjects(setObjectsRequest, (res) => Debug.Log("グループにJoinCodeを書き込みました。"), OnPlayFabError);
     }
 
-    private void OnSetJoinCodeSuccess(SetObjectsResponse response)
+    // ===============================================================
+    // クライアント側の処理
+    // ===============================================================
+    private void StartClientFlow(List<MatchmakingPlayerWithTeamAssignment> members)
     {
-        Debug.Log("Join Codeの共有に成功しました。");
-        if (PlayerHUDManager.Instance?.statusText != null)
-        {
-            PlayerHUDManager.Instance.statusText.text = "相手の参加を待っています...";
-        }
-        // ここで待機画面などを表示
+        hostEntityId = members[0].Entity.Id;
+        StartCoroutine(PollForGroupInvitation());
     }
 
-    private IEnumerator ClientFlow(string matchId)
+    private IEnumerator PollForGroupInvitation()
     {
-        Debug.Log("ホストの情報を待っています...");
-        string joinCode = null;
-        float timeout = 30f;
+        float timeout = 20f;
         float elapsedTime = 0f;
+        AcceptGroupInvitationRequest acceptedInvite = null;
 
-        while (elapsedTime < timeout)
+        while (elapsedTime < timeout && acceptedInvite == null)
         {
-            bool apiCallDone = false; // API呼び出しの完了フラグ
-
-            var request = new GetObjectsRequest { Entity = new PlayFab.DataModels.EntityKey { Id = PlayFabSettings.TitleId, Type = "title" } };
-            PlayFabDataAPI.GetObjects(request,
-                (result) =>
+            bool apiCallDone = false;
+            PlayFabGroupsAPI.ListMembershipOpportunities(new ListMembershipOpportunitiesRequest(), (response) => {
+                var invitation = response.Invitations.FirstOrDefault(inv => inv.InvitedByEntity.Key.Id == hostEntityId);
+                if (invitation != null)
                 {
-                    if (result.Objects.TryGetValue(matchId, out var obj))
-                    {
-                        // Dictionary<string, object> に変換してから値を取得
-                        var dataObject = obj.DataObject as Dictionary<string, object>;
-                        if (dataObject != null && dataObject.TryGetValue("JoinCode", out var code))
-                        {
-                            joinCode = code.ToString();
-                        }
-                    }
-                    apiCallDone = true; // 成功時もフラグを立てる
-                },
-                (error) =>
-                {
-                    Debug.LogWarning("Join Codeのポーリング中にエラーが発生。リトライします...");
-                    apiCallDone = true; // エラー時もフラグを立てて次に進む
+                    Debug.Log("ホストからグループへの招待を発見！");
+                    var myEntityKey = new PlayFab.GroupsModels.EntityKey { Id = PlayFabSettings.staticPlayer.EntityId, Type = PlayFabSettings.staticPlayer.EntityType };
+                    acceptedInvite = new AcceptGroupInvitationRequest { Group = invitation.Group, Entity = myEntityKey };
                 }
-            );
+                apiCallDone = true;
+            }, (error) => { apiCallDone = true; });
 
-            // APIのコールバックが呼ばれるまで待機
             yield return new WaitUntil(() => apiCallDone);
-
-            // JoinCodeが取得できたらループを抜ける
-            if (!string.IsNullOrEmpty(joinCode))
-            {
-                break;
-            }
-
-            // 2秒待ってリトライ
-            yield return new WaitForSeconds(2f);
-            elapsedTime += 2f;
+            if (acceptedInvite == null) { yield return new WaitForSeconds(2f); elapsedTime += 2f; }
         }
 
-        // --- この後の処理は同じ ---
+        if (acceptedInvite != null)
+        {
+            PlayFabGroupsAPI.AcceptGroupInvitation(acceptedInvite, OnAcceptInvitationSuccess, OnPlayFabError);
+        }
+        else { Debug.LogError("招待がタイムアウトしました。"); }
+    }
+
+    private void OnAcceptInvitationSuccess(PlayFab.GroupsModels.EmptyResponse response)
+    {
+        Debug.Log("グループへの参加に成功！");
+        PlayFabGroupsAPI.ListMembership(new ListMembershipRequest(), (listResponse) => {
+            var myGroup = listResponse.Groups.FirstOrDefault();
+            if (myGroup != null) { StartCoroutine(PollForJoinCodeInGroup(myGroup.Group)); }
+        }, OnPlayFabError);
+    }
+
+    private IEnumerator PollForJoinCodeInGroup(PlayFab.GroupsModels.EntityKey groupEntityKey)
+    {
+        float timeout = 20f;
+        float elapsedTime = 0f;
+        string joinCode = null;
+
+        while (elapsedTime < timeout && string.IsNullOrEmpty(joinCode))
+        {
+            bool apiCallDone = false;
+            var getObjectsRequest = new GetObjectsRequest { Entity = new PlayFab.DataModels.EntityKey { Id = groupEntityKey.Id, Type = groupEntityKey.Type } };
+            PlayFabDataAPI.GetObjects(getObjectsRequest, (response) => {
+                if (response.Objects.TryGetValue("ConnectionInfo", out var obj))
+                {
+                    var json = PlayFabSimpleJson.SerializeObject(obj.DataObject);
+                    var data = JsonUtility.FromJson<JoinCodeData>(json);
+                    joinCode = data.JoinCode;
+                }
+                apiCallDone = true;
+            }, (error) => { apiCallDone = true; });
+            
+            yield return new WaitUntil(() => apiCallDone);
+            if (string.IsNullOrEmpty(joinCode)) { yield return new WaitForSeconds(1f); elapsedTime += 1f; }
+        }
+
         if (!string.IsNullOrEmpty(joinCode))
         {
-            Debug.Log($"Join Code '{joinCode}' を取得しました。Relayに参加します。");
-            MyRelayNetworkManager.Instance.relayJoinCode = joinCode;
-            MyRelayNetworkManager.Instance.JoinRelayServer();
+            Debug.Log($"JoinCode [{joinCode}] を取得！接続します。");
+            // MyRelayNetworkManager.Instance.relayJoinCode = joinCode;
+            // MyRelayNetworkManager.Instance.JoinRelayServer();
         }
-        else
-        {
-            Debug.LogError("Join Codeの取得に失敗しました（タイムアウト）。");
-        }
+        else { Debug.LogError("JoinCodeの取得がタイムアウトしました。"); }
     }
     #endregion
 
@@ -298,11 +304,12 @@ public class PlayFabMatchmakingManager : MonoBehaviour
         else { Destroy(gameObject); }
     }
 
+    // ===============================================================
+    // 共通エラーハンドラ
+    // ===============================================================
     private void OnPlayFabError(PlayFabError error)
     {
         Debug.LogError("PlayFab API Error: " + error.GenerateErrorReport());
-        Debug.Log("エラーが発生しました");
-        // 実行中のコルーチンがあれば停止する
         if (_pollTicketCoroutine != null)
         {
             StopCoroutine(_pollTicketCoroutine);
