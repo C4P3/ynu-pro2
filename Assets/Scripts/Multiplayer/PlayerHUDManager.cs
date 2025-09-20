@@ -19,7 +19,8 @@ public class PlayerHUDManager : NetworkBehaviour
     [SerializeField] private GameObject resultPanel;
 
     [Header("Waiting UI")]
-    [SerializeField] private TMP_InputField roomIdInputField;
+    [SerializeField] public TextMeshProUGUI statusText;
+    [SerializeField] public TMP_InputField roomIdInputField;
     [SerializeField] private TextMeshProUGUI hostName;
 
     [Header("Countdown UI")]

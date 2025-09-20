@@ -443,7 +443,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 7.0299993}
-  m_SizeDelta: {x: 30, y: 1}
+  m_SizeDelta: {x: 30, y: 3}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &8230639191968022351
 CanvasRenderer:
@@ -500,8 +500,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 1.5
-  m_fontSizeBase: 1.5
+  m_fontSize: 1.3
+  m_fontSizeBase: 1.3
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -3907,6 +3907,7 @@ MonoBehaviour:
   waitingForPlayerPanel: {fileID: 6790748067058194935}
   inGameHUDPanel: {fileID: 8619165815500024575}
   resultPanel: {fileID: 1064363599798643415}
+  statusText: {fileID: 8732910454489024403}
   roomIdInputField: {fileID: 1725266002956208175}
   hostName: {fileID: 496887721453871768}
   countdownPanel: {fileID: 3609902925499378622}
