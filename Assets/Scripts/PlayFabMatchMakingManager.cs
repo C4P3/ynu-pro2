@@ -20,6 +20,7 @@ public class PlayFabMatchmakingManager : MonoBehaviour
     private string hostEntityId;
     private PlayFab.MultiplayerModels.EntityKey hostMultiplayerEntityKey;
     private PlayFab.MultiplayerModels.EntityKey clientMultiplayerEntityKey;
+    private string currentMatchId;
 
     // ### このスクリプト内で使用するヘルパークラス ###
     [System.Serializable]
@@ -156,6 +157,8 @@ public class PlayFabMatchmakingManager : MonoBehaviour
 
     private void OnGetMatchSuccess(GetMatchResult result)
     {
+        currentMatchId = result.MatchId;
+
         // メンバーリストの0番目をホストとする
         if (result.Members[0].Entity.Id == PlayFabSettings.staticPlayer.EntityId)
         {
@@ -189,7 +192,8 @@ public class PlayFabMatchmakingManager : MonoBehaviour
             Group = groupEntityKey,
             Entity = new PlayFab.GroupsModels.EntityKey { Id = clientMultiplayerEntityKey.Id, Type = clientMultiplayerEntityKey.Type }
         };
-        PlayFabGroupsAPI.InviteToGroup(inviteRequest, (inviteResponse) => {
+        PlayFabGroupsAPI.InviteToGroup(inviteRequest, (inviteResponse) =>
+        {
             Debug.Log("クライアントをグループに招待しました。");
             StartCoroutine(HostRelayAndShareJoinCode(groupEntityKey));
         }, OnPlayFabError);
@@ -238,7 +242,8 @@ public class PlayFabMatchmakingManager : MonoBehaviour
         while (elapsedTime < timeout && acceptedInvite == null)
         {
             bool apiCallDone = false;
-            PlayFabGroupsAPI.ListMembershipOpportunities(new ListMembershipOpportunitiesRequest(), (response) => {
+            PlayFabGroupsAPI.ListMembershipOpportunities(new ListMembershipOpportunitiesRequest(), (response) =>
+            {
                 var invitation = response.Invitations.FirstOrDefault(inv => inv.InvitedByEntity.Key.Id == hostEntityId);
                 if (invitation != null)
                 {
@@ -263,9 +268,22 @@ public class PlayFabMatchmakingManager : MonoBehaviour
     private void OnAcceptInvitationSuccess(PlayFab.GroupsModels.EmptyResponse response)
     {
         Debug.Log("グループへの参加に成功！");
-        PlayFabGroupsAPI.ListMembership(new ListMembershipRequest(), (listResponse) => {
-            var myGroup = listResponse.Groups.FirstOrDefault();
-            if (myGroup != null) { StartCoroutine(PollForJoinCodeInGroup(myGroup.Group)); }
+        PlayFabGroupsAPI.ListMembership(new ListMembershipRequest(), (listResponse) =>
+        {
+
+            // ★★★ 手順2: 正しいグループをmatchIdから検索 ★★★
+            // "Match-{matchId}" という命名規則を利用します
+            var targetGroupName = $"Match-{currentMatchId}";
+            var myGroup = listResponse.Groups.FirstOrDefault(g => g.GroupName == targetGroupName);
+
+            if (myGroup != null)
+            {
+                StartCoroutine(PollForJoinCodeInGroup(myGroup.Group));
+            }
+            else
+            {
+                Debug.LogError($"現在のmatchIdに一致するグループ({targetGroupName})が見つかりませんでした。");
+            }
         }, OnPlayFabError);
     }
 
@@ -279,7 +297,8 @@ public class PlayFabMatchmakingManager : MonoBehaviour
         {
             bool apiCallDone = false;
             var getObjectsRequest = new GetObjectsRequest { Entity = new PlayFab.DataModels.EntityKey { Id = groupEntityKey.Id, Type = groupEntityKey.Type } };
-            PlayFabDataAPI.GetObjects(getObjectsRequest, (response) => {
+            PlayFabDataAPI.GetObjects(getObjectsRequest, (response) =>
+            {
                 if (response.Objects.TryGetValue("ConnectionInfo", out var obj))
                 {
                     var json = PlayFabSimpleJson.SerializeObject(obj.DataObject);
@@ -288,7 +307,7 @@ public class PlayFabMatchmakingManager : MonoBehaviour
                 }
                 apiCallDone = true;
             }, (error) => { apiCallDone = true; });
-            
+
             yield return new WaitUntil(() => apiCallDone);
             if (string.IsNullOrEmpty(joinCode)) { yield return new WaitForSeconds(1f); elapsedTime += 1f; }
         }
@@ -320,5 +339,46 @@ public class PlayFabMatchmakingManager : MonoBehaviour
             StopCoroutine(_pollTicketCoroutine);
             _pollTicketCoroutine = null;
         }
+    }
+
+    private PlayFab.GroupsModels.EntityKey currentGroupKey;
+
+    // 試合終了時にホストが呼び出す
+    public void CleanUpGroupAsHost()
+    {
+        if (currentGroupKey == null) return;
+
+        var request = new DeleteGroupRequest { Group = currentGroupKey };
+        PlayFabGroupsAPI.DeleteGroup(request,
+            (res) =>
+            {
+                Debug.Log("グループを正常に削除しました。");
+                currentGroupKey = null; // リセット
+            },
+            OnPlayFabError
+        );
+    }
+    
+    // 試合終了時にクライアントが呼び出す
+    public void CleanUpGroupAsClient()
+    {
+        if (currentGroupKey == null) return;
+
+        // 自分自身のEntityKeyを取得
+        var myEntityKey = new PlayFab.GroupsModels.EntityKey { Id = PlayFabSettings.staticPlayer.EntityId, Type = PlayFabSettings.staticPlayer.EntityType };
+
+        var request = new RemoveMembersRequest
+        {
+            Group = currentGroupKey,
+            Members = new List<PlayFab.GroupsModels.EntityKey> { myEntityKey }
+        };
+
+        PlayFabGroupsAPI.RemoveMembers(request, 
+            (res) => {
+                Debug.Log("グループから正常に脱退しました。");
+                currentGroupKey = null; // リセット
+            },
+            OnPlayFabError
+        );
     }
 }

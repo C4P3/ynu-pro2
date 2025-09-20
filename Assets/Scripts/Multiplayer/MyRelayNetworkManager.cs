@@ -85,6 +85,7 @@ public class MyRelayNetworkManager : RelayNetworkManager
         relayJoinCode = "";
         Debug.Log("A client disconnected from the server.");
         // 他のプレイヤーに通知するなどの処理をここに追加できる
+        PlayFabMatchmakingManager.Instance.CleanUpGroupAsHost();
         base.OnServerDisconnect(conn);
     }
 
@@ -94,6 +95,7 @@ public class MyRelayNetworkManager : RelayNetworkManager
     public override void OnClientDisconnect()
     {
         relayJoinCode = "";
+        PlayFabMatchmakingManager.Instance.CleanUpGroupAsClient();
         Debug.Log("Disconnected from server. Returning to StartScene.");
 
         // Time.timeScaleを元に戻す
