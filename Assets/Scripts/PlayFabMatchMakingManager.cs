@@ -84,7 +84,7 @@ public class PlayFabMatchmakingManager : MonoBehaviour
             // マッチングできるまで待機する秒数を指定します。最大600秒です。
             GiveUpAfterSeconds = 30,
             // GameManagerで作ったキューの名前を指定します。
-            QueueName = "1vs1Battle"
+            QueueName = "1vs1RandomMatch"
         };
 
         PlayFabMultiplayerAPI.CreateMatchmakingTicket(request, OnCreateMatchmakingTicketSuccess, OnFailure);
