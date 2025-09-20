@@ -232,7 +232,7 @@ public class PlayFabMatchmakingManager : MonoBehaviour
                             (membersResult) => 
                             {
                                 // もしグループのメンバーが自分一人だけなら、グループごと削除する
-                                if (membersResult.Members.Count == 1 && membersResult.Members[0].Key.Id == PlayFabSettings.staticPlayer.EntityId)
+                                if (membersResult.Members.Count == 1 && membersResult.Members[0].RoleId == PlayFabSettings.staticPlayer.EntityId)
                                 {
                                     Debug.Log("自分が最後のメンバーなので、グループを削除します。");
                                     PlayFabGroupsAPI.DeleteGroup(new DeleteGroupRequest { Group = groupInfo.Group }, null, null);
