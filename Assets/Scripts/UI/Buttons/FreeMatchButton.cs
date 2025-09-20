@@ -9,6 +9,7 @@ public class FreeMatchButton : IButton
 {
     public override void OnPointerClick()
     {
+        PlayFabMatchmakingManager.Instance.JoinRandomMatch();
         base.OnPointerClick();
     }
 
