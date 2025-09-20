@@ -206,13 +206,14 @@ public class PlayFabMatchmakingManager : MonoBehaviour
     {
         var request = new SetObjectsRequest
         {
-            // マッチIDをEntityとして扱う
-            Entity = new PlayFab.DataModels.EntityKey { Id = matchId, Type = "match" },
+            // Title Entity を使用する (ゲーム全体で共有されるデータ領域)
+            Entity = new PlayFab.DataModels.EntityKey { Id = PlayFabSettings.TitleId, Type = "title" },
             Objects = new List<SetObject>
             {
                 new SetObject
                 {
-                    ObjectName = "RelayInfo",
+                    // ObjectName に MatchId を使用して、このマッチ専用のデータとする
+                    ObjectName = "matchId",
                     DataObject = new { JoinCode = joinCode } // 匿名型でJSONオブジェクトを作成
                 }
             }
@@ -235,18 +236,22 @@ public class PlayFabMatchmakingManager : MonoBehaviour
         UIController.Instance.statusText.text = "ホストの情報を待っています...";
         string joinCode = null;
         float timeout = 30f; // 30秒でタイムアウト
+        bool isJoinCodeFound = false;
 
-        while (timeout > 0 && string.IsNullOrEmpty(joinCode))
+        while (timeout > 0 && !isJoinCodeFound)
         {
             // 2秒ごとにJoin Codeをポーリング
             yield return new WaitForSeconds(2f);
             timeout -= 2f;
 
-            var request = new GetObjectsRequest { Entity = new PlayFab.DataModels.EntityKey { Id = matchId, Type = "match" } };
+            // Title Entity 上のオブジェクトを取得するリクエスト
+            var request = new GetObjectsRequest { Entity = new PlayFab.DataModels.EntityKey { Id = PlayFabSettings.TitleId, Type = "title" } };
+            
             PlayFabDataAPI.GetObjects(request,
                 (result) =>
                 {
-                    if (result.Objects.TryGetValue("RelayInfo", out var obj))
+                    // ObjectName が matchId と一致するものを探す
+                    if (result.Objects.TryGetValue(matchId, out var obj))
                     {
                         // PlayFabのSimpleJsonを使ってパース
                         var json = PlayFabSimpleJson.SerializeObject(obj.DataObject);
@@ -254,14 +259,19 @@ public class PlayFabMatchmakingManager : MonoBehaviour
                         if (data.TryGetValue("JoinCode", out var code))
                         {
                             joinCode = code.ToString();
+                            isJoinCodeFound = true; // 見つかったフラグを立てる
                         }
                     }
                 },
-                (error) => { /* エラーはOnPlayFabErrorで処理 */ }
+                (error) => 
+                { 
+                    // OnPlayFabErrorで処理されるが、ポーリング中の軽微なエラーは無視してもよい
+                    Debug.LogWarning("Polling for Join Code failed, will retry...");
+                }
             );
-
-            // joinCodeが取得できるまで待機
-            yield return new WaitUntil(() => joinCode != null);
+            
+            // APIコールが完了し、フラグが立つまで待機
+            yield return new WaitUntil(() => isJoinCodeFound);
         }
 
         if (!string.IsNullOrEmpty(joinCode))
@@ -277,7 +287,6 @@ public class PlayFabMatchmakingManager : MonoBehaviour
             UIController.Instance.statusText.text = "エラー: 参加に失敗しました。";
         }
     }
-
     #endregion
 
     void Awake()
@@ -289,7 +298,7 @@ public class PlayFabMatchmakingManager : MonoBehaviour
     private void OnPlayFabError(PlayFabError error)
     {
         Debug.LogError("PlayFab API Error: " + error.GenerateErrorReport());
-        PlayerHUDManager.Instance.statusText.text = "エラーが発生しました";
+        UIController.Instance.statusText.text = "エラーが発生しました";
         // 実行中のコルーチンがあれば停止する
         if (_pollTicketCoroutine != null)
         {
