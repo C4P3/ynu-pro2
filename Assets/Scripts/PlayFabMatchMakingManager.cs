@@ -82,7 +82,7 @@ public class PlayFabMatchmakingManager : MonoBehaviour
     #endregion
 
     #region 自動マッチングフロー
-    // PlayFabのキューを利用した自動マッチング
+    // PlayFabのキューとグループを利用した自動マッチング
 
     /// <summary>
     /// ランダムマッチングを開始するエントリーポイント
@@ -197,10 +197,15 @@ public class PlayFabMatchmakingManager : MonoBehaviour
 
     private IEnumerator HostRelayAndShareJoinCode(PlayFab.GroupsModels.EntityKey groupEntityKey)
     {
-        // MyRelayNetworkManager.Instance.StartRelayHost(1); // 実際にはこちらを使用
-        yield return new WaitForSeconds(1); // Relay起動のダミー待機
-        string joinCode = "DUMMY_JOIN_CODE"; // MyRelayNetworkManager.Instance.relayJoinCode;
-        Debug.Log($"Join Code生成: {joinCode}");
+        MyRelayNetworkManager.Instance.StartRelayHost(1);
+
+        while (string.IsNullOrEmpty(MyRelayNetworkManager.Instance.relayJoinCode))
+        {
+            yield return null; // 毎フレーム待機
+        }
+
+        string joinCode = MyRelayNetworkManager.Instance.relayJoinCode;
+        Debug.Log($"Join Code生成完了: {joinCode}");
 
         var setObjectsRequest = new SetObjectsRequest
         {
@@ -291,8 +296,8 @@ public class PlayFabMatchmakingManager : MonoBehaviour
         if (!string.IsNullOrEmpty(joinCode))
         {
             Debug.Log($"JoinCode [{joinCode}] を取得！接続します。");
-            // MyRelayNetworkManager.Instance.relayJoinCode = joinCode;
-            // MyRelayNetworkManager.Instance.JoinRelayServer();
+            MyRelayNetworkManager.Instance.relayJoinCode = joinCode;
+            MyRelayNetworkManager.Instance.JoinRelayServer();
         }
         else { Debug.LogError("JoinCodeの取得がタイムアウトしました。"); }
     }
