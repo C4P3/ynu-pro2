@@ -118,7 +118,7 @@ public class PlayerHUDManager : NetworkBehaviour
 
         if (waitingForPlayerPanel.activeSelf && PlayFabMatchmakingManager.Instance != null)
         {
-            if (!string.IsNullOrEmpty(PlayFabMatchmakingManager.Instance.roomId) && 
+            if (!string.IsNullOrEmpty(PlayFabMatchmakingManager.Instance.roomId) &&
                 roomIdInputField.text != $"Room ID: {PlayFabMatchmakingManager.Instance.roomId} [コピー]")
             {
                 UpdateWaitingPanel();
@@ -178,7 +178,7 @@ public class PlayerHUDManager : NetworkBehaviour
 
     #region UI Content Updates
 
-    private void UpdateWaitingPanel()
+    public void UpdateWaitingPanel()
     {
         if (roomIdInputField != null && PlayFabMatchmakingManager.Instance != null)
         {

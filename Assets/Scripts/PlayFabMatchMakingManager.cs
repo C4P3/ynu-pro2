@@ -37,6 +37,7 @@ public class PlayFabMatchmakingManager : MonoBehaviour
         roomId = MyRelayNetworkManager.Instance.relayJoinCode;
         UIController.Instance.statusText.text = "コードを相手に伝えてください";
         Debug.Log("Join Code is: " + MyRelayNetworkManager.Instance.relayJoinCode);
+        PlayerHUDManager.Instance.UpdateWaitingPanel();
     }
 
     // 「参加する」ボタンから呼び出す

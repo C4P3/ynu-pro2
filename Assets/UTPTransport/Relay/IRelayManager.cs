@@ -39,10 +39,5 @@ namespace Utp
 		/// <param name="onSuccess">A callback to invoke when the Relay server is successfully allocated.</param>
 		/// <param name="onFailure">A callback to invoke when the Relay server is unsuccessfully allocated.</param>
 		public void AllocateRelayServer(int maxPlayers, string regionId, Action<string> onSuccess, Action onFailure);
-
-		/// <summary>
-		/// Relay関連の情報を強制的にリセットする
-		/// </summary>
-		public void ResetRelayData();
 	}
 }

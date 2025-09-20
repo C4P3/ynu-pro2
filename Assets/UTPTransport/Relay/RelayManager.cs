@@ -175,12 +175,5 @@ namespace Utp
 
 			onSuccess?.Invoke(getJoinCode.Result);
 		}
-		
-		public void ResetRelayData()
-		{
-			ServerAllocation = null;
-			JoinAllocation = null;
-			Debug.Log("RelayManagerのアロケーションデータがクリアされました。");
-		}
 	}
 }
