@@ -213,7 +213,7 @@ public class PlayFabMatchmakingManager : MonoBehaviour
                 new SetObject
                 {
                     // ObjectName に MatchId を使用して、このマッチ専用のデータとする
-                    ObjectName = "matchId",
+                    ObjectName = matchId,
                     DataObject = new { JoinCode = joinCode } // 匿名型でJSONオブジェクトを作成
                 }
             }
@@ -235,51 +235,59 @@ public class PlayFabMatchmakingManager : MonoBehaviour
     {
         Debug.Log("ホストの情報を待っています...");
         string joinCode = null;
-        float timeout = 30f; // 30秒でタイムアウト
-        
-        while (timeout > 0 && string.IsNullOrEmpty(joinCode))
+        float timeout = 30f;
+        float elapsedTime = 0f;
+
+        while (elapsedTime < timeout)
         {
-            // Title Entity 上のオブジェクトを取得するリクエスト
+            bool apiCallDone = false; // API呼び出しの完了フラグ
+
             var request = new GetObjectsRequest { Entity = new PlayFab.DataModels.EntityKey { Id = PlayFabSettings.TitleId, Type = "title" } };
-            
             PlayFabDataAPI.GetObjects(request,
                 (result) =>
                 {
-                    // ObjectName が matchId と一致するものを探す
                     if (result.Objects.TryGetValue(matchId, out var obj))
                     {
-                        // PlayFabのSimpleJsonを使ってパース
-                        var json = PlayFabSimpleJson.SerializeObject(obj.DataObject);
-                        var data = PlayFabSimpleJson.DeserializeObject<Dictionary<string, object>>(json);
-                        if (data.TryGetValue("JoinCode", out var code))
+                        // Dictionary<string, object> に変換してから値を取得
+                        var dataObject = obj.DataObject as Dictionary<string, object>;
+                        if (dataObject != null && dataObject.TryGetValue("JoinCode", out var code))
                         {
                             joinCode = code.ToString();
                         }
                     }
+                    apiCallDone = true; // 成功時もフラグを立てる
                 },
-                (error) => 
-                { 
-                    // OnPlayFabErrorで処理されるが、ポーリング中の軽微なエラーは無視してもよい
-                    Debug.LogWarning("Polling for Join Code failed, will retry...");
+                (error) =>
+                {
+                    Debug.LogWarning("Join Codeのポーリング中にエラーが発生。リトライします...");
+                    apiCallDone = true; // エラー時もフラグを立てて次に進む
                 }
             );
-            
-            // 2秒待ってから再試行する。この間に上記の非同期コールバックがjoinCodeをセットする可能性がある
+
+            // APIのコールバックが呼ばれるまで待機
+            yield return new WaitUntil(() => apiCallDone);
+
+            // JoinCodeが取得できたらループを抜ける
+            if (!string.IsNullOrEmpty(joinCode))
+            {
+                break;
+            }
+
+            // 2秒待ってリトライ
             yield return new WaitForSeconds(2f);
-            timeout -= 2f;
+            elapsedTime += 2f;
         }
 
+        // --- この後の処理は同じ ---
         if (!string.IsNullOrEmpty(joinCode))
         {
             Debug.Log($"Join Code '{joinCode}' を取得しました。Relayに参加します。");
-            Debug.Log( $"コード '{joinCode}' で参加中...");
             MyRelayNetworkManager.Instance.relayJoinCode = joinCode;
             MyRelayNetworkManager.Instance.JoinRelayServer();
         }
         else
         {
             Debug.LogError("Join Codeの取得に失敗しました（タイムアウト）。");
-            Debug.Log("エラー: 参加に失敗しました。");
         }
     }
     #endregion
