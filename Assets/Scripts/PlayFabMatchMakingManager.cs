@@ -235,15 +235,10 @@ public class PlayFabMatchmakingManager : MonoBehaviour
     {
         Debug.Log("ホストの情報を待っています...");
         string joinCode = null;
-        float timeout = 60f; // 30秒でタイムアウト
-        bool isJoinCodeFound = false;
-
-        while (timeout > 0 && !isJoinCodeFound)
+        float timeout = 30f; // 30秒でタイムアウト
+        
+        while (timeout > 0 && string.IsNullOrEmpty(joinCode))
         {
-            // 6秒ごとにJoin Codeをポーリング
-            yield return new WaitForSeconds(6f);
-            timeout -= 6f;
-
             // Title Entity 上のオブジェクトを取得するリクエスト
             var request = new GetObjectsRequest { Entity = new PlayFab.DataModels.EntityKey { Id = PlayFabSettings.TitleId, Type = "title" } };
             
@@ -259,8 +254,6 @@ public class PlayFabMatchmakingManager : MonoBehaviour
                         if (data.TryGetValue("JoinCode", out var code))
                         {
                             joinCode = code.ToString();
-                            isJoinCodeFound = true; // 見つかったフラグを立てる
-                            Debug.Log("なんか見つかってね？" + joinCode);
                         }
                     }
                 },
@@ -271,8 +264,9 @@ public class PlayFabMatchmakingManager : MonoBehaviour
                 }
             );
             
-            // APIコールが完了し、フラグが立つまで待機
-            yield return new WaitUntil(() => isJoinCodeFound);
+            // 2秒待ってから再試行する。この間に上記の非同期コールバックがjoinCodeをセットする可能性がある
+            yield return new WaitForSeconds(2f);
+            timeout -= 2f;
         }
 
         if (!string.IsNullOrEmpty(joinCode))
