@@ -9,6 +9,7 @@ public class RankMatchButton : IButton
 {
     public override void OnPointerClick()
     {
+        PlayFabMatchmakingManager.Instance.StartRandomMatchmaking();
         base.OnPointerClick();
     }
 
